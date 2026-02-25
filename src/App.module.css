@@ -40,6 +40,12 @@
   color: rgba(0, 0, 0, 0.65);
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* ─── Main layout ─── */
 
 .main {

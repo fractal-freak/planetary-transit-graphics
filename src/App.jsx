@@ -3,9 +3,12 @@ import { DEFAULT_JOBS, PLANET_MAP } from './data/planets';
 import { getDefaultOrbSettings } from './data/orbDefaults';
 import { useTransits } from './hooks/useTransits';
 import { useNatalTransits } from './hooks/useNatalTransits';
+import { useAuth } from './contexts/AuthContext';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
 import Controls from './components/Controls/Controls';
 import ExportButton from './components/ExportButton/ExportButton';
+import UserMenu from './components/Auth/UserMenu';
+import AuthModal from './components/Auth/AuthModal';
 import styles from './App.module.css';
 
 const DEFAULT_START = new Date(2025, 0, 1);
@@ -20,6 +23,8 @@ export default function App() {
   const [zoom, setZoom] = useState(1);
   const [orbSettings, setOrbSettings] = useState(getDefaultOrbSettings);
   const [overlayData, setOverlayData] = useState({ crowdedRows: [], rowLayouts: [] });
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, savedCharts, defaultChartId } = useAuth();
 
   // ── Natal mode state (persisted to localStorage) ──
   const [natalChart, setNatalChart] = useState(() => {
@@ -50,6 +55,24 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ptg_natalJobs', JSON.stringify(natalJobs));
   }, [natalJobs]);
+
+  // Auto-load default chart when user signs in
+  useEffect(() => {
+    if (user && defaultChartId && savedCharts.length > 0 && !natalChart) {
+      const defaultChart = savedCharts.find(c => c.id === defaultChartId);
+      if (defaultChart) {
+        setNatalChart({
+          birthDate: defaultChart.birthDate,
+          birthTime: defaultChart.birthTime,
+          lat: defaultChart.lat,
+          lng: defaultChart.lng,
+          locationName: defaultChart.locationName,
+          positions: defaultChart.positions,
+          angles: defaultChart.angles || null,
+        });
+      }
+    }
+  }, [user, defaultChartId, savedCharts]);
 
   const { curves, signChanges, loading } = useTransits(transitJobs, startDate, endDate, orbSettings);
   const { curves: natalCurves, signChanges: natalSignChanges, loading: natalLoading } = useNatalTransits(
@@ -197,7 +220,10 @@ export default function App() {
           <span className={styles.headerDot} />
           <h1 className={styles.title}>Planetary Transit Graphics</h1>
         </div>
-        <ExportButton canvasRef={canvasRef} />
+        <div className={styles.headerRight}>
+          <ExportButton canvasRef={canvasRef} />
+          <UserMenu onSignInClick={() => setShowAuthModal(true)} />
+        </div>
       </header>
 
       <main className={styles.main}>
@@ -342,6 +368,10 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      {showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
+      )}
     </div>
   );
 }
