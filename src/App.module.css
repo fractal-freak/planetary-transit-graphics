@@ -1,0 +1,256 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ─── Header ─── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(245, 243, 239, 0.9);
+  backdrop-filter: blur(16px);
+  z-index: 10;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #5090e0 0%, #2050b0 100%);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+/* ─── Main layout ─── */
+
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Chart area (canvas + zoom bar) ─── */
+
+.chartArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── Canvas wrapper (positioning context for overlay) ─── */
+
+.canvasWrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Canvas container (scrolls horizontally when zoomed) ─── */
+
+.canvasContainer {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ─── Zoom bar below chart ─── */
+
+.zoomBar {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  max-width: 320px;
+}
+
+.zoomControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.zoomSlider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.zoomSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.zoomSlider::-webkit-slider-thumb:hover {
+  background: rgba(0, 0, 0, 1);
+}
+
+.zoomSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  cursor: pointer;
+}
+
+.zoomLabel {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.35);
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ─── Non-scrolling canvas overlay (Y-axis + crowded notes) ─── */
+
+.canvasOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.yAxisColumn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: #f5f3ef;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.yAxisLabel {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yAxisGlyph {
+  font: 26px "Apple Symbols", "Segoe UI Symbol", serif;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.40);
+  line-height: 1;
+}
+
+.crowdedNote {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+}
+
+.crowdedNoteText {
+  font-size: 10px;
+  font-weight: 500;
+  font-family: Inter, system-ui, sans-serif;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ─── Sticky year label (shown when zoomed & scrolled) ─── */
+
+/* Clip container: starts at the y-axis border and extends to the right.
+   overflow: hidden causes the sticky label to slide behind the y-axis
+   border line when pushed out by the next year's approaching label. */
+.stickyYearClip {
+  position: absolute;
+  right: 0;
+  height: 20px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.stickyYear {
+  position: absolute;
+  top: 0;
+  font: 600 11px Inter, system-ui, sans-serif;
+  color: rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ─── Loading overlay ─── */
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(245, 243, 239, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 20;
+}
+
+.loadingText {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.05em;
+}
+
+/* ─── Empty state ─── */
+
+.emptyState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+/* ─── Mobile ─── */
+
+@media (max-width: 767px) {
+  .title {
+    font-size: 12px;
+  }
+}

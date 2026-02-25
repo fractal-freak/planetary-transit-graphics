@@ -1,0 +1,934 @@
+/* ─── Sidebar (desktop) / Bottom sheet (mobile) ─── */
+
+.controls {
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(240, 238, 233, 0.95);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.controlsInner {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ─── Mode Tabs ─── */
+
+.modeTabs {
+  display: flex;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: -12px;
+}
+
+.modeTab {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.modeTab:hover {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.modeTabActive {
+  background: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.section {}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.35);
+  margin-bottom: 12px;
+}
+
+/* ─── Date Range ─── */
+
+.dateRange {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dateLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.dateLabelText {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dateInput {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  color: rgba(0, 0, 0, 0.7);
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Quick Range Buttons ─── */
+
+.quickRange {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.quickRangeBtn {
+  flex: 1;
+  padding: 5px 0;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quickRangeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.18);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.dateSep {
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+/* ─── Transit Job List ─── */
+
+.jobList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ─── Transit Job Card ─── */
+
+.jobCard {
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.jobCard:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.jobCardExpanded {
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.jobCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.jobPlanet {
+  font-size: 14px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.65);
+  flex: 1;
+}
+
+.jobNoAspects {
+  padding: 4px 10px 6px;
+  font-size: 9px;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+}
+
+.jobRemove {
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.jobRemove:hover {
+  color: rgba(200, 50, 50, 0.7);
+}
+
+.jobCardBody {
+  padding: 6px 10px 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jobSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jobSectionLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Wizard ─── */
+
+.wizardContainer {
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wizardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wizardTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  letter-spacing: 0.02em;
+}
+
+.wizardClose {
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: inherit;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.wizardClose:hover {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ─── Planet Grid (Wizard Step 1) ─── */
+
+.planetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.planetBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.01);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.planetBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.planetBtnSymbol {
+  font-size: 16px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.planetBtnName {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.03em;
+}
+
+/* ─── Target List (Wizard Step 2 & Job Card) ─── */
+
+.targetList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.targetItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.targetItem:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.targetAllLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+  font-weight: 500;
+}
+
+.targetCheckbox {
+  width: 13px;
+  height: 13px;
+  accent-color: rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.targetSymbol {
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.5);
+  width: 16px;
+  text-align: center;
+}
+
+.targetName {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.targetDivider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.targetDivider::before,
+.targetDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.targetDividerText {
+  font-size: 8px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ─── Wizard Nav ─── */
+
+.wizardNav {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.wizardBtn {
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.wizardBtn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.7);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.wizardBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.wizardBtnPrimary {
+  background: rgba(0, 0, 0, 0.75);
+  color: #f5f3ef;
+  border-color: rgba(0, 0, 0, 0.75);
+}
+
+.wizardBtnPrimary:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border-color: rgba(0, 0, 0, 0.85);
+}
+
+/* ─── Add Transit Button ─── */
+
+.addTransitBtn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  background: transparent;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.addTransitBtn:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ─── Aspect Toggles ─── */
+
+.aspectGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aspectToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.01);
+  color: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+}
+
+.aspectToggle:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.aspectEnabled {
+  border-color: rgba(0, 0, 0, 0.18);
+  color: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.aspectEnabled:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.aspectSymbol {
+  font-size: 14px;
+  line-height: 1;
+  width: 16px;
+  text-align: center;
+}
+
+.aspectName {
+  flex: 1;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.aspectAngle {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Sign Change Toggle ─── */
+
+.signChangeToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.signChangeLabel {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.02em;
+}
+
+/* ─── Zoom Control ─── */
+
+.zoomControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zoomSlider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.zoomSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.zoomSlider::-webkit-slider-thumb:hover {
+  background: rgba(0, 0, 0, 1);
+}
+
+.zoomSlider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  cursor: pointer;
+}
+
+.zoomLabel {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ─── Orb Settings ─── */
+
+.orbSettingsWrap {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.orbToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.35);
+  transition: color 0.15s;
+}
+
+.orbToggle:hover {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.orbList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0 4px;
+}
+
+.orbRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orbPlanetSymbol {
+  font-size: 14px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.50);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.orbSlider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.orbSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.orbSlider::-webkit-slider-thumb:hover {
+  background: rgba(0, 0, 0, 1);
+}
+
+.orbSlider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  cursor: pointer;
+}
+
+.orbValue {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* ─── Mobile toggle pill ─── */
+
+.mobileToggle {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  background: rgba(245, 243, 239, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
+}
+
+.mobileToggle:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* ─── Natal Data Input ─── */
+
+.natalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.natalFormRow {
+  display: flex;
+  gap: 8px;
+}
+
+.natalLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.natalLabelText {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.natalInput {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  color: rgba(0, 0, 0, 0.7);
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.natalInput:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.natalInput::placeholder {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.natalLocationWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.natalLocationWrap .natalInput {
+  padding-right: 24px;
+}
+
+.natalLocationCheck {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  color: rgba(60, 150, 60, 0.7);
+}
+
+.natalLocationResults {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.natalLocationResult {
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 6px 8px;
+  font-size: 10px;
+  font-family: inherit;
+  color: rgba(0, 0, 0, 0.55);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+  line-height: 1.3;
+}
+
+.natalLocationResult:last-child {
+  border-bottom: none;
+}
+
+.natalLocationResult:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.natalSearching {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  padding: 2px 0;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Natal Summary (after calculation) ─── */
+
+.natalSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px;
+}
+
+.natalSummaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.natalSummaryDate {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.natalSummaryLocation {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.02em;
+  margin-top: -4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.natalClearBtn {
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+
+.natalClearBtn:hover {
+  color: rgba(200, 50, 50, 0.6);
+}
+
+.natalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.natalGridItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  border-radius: 4px;
+}
+
+.natalGridSymbol {
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.45);
+  width: 16px;
+  text-align: center;
+}
+
+.natalGridDeg {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.natalDegInline {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* ─── Mobile layout ─── */
+
+@media (max-width: 767px) {
+  .controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    border-right: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 90;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .controlsOpen {
+    max-height: 70vh;
+  }
+
+  .controlsInner {
+    padding-bottom: 80px;
+  }
+
+  .mobileToggle {
+    display: block;
+  }
+}
