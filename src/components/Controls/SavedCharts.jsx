@@ -15,7 +15,7 @@ import styles from './Controls.module.css';
  * Saved Charts panel — shown in the sidebar when user is signed in and in natal mode.
  *
  * Features:
- *  - Save current natal chart (with a name prompt)
+ *  - Save current natal chart (with a custom name)
  *  - List saved charts
  *  - Load a saved chart
  *  - Set a chart as default (auto-loads on sign in)
@@ -24,24 +24,30 @@ import styles from './Controls.module.css';
 export default function SavedCharts({ natalChart, onNatalChartChange }) {
   const { user, savedCharts, setSavedCharts, defaultChartId, setDefaultChartId: setDefId } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [saveName, setSaveName] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   if (!user) return null;
 
-  async function handleSave() {
-    if (!natalChart) return;
+  function handleSaveClick() {
+    // Pre-fill with a sensible default name
+    const defaultName = natalChart.locationName
+      ? natalChart.locationName.split(',')[0].trim()
+      : `Chart ${natalChart.birthDate}`;
+    setSaveName(defaultName);
+    setShowNameInput(true);
+  }
+
+  async function handleSaveConfirm() {
+    if (!natalChart || !saveName.trim()) return;
     setSaving(true);
     try {
-      // Generate a default name from the birth date
-      const name = natalChart.locationName
-        ? `${natalChart.birthDate} (${natalChart.locationName.split(',')[0].trim()})`
-        : `Chart ${natalChart.birthDate}`;
-
       const chartId = await saveChart(user.uid, {
         ...natalChart,
-        name,
+        name: saveName.trim(),
       });
 
       // Refresh the list
@@ -53,6 +59,9 @@ export default function SavedCharts({ natalChart, onNatalChartChange }) {
         await setDefaultChartId(user.uid, chartId);
         setDefId(chartId);
       }
+
+      setShowNameInput(false);
+      setSaveName('');
     } catch (err) {
       console.error('Save failed:', err);
     } finally {
@@ -128,16 +137,50 @@ export default function SavedCharts({ natalChart, onNatalChartChange }) {
 
   return (
     <div className={styles.savedChartsSection}>
-      {/* Save button */}
-      {natalChart && !currentMatchId && (
+      {/* Save button / name input */}
+      {natalChart && !currentMatchId && !showNameInput && (
         <button
           className={`${styles.wizardBtn} ${styles.wizardBtnPrimary}`}
-          onClick={handleSave}
+          onClick={handleSaveClick}
           disabled={saving}
           style={{ width: '100%', marginBottom: savedCharts.length > 0 ? '8px' : '0' }}
         >
-          {saving ? 'Saving...' : 'Save This Chart'}
+          Save This Chart
         </button>
+      )}
+
+      {showNameInput && (
+        <div className={styles.saveNameWrap}>
+          <input
+            className={styles.natalInput}
+            value={saveName}
+            onChange={e => setSaveName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleSaveConfirm();
+              if (e.key === 'Escape') { setShowNameInput(false); setSaveName(''); }
+            }}
+            placeholder="Name this chart..."
+            autoFocus
+            style={{ fontSize: '11px' }}
+          />
+          <div className={styles.saveNameActions}>
+            <button
+              className={`${styles.wizardBtn} ${styles.wizardBtnPrimary}`}
+              onClick={handleSaveConfirm}
+              disabled={saving || !saveName.trim()}
+              style={{ flex: 1 }}
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button
+              className={styles.wizardBtn}
+              onClick={() => { setShowNameInput(false); setSaveName(''); }}
+              style={{ flex: 0 }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {currentMatchId && natalChart && (
@@ -234,7 +277,7 @@ export default function SavedCharts({ natalChart, onNatalChartChange }) {
                       onClick={() => startRename(chart)}
                       title="Rename"
                     >
-                      \u270E
+                      {'\u270E'}
                     </button>
                     <button
                       className={styles.savedChartAction}

@@ -910,6 +910,22 @@
   gap: 4px;
 }
 
+.saveNameWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 4px;
+}
+
+.saveNameActions {
+  display: flex;
+  gap: 6px;
+}
+
 .savedChartSavedNote {
   font-size: 10px;
   color: rgba(60, 140, 60, 0.6);
