@@ -4,12 +4,11 @@ import { formatDegree } from '../../data/natalChart';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   saveChart,
-  deleteChart,
-  renameChart,
   setDefaultChartId,
   loadCharts,
 } from '../../firebase/firestore';
 import NatalDataInput from './NatalDataInput';
+import ChartPickerModal from './ChartPickerModal';
 import styles from './Controls.module.css';
 
 /**
@@ -18,23 +17,20 @@ import styles from './Controls.module.css';
  * Views:
  *   idle     → EMPTY (no chart) or SUMMARY (chart loaded)
  *   creating → NatalDataInput form
- *   picking  → scrollable saved charts picker
  *   saving   → inline name input to save current chart
+ *
+ * The chart picker is now a full-screen modal (ChartPickerModal),
+ * triggered by the "Select Chart" button.
  */
 export default function ChartSection({ natalChart, onNatalChartChange }) {
   const { user, savedCharts, setSavedCharts, defaultChartId, setDefaultChartId: setDefId } = useAuth();
 
   const [view, setView] = useState('idle');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Save flow
   const [saveName, setSaveName] = useState('');
   const [saving, setSaving] = useState(false);
-
-  // Picker inline edit/delete
-  const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState('');
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const hasSavedCharts = user && savedCharts.length > 0;
 
@@ -108,72 +104,8 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
     setSaveName('');
   }
 
-  function handleOpenPicker() {
-    setSearchQuery('');
-    setEditingId(null);
-    setConfirmDeleteId(null);
-    setView('picking');
-  }
-
-  function handleClosePicker() {
-    setView('idle');
-    setSearchQuery('');
-  }
-
-  function handleLoadChart(chart) {
-    onNatalChartChange({
-      birthDate: chart.birthDate,
-      birthTime: chart.birthTime,
-      lat: chart.lat,
-      lng: chart.lng,
-      locationName: chart.locationName,
-      positions: chart.positions,
-      angles: chart.angles || null,
-    });
-    setView('idle');
-    setSearchQuery('');
-  }
-
-  async function handleSetDefault(chartId) {
-    try {
-      const newDefault = chartId === defaultChartId ? null : chartId;
-      await setDefaultChartId(user.uid, newDefault);
-      setDefId(newDefault);
-    } catch (err) {
-      console.error('Set default failed:', err);
-    }
-  }
-
-  async function handleDelete(chartId) {
-    try {
-      await deleteChart(user.uid, chartId);
-      const charts = await loadCharts(user.uid);
-      setSavedCharts(charts);
-      if (defaultChartId === chartId) {
-        await setDefaultChartId(user.uid, null);
-        setDefId(null);
-      }
-      setConfirmDeleteId(null);
-      // If we deleted the currently loaded chart, clear it
-      if (currentMatchId === chartId) {
-        onNatalChartChange(null);
-      }
-    } catch (err) {
-      console.error('Delete failed:', err);
-    }
-  }
-
-  async function handleRename(chartId) {
-    if (!editName.trim()) return;
-    try {
-      await renameChart(user.uid, chartId, editName.trim());
-      const charts = await loadCharts(user.uid);
-      setSavedCharts(charts);
-      setEditingId(null);
-      setEditName('');
-    } catch (err) {
-      console.error('Rename failed:', err);
-    }
+  function handleSelectFromPicker(chartData) {
+    onNatalChartChange(chartData);
   }
 
   // ── CREATING view ──
@@ -190,126 +122,6 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
           onNatalChartChange={handleChartCreated}
           onCancel={handleCancelCreate}
         />
-      </div>
-    );
-  }
-
-  // ── PICKING view ──
-  if (view === 'picking') {
-    // Sort: default chart first, then newest
-    const sorted = [...savedCharts].sort((a, b) => {
-      if (a.id === defaultChartId) return -1;
-      if (b.id === defaultChartId) return 1;
-      return 0; // keep existing order (newest first from Firestore)
-    });
-
-    const query = searchQuery.toLowerCase().trim();
-    const filtered = query
-      ? sorted.filter(c =>
-          (c.name || '').toLowerCase().includes(query) ||
-          (c.locationName || '').toLowerCase().includes(query) ||
-          (c.birthDate || '').includes(query)
-        )
-      : sorted;
-
-    return (
-      <div>
-        <div className={styles.chartPickerHeader}>
-          <span className={styles.chartPickerTitle}>Saved Charts</span>
-          <button className={styles.wizardClose} onClick={handleClosePicker}>
-            &times;
-          </button>
-        </div>
-
-        {savedCharts.length >= 6 && (
-          <input
-            className={`${styles.natalInput} ${styles.chartPickerSearch}`}
-            type="text"
-            placeholder="Search charts..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            autoFocus
-          />
-        )}
-
-        <div className={styles.chartPickerList}>
-          {filtered.length === 0 && (
-            <div className={styles.savedChartsEmpty}>No charts match</div>
-          )}
-          {filtered.map(chart => (
-            <div
-              key={chart.id}
-              className={`${styles.savedChartItem} ${
-                currentMatchId === chart.id ? styles.savedChartItemActive : ''
-              }`}
-            >
-              {editingId === chart.id ? (
-                <div className={styles.savedChartRename}>
-                  <input
-                    className={styles.natalInput}
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') handleRename(chart.id);
-                      if (e.key === 'Escape') setEditingId(null);
-                    }}
-                    autoFocus
-                    style={{ fontSize: '11px', padding: '4px 6px' }}
-                  />
-                  <div className={styles.savedChartRenameActions}>
-                    <button className={styles.savedChartAction} onClick={() => handleRename(chart.id)}>Save</button>
-                    <button className={styles.savedChartAction} onClick={() => setEditingId(null)}>Cancel</button>
-                  </div>
-                </div>
-              ) : confirmDeleteId === chart.id ? (
-                <div className={styles.savedChartDeleteConfirm}>
-                  <span className={styles.savedChartDeleteText}>Delete this chart?</span>
-                  <div className={styles.savedChartRenameActions}>
-                    <button className={styles.savedChartActionDanger} onClick={() => handleDelete(chart.id)}>Delete</button>
-                    <button className={styles.savedChartAction} onClick={() => setConfirmDeleteId(null)}>Cancel</button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <button className={styles.savedChartLoad} onClick={() => handleLoadChart(chart)}>
-                    <span className={styles.savedChartName}>
-                      {chart.name}
-                      {chart.id === defaultChartId && (
-                        <span className={styles.savedChartDefault}> (default)</span>
-                      )}
-                    </span>
-                    <span className={styles.savedChartMeta}>
-                      {chart.birthDate} {chart.birthTime && `\u00B7 ${chart.birthTime}`}
-                    </span>
-                  </button>
-                  <div className={styles.savedChartActions}>
-                    <button
-                      className={styles.savedChartAction}
-                      onClick={() => handleSetDefault(chart.id)}
-                      title={chart.id === defaultChartId ? 'Remove as default' : 'Set as default'}
-                    >
-                      {chart.id === defaultChartId ? '\u2605' : '\u2606'}
-                    </button>
-                    <button
-                      className={styles.savedChartAction}
-                      onClick={() => { setEditingId(chart.id); setEditName(chart.name); setConfirmDeleteId(null); }}
-                      title="Rename"
-                    >
-                      {'\u270E'}
-                    </button>
-                    <button
-                      className={styles.savedChartAction}
-                      onClick={() => { setConfirmDeleteId(chart.id); setEditingId(null); }}
-                      title="Delete"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
     );
   }
@@ -378,12 +190,19 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
         {hasSavedCharts && (
           <button
             className={styles.wizardBtn}
-            onClick={handleOpenPicker}
+            onClick={() => setPickerOpen(true)}
             style={{ width: '100%', marginTop: '4px' }}
           >
-            Load Saved
+            Select Chart
           </button>
         )}
+
+        <ChartPickerModal
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          onSelectChart={handleSelectFromPicker}
+          currentChartId={currentMatchId}
+        />
       </div>
     );
   }
@@ -404,7 +223,7 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
         {hasSavedCharts && (
           <>
             <span className={styles.chartActionDot}>{'\u00B7'}</span>
-            <button className={styles.chartActionBtn} onClick={handleOpenPicker}>Switch</button>
+            <button className={styles.chartActionBtn} onClick={() => setPickerOpen(true)}>Select Chart</button>
           </>
         )}
         {user && !currentMatchId && (
@@ -414,6 +233,13 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
           </>
         )}
       </div>
+
+      <ChartPickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelectChart={handleSelectFromPicker}
+        currentChartId={currentMatchId}
+      />
     </div>
   );
 }
@@ -421,21 +247,31 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
 // ── Chart Summary sub-component ──
 
 function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const displayName = savedChart
+    ? savedChart.name
+    : `${natalChart.birthDate} \u00B7 ${natalChart.birthTime || '12:00'}`;
+
   return (
     <div className={styles.natalSummary}>
+      {/* Collapsed header: always visible */}
       <div className={styles.natalSummaryHeader}>
-        {savedChart ? (
+        <button
+          className={styles.summaryToggle}
+          onClick={() => setExpanded(prev => !prev)}
+          aria-expanded={expanded}
+        >
+          <span className={styles.summaryChevron}>
+            {expanded ? '\u25BE' : '\u25B8'}
+          </span>
           <span className={styles.chartNameText}>
-            {savedChart.name}
-            {savedChart.id === defaultChartId && (
+            {displayName}
+            {savedChart?.id === defaultChartId && (
               <span className={styles.savedChartDefault}> {'\u2605'}</span>
             )}
           </span>
-        ) : (
-          <span className={styles.natalSummaryDate}>
-            {natalChart.birthDate} {'\u00B7'} {natalChart.birthTime || '12:00'}
-          </span>
-        )}
+        </button>
         {onClear && (
           <button className={styles.natalClearBtn} onClick={onClear}>
             &times;
@@ -443,45 +279,50 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
         )}
       </div>
 
-      {savedChart && (
-        <div className={styles.natalSummaryDate} style={{ marginTop: -2 }}>
-          {natalChart.birthDate} {'\u00B7'} {natalChart.birthTime || '12:00'}
-        </div>
-      )}
-
-      {natalChart.locationName && (
-        <div className={styles.natalSummaryLocation}>
-          {natalChart.locationName}
-        </div>
-      )}
-
-      <div className={styles.natalGrid}>
-        {PLANETS.map(p => {
-          const lon = natalChart.positions[p.id];
-          if (lon == null) return null;
-          return (
-            <div key={p.id} className={styles.natalGridItem}>
-              <span className={styles.natalGridSymbol}>{p.symbol}</span>
-              <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
+      {/* Expandable detail */}
+      <div className={`${styles.summaryBody} ${expanded ? styles.summaryBodyOpen : ''}`}>
+        <div className={styles.summaryBodyInner}>
+          {savedChart && (
+            <div className={styles.natalSummaryDate} style={{ marginTop: 2 }}>
+              {natalChart.birthDate} {'\u00B7'} {natalChart.birthTime || '12:00'}
             </div>
-          );
-        })}
-      </div>
+          )}
 
-      {natalChart.angles && (
-        <div className={styles.natalGrid} style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-          {NATAL_ANGLES.map(a => {
-            const lon = natalChart.angles[a.id];
-            if (lon == null) return null;
-            return (
-              <div key={a.id} className={styles.natalGridItem}>
-                <span className={styles.natalGridSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>{a.symbol}</span>
-                <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
-              </div>
-            );
-          })}
+          {natalChart.locationName && (
+            <div className={styles.natalSummaryLocation}>
+              {natalChart.locationName}
+            </div>
+          )}
+
+          <div className={styles.natalGrid}>
+            {PLANETS.map(p => {
+              const lon = natalChart.positions[p.id];
+              if (lon == null) return null;
+              return (
+                <div key={p.id} className={styles.natalGridItem}>
+                  <span className={styles.natalGridSymbol}>{p.symbol}</span>
+                  <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {natalChart.angles && (
+            <div className={styles.natalGrid} style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              {NATAL_ANGLES.map(a => {
+                const lon = natalChart.angles[a.id];
+                if (lon == null) return null;
+                return (
+                  <div key={a.id} className={styles.natalGridItem}>
+                    <span className={styles.natalGridSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>{a.symbol}</span>
+                    <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

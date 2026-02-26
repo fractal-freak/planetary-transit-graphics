@@ -831,6 +831,43 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 4px;
+}
+
+.summaryToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  text-align: left;
+}
+
+.summaryChevron {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  width: 10px;
+  transition: transform 0.2s;
+}
+
+.summaryBody {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.summaryBodyOpen {
+  max-height: 320px;
+}
+
+.summaryBodyInner {
+  padding-top: 6px;
 }
 
 .natalSummaryDate {
@@ -881,11 +918,13 @@
 }
 
 .natalGridSymbol {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
   font-size: 13px;
   line-height: 1;
   color: rgba(0, 0, 0, 0.45);
   width: 16px;
   text-align: center;
+  text-rendering: optimizeLegibility;
 }
 
 .natalGridDeg {
