@@ -23,14 +23,20 @@ export function AuthProvider({ children }) {
       if (firebaseUser) {
         try {
           await ensureUserDoc(firebaseUser.uid);
-          const [charts, folders, defId] = await Promise.all([
+          const [charts, defId] = await Promise.all([
             loadCharts(firebaseUser.uid),
-            loadFolders(firebaseUser.uid),
             getDefaultChartId(firebaseUser.uid),
           ]);
           setSavedCharts(charts);
-          setSavedFolders(folders);
           setDefaultChartIdState(defId);
+          // Load folders separately — collection may not exist yet
+          try {
+            const folders = await loadFolders(firebaseUser.uid);
+            setSavedFolders(folders);
+          } catch (folderErr) {
+            console.warn('Folders not available yet:', folderErr);
+            setSavedFolders([]);
+          }
         } catch (err) {
           console.error('Failed to load user data:', err);
         }

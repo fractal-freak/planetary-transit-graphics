@@ -123,9 +123,15 @@ function folderRef(uid, folderId) {
  * Returns [{ id, name, createdAt }]
  */
 export async function loadFolders(uid) {
-  const q = query(foldersCol(uid), orderBy('createdAt', 'asc'));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const q = query(foldersCol(uid), orderBy('createdAt', 'asc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    // Collection may not exist yet or index not ready — return empty
+    const snap = await getDocs(foldersCol(uid));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
 }
 
 /**
