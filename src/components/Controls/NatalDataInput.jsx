@@ -1,24 +1,23 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { PLANETS, PLANET_MAP, NATAL_ANGLES } from '../../data/planets';
+import { useState, useRef, useEffect } from 'react';
+import { PLANETS, NATAL_ANGLES } from '../../data/planets';
 import { computeNatalPositions, computeNatalAngles, combineDateAndTime, formatDegree } from '../../data/natalChart';
 import styles from './Controls.module.css';
 
 /**
- * NatalDataInput — Birth data entry and natal position display.
+ * NatalDataInput — Birth data entry form.
  *
- * Collapsed: shows date/time/location inputs + Calculate button.
- * Expanded (after calculation): shows compact grid of natal positions.
+ * Always renders the form (date, time, location, Calculate button).
+ * The chart summary display has moved to ChartSection.
  */
-export default function NatalDataInput({ natalChart, onNatalChartChange }) {
+export default function NatalDataInput({ onNatalChartChange, onCancel }) {
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00');
   const [location, setLocation] = useState('');
-  const [locationData, setLocationData] = useState(null); // { lat, lng, name }
+  const [locationData, setLocationData] = useState(null);
   const [locationResults, setLocationResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const debounceRef = useRef(null);
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, []);
@@ -27,7 +26,6 @@ export default function NatalDataInput({ natalChart, onNatalChartChange }) {
     if (!birthDate) return;
     const dateTime = combineDateAndTime(birthDate, birthTime);
     const positions = computeNatalPositions(dateTime);
-    // Compute chart angles when birth location (lat/lng) is available
     const lat = locationData?.lat;
     const lng = locationData?.lng;
     const angles = (lat != null && lng != null)
@@ -42,15 +40,6 @@ export default function NatalDataInput({ natalChart, onNatalChartChange }) {
       positions,
       angles,
     });
-  }
-
-  function handleClear() {
-    onNatalChartChange(null);
-    setBirthDate('');
-    setBirthTime('12:00');
-    setLocation('');
-    setLocationData(null);
-    setLocationResults([]);
   }
 
   async function handleLocationSearch(query) {
@@ -84,57 +73,6 @@ export default function NatalDataInput({ natalChart, onNatalChartChange }) {
     setLocationResults([]);
   }
 
-  // ── If natal chart is set, show positions summary ──
-  if (natalChart) {
-    return (
-      <div className={styles.natalSummary}>
-        <div className={styles.natalSummaryHeader}>
-          <span className={styles.natalSummaryDate}>
-            {natalChart.birthDate} · {natalChart.birthTime || '12:00'}
-          </span>
-          <button className={styles.natalClearBtn} onClick={handleClear}>
-            Clear
-          </button>
-        </div>
-
-        {natalChart.locationName && (
-          <div className={styles.natalSummaryLocation}>
-            {natalChart.locationName}
-          </div>
-        )}
-
-        <div className={styles.natalGrid}>
-          {PLANETS.map(p => {
-            const lon = natalChart.positions[p.id];
-            if (lon == null) return null;
-            return (
-              <div key={p.id} className={styles.natalGridItem}>
-                <span className={styles.natalGridSymbol}>{p.symbol}</span>
-                <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {natalChart.angles && (
-          <div className={styles.natalGrid} style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-            {NATAL_ANGLES.map(a => {
-              const lon = natalChart.angles[a.id];
-              if (lon == null) return null;
-              return (
-                <div key={a.id} className={styles.natalGridItem}>
-                  <span className={styles.natalGridSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>{a.symbol}</span>
-                  <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Input form ──
   return (
     <div className={styles.natalForm}>
       <div className={styles.natalFormRow}>
@@ -169,7 +107,6 @@ export default function NatalDataInput({ natalChart, onNatalChartChange }) {
               const val = e.target.value;
               setLocation(val);
               setLocationData(null);
-              // Debounced auto-search after 3+ characters
               if (debounceRef.current) clearTimeout(debounceRef.current);
               if (val.trim().length >= 3) {
                 debounceRef.current = setTimeout(() => {
@@ -189,12 +126,11 @@ export default function NatalDataInput({ natalChart, onNatalChartChange }) {
             placeholder="City, Country"
           />
           {locationData && (
-            <span className={styles.natalLocationCheck}>✓</span>
+            <span className={styles.natalLocationCheck}>{'\u2713'}</span>
           )}
         </div>
       </label>
 
-      {/* Location search results dropdown */}
       {locationResults.length > 0 && (
         <div className={styles.natalLocationResults}>
           {locationResults.map((loc, i) => (
@@ -203,14 +139,14 @@ export default function NatalDataInput({ natalChart, onNatalChartChange }) {
               className={styles.natalLocationResult}
               onClick={() => handleSelectLocation(loc)}
             >
-              {loc.name.length > 60 ? loc.name.slice(0, 60) + '…' : loc.name}
+              {loc.name.length > 60 ? loc.name.slice(0, 60) + '\u2026' : loc.name}
             </button>
           ))}
         </div>
       )}
 
       {searching && (
-        <div className={styles.natalSearching}>Searching…</div>
+        <div className={styles.natalSearching}>{`Searching\u2026`}</div>
       )}
 
       <button

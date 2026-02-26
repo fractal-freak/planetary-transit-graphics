@@ -902,6 +902,78 @@
   letter-spacing: 0.01em;
 }
 
+/* ─── Chart Section (action bar + picker) ─── */
+
+.chartActionBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.chartActionBtn {
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.chartActionBtn:hover {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.chartActionDot {
+  color: rgba(0, 0, 0, 0.12);
+  font-size: 10px;
+  user-select: none;
+}
+
+.chartPickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.chartPickerTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  letter-spacing: 0.02em;
+}
+
+.chartPickerSearch {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.chartPickerList {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chartNameText {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
 /* ─── Saved Charts ─── */
 
 .savedChartsSection {

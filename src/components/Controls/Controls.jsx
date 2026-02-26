@@ -1,10 +1,8 @@
 import DateRangePicker from './DateRangePicker';
 import TransitJobList from './TransitJobList';
-import NatalDataInput from './NatalDataInput';
+import ChartSection from './ChartSection';
 import NatalJobList from './NatalJobList';
-import SavedCharts from './SavedCharts';
 import OrbSettings from './OrbSettings';
-import { useAuth } from '../../contexts/AuthContext';
 import styles from './Controls.module.css';
 
 export default function Controls({
@@ -31,8 +29,6 @@ export default function Controls({
   onRemoveNatalJob,
   onUpdateNatalJob,
 }) {
-  const { user } = useAuth();
-
   return (
     <>
       <button className={styles.mobileToggle} onClick={onToggleOpen} aria-expanded={isOpen}>
@@ -86,23 +82,12 @@ export default function Controls({
           {mode === 'natal' && (
             <>
               <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Birth Chart</h2>
-                <NatalDataInput
+                <h2 className={styles.sectionTitle}>Chart</h2>
+                <ChartSection
                   natalChart={natalChart}
                   onNatalChartChange={onNatalChartChange}
                 />
               </section>
-
-              {/* ── Saved Charts (signed-in users) ── */}
-              {user && (
-                <section className={styles.section}>
-                  <h2 className={styles.sectionTitle}>Saved Charts</h2>
-                  <SavedCharts
-                    natalChart={natalChart}
-                    onNatalChartChange={onNatalChartChange}
-                  />
-                </section>
-              )}
 
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Natal Transits</h2>
