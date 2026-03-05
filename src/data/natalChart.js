@@ -1,5 +1,4 @@
-import { getLongitude } from '../api/ephemeris';
-import { SiderealTime, MakeTime } from 'astronomy-engine';
+import { getLongitude, getHouseCusps } from '../api/ephemeris';
 import { PLANETS } from './planets';
 import { ZODIAC_SIGNS, getSignIndex } from './zodiac';
 
@@ -20,9 +19,7 @@ export function computeNatalPositions(birthDateTime) {
 /**
  * Compute the four natal chart angles (ASC, DSC, MC, IC) from birth time + location.
  *
- * Requires geographic latitude and longitude.  Uses astronomy-engine's
- * SiderealTime() for GAST, then derives Local Sidereal Time → RAMC,
- * and applies standard trigonometric formulas for the Midheaven and Ascendant.
+ * Uses Swiss Ephemeris swe_houses() for high-precision angle computation.
  *
  * @param {Date} birthDateTime - JS Date combining date + time
  * @param {number} lat - geographic latitude in degrees (north positive)
@@ -30,44 +27,12 @@ export function computeNatalPositions(birthDateTime) {
  * @returns {{ Asc: number, Dsc: number, MC: number, IC: number }} ecliptic longitudes 0–360°
  */
 export function computeNatalAngles(birthDateTime, lat, lng) {
-  const time = MakeTime(birthDateTime);
-
-  // Greenwich Apparent Sidereal Time in hours
-  const gast = SiderealTime(time);
-
-  // Local Sidereal Time (east longitude positive)
-  let lst = gast + lng / 15;
-  lst = ((lst % 24) + 24) % 24;
-
-  // Right Ascension of the Medium Coeli in degrees
-  const ramc = lst * 15;
-
-  // Obliquity of the ecliptic (IAU formula, mean obliquity)
-  const jc = time.tt / 36525; // Julian centuries from J2000.0
-  const oblDeg =
-    23.4392911 - 0.0130042 * jc - 1.64e-7 * jc * jc + 5.04e-7 * jc * jc * jc;
-
-  const DEG = Math.PI / 180;
-  const e = oblDeg * DEG;
-  const r = ramc * DEG;
-  const phi = lat * DEG;
-
-  // MC (Midheaven) ecliptic longitude
-  let mc = Math.atan2(Math.sin(r), Math.cos(r) * Math.cos(e));
-  mc = ((mc / DEG) + 360) % 360;
-
-  // ASC (Ascendant) ecliptic longitude
-  let asc = Math.atan2(
-    -Math.cos(r),
-    Math.sin(e) * Math.tan(phi) + Math.cos(e) * Math.sin(r),
-  );
-  asc = ((asc / DEG) + 360) % 360;
-
+  const houses = getHouseCusps(birthDateTime, lat, lng, 'P');
   return {
-    Asc: asc,
-    Dsc: (asc + 180) % 360,
-    MC: mc,
-    IC: (mc + 180) % 360,
+    Asc: houses.Asc,
+    Dsc: houses.Dsc,
+    MC: houses.MC,
+    IC: houses.IC,
   };
 }
 

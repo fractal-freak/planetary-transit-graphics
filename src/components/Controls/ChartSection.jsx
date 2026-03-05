@@ -7,6 +7,7 @@ import {
   setDefaultChartId,
   loadCharts,
 } from '../../firebase/firestore';
+import { useSFchtImport } from '../../hooks/useSFchtImport';
 import NatalDataInput from './NatalDataInput';
 import ChartPickerModal from './ChartPickerModal';
 import styles from './Controls.module.css';
@@ -27,6 +28,27 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
 
   const [view, setView] = useState('idle');
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  const {
+    importStatus, dragOver, fileInputRef,
+    handleDragOver, handleDragLeave, handleDrop, handleFileInput,
+  } = useSFchtImport({
+    onChartsImported: (charts) => {
+      if (charts.length > 0) {
+        // Load the first imported chart as the natal chart
+        const first = charts[0];
+        onNatalChartChange({
+          birthDate: first.birthDate,
+          birthTime: first.birthTime,
+          lat: first.lat,
+          lng: first.lng,
+          locationName: first.locationName,
+          positions: first.positions,
+          angles: first.angles || null,
+        });
+      }
+    },
+  });
 
   // Save flow
   const [saveName, setSaveName] = useState('');
@@ -176,10 +198,50 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
   if (!natalChart) {
     // EMPTY state
     return (
-      <div className={styles.savedChartsSection}>
-        <div className={styles.savedChartsEmpty} style={{ marginBottom: '8px' }}>
-          Enter birth data to begin
-        </div>
+      <div
+        className={styles.savedChartsSection}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {dragOver ? (
+          <div style={{
+            padding: '16px',
+            textAlign: 'center',
+            border: '2px dashed rgba(91, 138, 240, 0.5)',
+            borderRadius: '8px',
+            background: 'rgba(91, 138, 240, 0.05)',
+            color: 'rgba(91, 138, 240, 0.8)',
+            fontSize: '11px',
+            fontWeight: 600,
+            letterSpacing: '0.03em',
+            marginBottom: '8px',
+          }}>
+            Drop .SFcht file to import charts
+          </div>
+        ) : (
+          <div className={styles.savedChartsEmpty} style={{ marginBottom: '8px' }}>
+            Enter birth data or import a chart file
+          </div>
+        )}
+
+        {importStatus && (
+          <div style={{
+            padding: '6px 10px',
+            textAlign: 'center',
+            fontSize: '10px',
+            color: importStatus.startsWith('Import') && !importStatus.includes('failed')
+              ? 'rgba(60, 140, 60, 0.7)'
+              : importStatus.includes('failed') || importStatus.includes('Not')
+                ? 'rgba(200, 50, 50, 0.6)'
+                : 'rgba(0, 0, 0, 0.4)',
+            fontWeight: 500,
+            marginBottom: '4px',
+          }}>
+            {importStatus}
+          </div>
+        )}
+
         <button
           className={`${styles.wizardBtn} ${styles.wizardBtnPrimary}`}
           onClick={handleNewChart}
@@ -196,6 +258,22 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
             Select Chart
           </button>
         )}
+        <button
+          className={styles.wizardBtn}
+          onClick={() => fileInputRef.current?.click()}
+          style={{ width: '100%', marginTop: '4px' }}
+        >
+          + Import .SFcht
+        </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".SFcht,.sfcht"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleFileInput}
+        />
 
         <ChartPickerModal
           open={pickerOpen}

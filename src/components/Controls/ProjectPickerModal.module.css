@@ -1,0 +1,316 @@
+/* ─── Project Picker Modal ─── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  max-height: min(540px, 80vh);
+  background: #f5f3ef;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.72);
+  letter-spacing: 0.01em;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.15s;
+}
+
+.closeBtn:hover {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ── Body ── */
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+/* ── Project items ── */
+
+.projectItem {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: background 0.12s;
+}
+
+.projectItem:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.projectItemActive {
+  background: rgba(80, 144, 224, 0.06);
+}
+
+.projectItemActive:hover {
+  background: rgba(80, 144, 224, 0.1);
+}
+
+.projectBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.projectName {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projectMeta {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.01em;
+}
+
+.projectActions {
+  display: flex;
+  gap: 1px;
+  flex-shrink: 0;
+  padding-right: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.projectItem:hover .projectActions {
+  opacity: 1;
+}
+
+.projectActionBtn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  padding: 4px 5px;
+  border-radius: 4px;
+  line-height: 1;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+
+.projectActionBtn:hover {
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ── Inline edit / delete ── */
+
+.inlineEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.inlineInput {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.02);
+  color: rgba(0, 0, 0, 0.75);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.inlineInput:focus {
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.inlineActions {
+  display: flex;
+  gap: 4px;
+}
+
+.inlineBtn {
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: none;
+  font-size: 10px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.inlineBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.inlineBtnDanger {
+  background: rgba(200, 60, 60, 0.1);
+  color: rgba(200, 60, 60, 0.7);
+}
+
+.inlineBtnDanger:hover {
+  background: rgba(200, 60, 60, 0.18);
+  color: rgba(200, 60, 60, 0.9);
+}
+
+.deleteText {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* ── Empty ── */
+
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Footer ── */
+
+.footer {
+  padding: 10px 16px 14px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 8px;
+}
+
+.createRow {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.createInput {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.02);
+  color: rgba(0, 0, 0, 0.75);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+}
+
+.createInput:focus {
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.footerBtn {
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: center;
+}
+
+.footerBtn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.65);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.footerBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.footerBtnPrimary {
+  background: rgba(0, 0, 0, 0.78);
+  color: #f5f3ef;
+  border-color: transparent;
+}
+
+.footerBtnPrimary:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.9);
+  color: #f5f3ef;
+  border-color: transparent;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 767px) {
+  .modal {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 12px;
+  }
+
+  .projectActions {
+    opacity: 1;
+  }
+}

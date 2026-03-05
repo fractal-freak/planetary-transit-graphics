@@ -1,0 +1,275 @@
+/* ─── Matrix View Container ─── */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Controls Bar ─── */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.controlItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.controlLabel {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.02em;
+}
+
+.orbSlider {
+  width: 80px;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.orbSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  cursor: pointer;
+}
+
+.orbSlider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  cursor: pointer;
+}
+
+.orbValue {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+}
+
+.checkbox {
+  width: 13px;
+  height: 13px;
+  accent-color: rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.aspectCount {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  margin-left: auto;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Chart Pair Section ─── */
+
+.pairSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pairHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pairChartName {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pairVs {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.25);
+  font-style: italic;
+}
+
+.pairCount {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  margin-left: auto;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Matrix Table ─── */
+
+.matrixWrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: auto;
+  min-width: 100%;
+}
+
+.cornerCell {
+  width: 32px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.colHeader {
+  text-align: center;
+  padding: 4px 2px;
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 14px;
+  font-weight: normal;
+  background: rgba(0, 0, 0, 0.015);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  min-width: 42px;
+}
+
+.rowHeader {
+  text-align: center;
+  padding: 2px 4px;
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.015);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  min-width: 32px;
+}
+
+/* ─── Aspect Cells ─── */
+
+.cell {
+  text-align: center;
+  padding: 3px 2px;
+  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  min-width: 42px;
+  height: 32px;
+  vertical-align: middle;
+}
+
+.cellActive {
+  cursor: default;
+}
+
+.cellHard {
+  background: rgba(220, 80, 60, 0.06);
+}
+
+.cellSoft {
+  background: rgba(60, 120, 200, 0.05);
+}
+
+.cellSymbol {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 12px;
+  line-height: 1;
+  display: block;
+}
+
+.cellOrb {
+  font-size: 8px;
+  color: rgba(0, 0, 0, 0.35);
+  font-variant-numeric: tabular-nums;
+  display: block;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+/* ─── Tightest Aspects List ─── */
+
+.tightestSection {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tightestTitle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.35);
+  margin-bottom: 4px;
+}
+
+.tightestRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+.tightestRank {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.25);
+  font-variant-numeric: tabular-nums;
+  min-width: 16px;
+  text-align: right;
+}
+
+.tightestLabel {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  min-width: 60px;
+}
+
+.tightestOrb {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+.tightestCharts {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

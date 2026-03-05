@@ -218,6 +218,15 @@
   white-space: nowrap;
 }
 
+/* ─── Mundane View Switcher Bar ─── */
+
+.viewSwitcherBar {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  max-width: 280px;
+}
+
 /* ─── Loading overlay ─── */
 
 .loadingOverlay {
@@ -250,7 +259,144 @@
   color: rgba(0, 0, 0, 0.2);
   font-size: 14px;
   letter-spacing: 0.05em;
-  pointer-events: none;
+}
+
+/* ─── Dashboard (empty-state content) ─── */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 280px;
+  width: 100%;
+}
+
+.dashSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashSectionTitle {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(0, 0, 0, 0.25);
+  margin: 0;
+}
+
+.dashBtnGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.015);
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.dashBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.dashBtnPrimary {
+  background: rgba(0, 0, 0, 0.75);
+  border-color: transparent;
+  color: #f5f3ef;
+}
+
+.dashBtnPrimary:hover {
+  background: rgba(0, 0, 0, 0.88);
+  border-color: transparent;
+  color: #f5f3ef;
+}
+
+.dashBtnIcon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.dashImportStatus {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(60, 140, 60, 0.7);
+  text-align: center;
+  padding: 4px 0;
+}
+
+.dashActiveProject {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  text-align: center;
+  padding: 4px 0;
+}
+
+.dashActiveProject strong {
+  color: rgba(80, 144, 224, 0.7);
+  font-weight: 600;
+}
+
+/* ─── Project badge (header) ─── */
+
+.projectBadge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(80, 144, 224, 0.08);
+  color: rgba(80, 144, 224, 0.8);
+  border: 1px solid rgba(80, 144, 224, 0.15);
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.projectBadge:hover {
+  background: rgba(80, 144, 224, 0.14);
+  border-color: rgba(80, 144, 224, 0.3);
+}
+
+.projectBtn {
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.projectBtn:hover {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.65);
 }
 
 /* ─── Mobile ─── */
@@ -258,5 +404,9 @@
 @media (max-width: 767px) {
   .title {
     font-size: 12px;
+  }
+
+  .projectBadge {
+    max-width: 100px;
   }
 }

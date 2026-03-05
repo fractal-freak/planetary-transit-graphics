@@ -1,0 +1,323 @@
+/* ─── Project Chart Picker Modal (multi-select) ─── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  max-height: min(580px, 85vh);
+  background: #f5f3ef;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.72);
+  letter-spacing: 0.01em;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.15s;
+}
+
+.closeBtn:hover {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ── Search ── */
+
+.searchWrap {
+  padding: 0 16px 8px;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.75);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.searchInput::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+/* ── Selection bar ── */
+
+.selectionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 8px;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+
+.clearBtn:hover {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ── Scrollable body ── */
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+/* ── Folders ── */
+
+.folderSection {
+  margin-bottom: 6px;
+}
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+  color: rgba(0, 0, 0, 0.55);
+  transition: background 0.12s;
+}
+
+.folderHeader:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.folderCheckbox {
+  width: 13px;
+  height: 13px;
+  accent-color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.folderChevron {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.3);
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.folderName {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex: 1;
+  text-align: left;
+}
+
+.folderCount {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.25);
+  margin-left: auto;
+}
+
+.folderChildren {
+  padding-left: 12px;
+}
+
+/* ── Divider ── */
+
+.sectionDivider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 6px 0;
+}
+
+/* ── Chart Items ── */
+
+.chartItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.chartItem:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.chartItemSelected {
+  background: rgba(80, 144, 224, 0.06);
+}
+
+.chartItemSelected:hover {
+  background: rgba(80, 144, 224, 0.1);
+}
+
+.chartCheckbox {
+  width: 13px;
+  height: 13px;
+  accent-color: rgba(80, 144, 224, 0.8);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.chartInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.chartName {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chartMeta {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.01em;
+}
+
+/* ── Empty ── */
+
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Footer ── */
+
+.footer {
+  padding: 10px 16px 14px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 8px;
+}
+
+.footerBtn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: center;
+}
+
+.footerBtn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.65);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.footerBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.footerBtnPrimary {
+  background: rgba(0, 0, 0, 0.78);
+  color: #f5f3ef;
+  border-color: transparent;
+}
+
+.footerBtnPrimary:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.9);
+  color: #f5f3ef;
+  border-color: transparent;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 767px) {
+  .modal {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 12px;
+  }
+}

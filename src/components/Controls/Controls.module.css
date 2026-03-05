@@ -392,6 +392,12 @@
   white-space: nowrap;
 }
 
+.wizardDivider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 8px 0 6px;
+}
+
 /* ─── Wizard Nav ─── */
 
 .wizardNav {
@@ -1214,4 +1220,90 @@
   .mobileToggle {
     display: block;
   }
+}
+
+/* ─── Presets Bar ─── */
+
+.presetsBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.presetFavorites {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.presetFavBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.015);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+  text-align: left;
+}
+
+.presetFavBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.presetFavStar {
+  font-size: 9px;
+  color: rgba(180, 150, 50, 0.6);
+  flex-shrink: 0;
+}
+
+.presetFavName {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.presetFavBadge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(100, 160, 220, 0.1);
+  color: rgba(60, 120, 180, 0.6);
+  flex-shrink: 0;
+}
+
+.presetFavBadgeNatal {
+  background: rgba(180, 120, 200, 0.1);
+  color: rgba(140, 80, 160, 0.6);
+}
+
+.presetsOpenBtn {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.02);
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  letter-spacing: 0.02em;
+}
+
+.presetsOpenBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+  border-color: rgba(0, 0, 0, 0.12);
 }

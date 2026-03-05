@@ -72,19 +72,6 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
     ctx.fillStyle = '#f5f3ef';
     ctx.fillRect(0, 0, W, H);
 
-    // Past-time shading: darken the region before "now" so the
-    // transition from past → present → future is visible at a glance.
-    const now = new Date();
-    if (now > startDate && now < endDate) {
-      const nowX = PADDING.left + dateToX(now, startDate, endDate, plotW);
-      ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      ctx.fillRect(PADDING.left, 0, nowX - PADDING.left, H);
-    } else if (now >= endDate) {
-      // Entire chart is in the past
-      ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      ctx.fillRect(PADDING.left, 0, plotW, H);
-    }
-
     // Derive rows from curves' rowKey grouping.
     // Slower targets share one "main" row per job; faster targets each get their own row.
     const curvesByRow = {};
@@ -307,6 +294,29 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
         allPlacedLabels.push(...placedInRow);
       }
     });
+
+    // ── "Now" line — vertical marker at the current date/time ──
+    // Label sits below all axis labels: day (+12), month (+16), year (+32).
+    const now = new Date();
+    if (now > startDate && now < endDate) {
+      const nowX = PADDING.left + dateToX(now, startDate, endDate, plotW);
+      const nowLabelY = rowAreaBottom + 46;
+      ctx.save();
+      // Line spans from row area top down to the label
+      ctx.beginPath();
+      ctx.moveTo(nowX, rowAreaTop);
+      ctx.lineTo(nowX, nowLabelY - 2);
+      ctx.strokeStyle = 'rgba(0,0,0,0.70)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // "Now" label at the bottom of the line
+      ctx.font = '600 10px Inter, system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillText('Now', nowX, nowLabelY);
+      ctx.restore();
+    }
 
     // Export placed label hit areas so TransitCanvas can use them for hover
     if (labelHitAreasRef) {
@@ -1046,6 +1056,67 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
     }
   }
 
+  // ── Hourly grid (when zoomed in close enough to days view) ──
+  // Progressive detail: 6h → 3h → 1h intervals as pixelsPerDay increases.
+  let hourInterval = null;
+  let showHourLabels = false;
+
+  if (pixelsPerDay >= 600) {
+    hourInterval = 1;   // every hour
+    showHourLabels = true;
+  } else if (pixelsPerDay >= 300) {
+    hourInterval = 3;   // every 3 hours
+    showHourLabels = true;
+  } else if (pixelsPerDay >= 150) {
+    hourInterval = 6;   // every 6 hours
+    showHourLabels = true;
+  } else if (pixelsPerDay >= 80) {
+    hourInterval = 6;   // 6-hour lines only, no labels
+    showHourLabels = false;
+  }
+
+  if (hourInterval != null) {
+    const hourTicks = []; // collect for labels
+    ctx.beginPath();
+
+    // Iterate through each day in the range and place hour ticks
+    const dayCursorH = new Date(startDate);
+    dayCursorH.setHours(0, 0, 0, 0);
+
+    while (dayCursorH <= endDate) {
+      for (let h = hourInterval; h < 24; h += hourInterval) {
+        const hourDate = new Date(dayCursorH);
+        hourDate.setHours(h, 0, 0, 0);
+        if (hourDate < startDate || hourDate > endDate) continue;
+        const cx = ox + dateToX(hourDate, startDate, endDate, plotW);
+        if (cx > ox && cx < ox + plotW) {
+          ctx.moveTo(cx, gridTop);
+          ctx.lineTo(cx, gridBottom);
+          if (showHourLabels) {
+            hourTicks.push({ x: cx, hour: h });
+          }
+        }
+      }
+      dayCursorH.setDate(dayCursorH.getDate() + 1);
+    }
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.035)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Hour labels — smaller and lighter than day labels to keep visual hierarchy
+    if (showHourLabels && hourTicks.length > 0) {
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.font = '500 8px Inter, system-ui, sans-serif';
+      ctx.textAlign = 'center';
+
+      for (const tick of hourTicks) {
+        const label = formatHourLabel(tick.hour);
+        ctx.fillText(label, tick.x, gridBottom + 12);
+      }
+    }
+  }
+
   // ── Monthly / quarterly / yearly grid ──
   // When day labels are visible and the window doesn't start on the 1st,
   // the first day label already shows the month abbreviation — so skip
@@ -1675,6 +1746,16 @@ function drawSharpLineFill(ctx, points) {
 }
 
 // ─── Utilities ───
+
+/**
+ * Format an hour (0–23) as a compact 12-hour label: "6a", "12p", "3p", etc.
+ */
+function formatHourLabel(h) {
+  if (h === 0) return '12a';
+  if (h === 12) return '12p';
+  if (h < 12) return `${h}a`;
+  return `${h - 12}p`;
+}
 
 function dateToX(date, startDate, endDate, plotW) {
   const total = endDate - startDate;

@@ -140,7 +140,7 @@ export const PLANET_MAP = Object.fromEntries(
  * Used to determine which planets a given planet can track transits against.
  */
 export const SPEED_ORDER = [
-  'Moon', 'Sun', 'Mercury', 'Venus', 'Mars',
+  'Moon', 'Mercury', 'Venus', 'Sun', 'Mars',
   'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'TrueNode',
 ];
 

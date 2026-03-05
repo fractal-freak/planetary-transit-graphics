@@ -120,18 +120,19 @@ export default function NatalJobCard({ job, natalChart, hasAspects, onRemove, on
 
               <div className={styles.jobSection}>
                 <span className={styles.jobSectionLabel}>Aspects</span>
-                <div className={styles.aspectGrid}>
+                <div className={styles.targetList}>
                   {ASPECTS.map(aspect => (
-                    <button
-                      key={aspect.name}
-                      className={`${styles.aspectToggle} ${job.aspects.includes(aspect.name) ? styles.aspectEnabled : ''}`}
-                      onClick={() => handleToggleAspect(aspect.name)}
-                      type="button"
-                    >
-                      <span className={styles.aspectSymbol}>{aspect.symbol}</span>
-                      <span className={styles.aspectName}>{aspect.name}</span>
+                    <label key={aspect.name} className={styles.targetItem}>
+                      <input
+                        type="checkbox"
+                        checked={job.aspects.includes(aspect.name)}
+                        onChange={() => handleToggleAspect(aspect.name)}
+                        className={styles.targetCheckbox}
+                      />
+                      <span className={styles.targetSymbol}>{aspect.symbol}</span>
+                      <span className={styles.targetName}>{aspect.name}</span>
                       <span className={styles.aspectAngle}>{aspect.angle}°</span>
-                    </button>
+                    </label>
                   ))}
                 </div>
               </div>

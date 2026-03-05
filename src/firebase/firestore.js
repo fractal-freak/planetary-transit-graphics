@@ -19,9 +19,23 @@ import { db } from './config';
  *   users/{uid}/charts/{chartId}       → {
  *     name, birthDate, birthTime, locationName,
  *     lat, lng, positions, angles, folderId,
+ *     chartType, relevanceStart, relevanceEnd,
+ *     houseCusps, houseSystem, eventDescription,
  *     createdAt, updatedAt
  *   }
  *   users/{uid}/folders/{folderId}     → { name, createdAt }
+ *   users/{uid}/presets/{presetId}     → {
+ *     name, mode, jobs, isFavorite,
+ *     createdAt, updatedAt
+ *   }
+ *   users/{uid}/stacks/{stackId}       → {
+ *     name, chartIds, folderId,
+ *     createdAt, updatedAt
+ *   }
+ *   users/{uid}/projects/{projectId}   → {
+ *     name, chartIds,
+ *     createdAt, updatedAt
+ *   }
  */
 
 // ── User doc ──
@@ -74,6 +88,13 @@ export async function saveChart(uid, chartData, chartId) {
     positions: chartData.positions || {},
     angles: chartData.angles || null,
     folderId: chartData.folderId || null,
+    // Mundane chart fields
+    chartType: chartData.chartType || 'natal',
+    relevanceStart: chartData.relevanceStart || null,
+    relevanceEnd: chartData.relevanceEnd || null,
+    houseCusps: chartData.houseCusps || null,
+    houseSystem: chartData.houseSystem || null,
+    eventDescription: chartData.eventDescription || null,
     createdAt: chartData.createdAt || serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -171,6 +192,225 @@ export async function deleteFolder(uid, folderId) {
 export async function moveChartToFolder(uid, chartId, folderId) {
   await updateDoc(chartRef(uid, chartId), {
     folderId: folderId || null,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// ── Presets ──
+
+function presetsCol(uid) {
+  return collection(db, 'users', uid, 'presets');
+}
+
+function presetRef(uid, presetId) {
+  return doc(db, 'users', uid, 'presets', presetId);
+}
+
+/**
+ * Load all presets for a user, ordered by creation date (newest first).
+ * Returns [{ id, ...data }]
+ */
+export async function loadPresets(uid) {
+  try {
+    const q = query(presetsCol(uid), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    // Collection may not exist yet or index not ready
+    const snap = await getDocs(presetsCol(uid));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+}
+
+/**
+ * Save a new preset (auto-generated ID) or overwrite an existing one.
+ * Returns the preset ID.
+ */
+export async function savePreset(uid, presetData, presetId) {
+  const ref = presetId ? presetRef(uid, presetId) : doc(presetsCol(uid));
+  await setDoc(ref, {
+    name: presetData.name || 'Untitled Preset',
+    mode: presetData.mode || 'world',
+    jobs: presetData.jobs || [],
+    startDate: presetData.startDate || null,
+    endDate: presetData.endDate || null,
+    isFavorite: presetData.isFavorite || false,
+    createdAt: presetData.createdAt || serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+/**
+ * Update a preset's jobs, mode, and date range (overwrite current setup), keeping name & favorite.
+ */
+export async function updatePresetJobs(uid, presetId, mode, jobs, startDate, endDate) {
+  await updateDoc(presetRef(uid, presetId), {
+    mode,
+    jobs,
+    startDate: startDate ? startDate.toISOString() : null,
+    endDate: endDate ? endDate.toISOString() : null,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Rename a preset.
+ */
+export async function renamePreset(uid, presetId, newName) {
+  await updateDoc(presetRef(uid, presetId), {
+    name: newName,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Delete a preset.
+ */
+export async function deletePreset(uid, presetId) {
+  await deleteDoc(presetRef(uid, presetId));
+}
+
+/**
+ * Toggle the favorite status of a preset.
+ */
+export async function togglePresetFavorite(uid, presetId, isFavorite) {
+  await updateDoc(presetRef(uid, presetId), {
+    isFavorite,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// ── Chart Stacks ──
+
+function stacksCol(uid) {
+  return collection(db, 'users', uid, 'stacks');
+}
+
+function stackRef(uid, stackId) {
+  return doc(db, 'users', uid, 'stacks', stackId);
+}
+
+/**
+ * Load all chart stacks for a user, ordered by creation date (newest first).
+ * Returns [{ id, name, chartIds, folderId, createdAt, updatedAt }]
+ */
+export async function loadStacks(uid) {
+  try {
+    const q = query(stacksCol(uid), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    const snap = await getDocs(stacksCol(uid));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+}
+
+/**
+ * Save a new stack (auto-generated ID) or overwrite an existing one.
+ * Returns the stack ID.
+ */
+export async function saveStack(uid, stackData, stackId) {
+  const ref = stackId ? stackRef(uid, stackId) : doc(stacksCol(uid));
+  await setDoc(ref, {
+    name: stackData.name || 'Untitled Stack',
+    chartIds: stackData.chartIds || [],
+    folderId: stackData.folderId || null,
+    createdAt: stackData.createdAt || serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+/**
+ * Delete a chart stack.
+ */
+export async function deleteStack(uid, stackId) {
+  await deleteDoc(stackRef(uid, stackId));
+}
+
+/**
+ * Update the charts in a stack.
+ */
+export async function updateStackCharts(uid, stackId, chartIds) {
+  await updateDoc(stackRef(uid, stackId), {
+    chartIds,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Rename a chart stack.
+ */
+export async function renameStack(uid, stackId, newName) {
+  await updateDoc(stackRef(uid, stackId), {
+    name: newName,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// ── Projects ──
+
+function projectsCol(uid) {
+  return collection(db, 'users', uid, 'projects');
+}
+
+function projectRef(uid, projectId) {
+  return doc(db, 'users', uid, 'projects', projectId);
+}
+
+/**
+ * Load all projects for a user, ordered by creation date (newest first).
+ */
+export async function loadProjects(uid) {
+  try {
+    const q = query(projectsCol(uid), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    const snap = await getDocs(projectsCol(uid));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+}
+
+/**
+ * Save a new project (auto-generated ID) or overwrite an existing one.
+ * Returns the project ID.
+ */
+export async function saveProject(uid, projectData, projectId) {
+  const ref = projectId ? projectRef(uid, projectId) : doc(projectsCol(uid));
+  await setDoc(ref, {
+    name: projectData.name || 'Untitled Project',
+    chartIds: projectData.chartIds || [],
+    createdAt: projectData.createdAt || serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+/**
+ * Delete a project.
+ */
+export async function deleteProject(uid, projectId) {
+  await deleteDoc(projectRef(uid, projectId));
+}
+
+/**
+ * Update the charts in a project.
+ */
+export async function updateProjectCharts(uid, projectId, chartIds) {
+  await updateDoc(projectRef(uid, projectId), {
+    chartIds,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Rename a project.
+ */
+export async function renameProject(uid, projectId, newName) {
+  await updateDoc(projectRef(uid, projectId), {
+    name: newName,
     updatedAt: serverTimestamp(),
   });
 }

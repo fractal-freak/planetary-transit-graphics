@@ -14,12 +14,12 @@ export default function DateRangePicker({ startDate, endDate, onStartChange, onE
   return (
     <div className={styles.dateRange}>
       <div className={styles.quickRange}>
+        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(7)}>7 Days</button>
         <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(30)}>30 Days</button>
         <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(90)}>3 Months</button>
         <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(182)}>6 Months</button>
         <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(365)}>12 Months</button>
         <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(1095)}>3 Years</button>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(1826)}>5 Years</button>
       </div>
       <CalendarPicker
         label="From"

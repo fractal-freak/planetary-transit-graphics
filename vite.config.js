@@ -26,10 +26,10 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/ssd\.horizons\.jpl\.nasa\.gov\/api/,
-            handler: 'CacheFirst',
+            urlPattern: /^https:\/\/firestore\.googleapis\.com/,
+            handler: 'NetworkFirst',
             options: {
-              cacheName: 'horizons-api-cache',
+              cacheName: 'firestore-cache',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24,
@@ -40,4 +40,13 @@ export default defineConfig({
       },
     }),
   ],
+  assetsInclude: ['**/*.wasm', '**/*.data'],
+  optimizeDeps: {
+    exclude: ['swisseph-wasm'],
+  },
+  server: {
+    fs: {
+      allow: ['..'],
+    },
+  },
 });

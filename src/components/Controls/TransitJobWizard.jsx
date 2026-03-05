@@ -11,6 +11,7 @@ export default function TransitJobWizard({ onAddJob }) {
   const [targets, setTargets] = useState([]);
   const [showSignChanges, setShowSignChanges] = useState(true);
   const [showRetrogrades, setShowRetrogrades] = useState(true);
+  const [selectedAspects, setSelectedAspects] = useState(ALL_ASPECT_NAMES);
 
   function reset() {
     setStep(0);
@@ -18,6 +19,7 @@ export default function TransitJobWizard({ onAddJob }) {
     setTargets([]);
     setShowSignChanges(true);
     setShowRetrogrades(true);
+    setSelectedAspects(ALL_ASPECT_NAMES);
   }
 
   function handlePickPlanet(planetId) {
@@ -65,7 +67,7 @@ export default function TransitJobWizard({ onAddJob }) {
       id: `job-${Date.now()}`,
       transitPlanet,
       targets,
-      aspects: ALL_ASPECT_NAMES,
+      aspects: selectedAspects,
       showSignChanges,
       showRetrogrades: NON_RETROGRADE_PLANETS.has(transitPlanet) ? false : showRetrogrades,
     });
@@ -159,6 +161,31 @@ export default function TransitJobWizard({ onAddJob }) {
               </label>
             );
           })}
+        </div>
+
+        <div className={styles.wizardDivider} />
+        <span className={styles.jobSectionLabel}>Aspects</span>
+        <div className={styles.targetList}>
+          {ASPECTS.map(aspect => (
+            <label key={aspect.name} className={styles.targetItem}>
+              <input
+                type="checkbox"
+                checked={selectedAspects.includes(aspect.name)}
+                onChange={() => {
+                  setSelectedAspects(prev => {
+                    const next = prev.includes(aspect.name)
+                      ? prev.filter(a => a !== aspect.name)
+                      : [...prev, aspect.name];
+                    return next.length > 0 ? next : prev;
+                  });
+                }}
+                className={styles.targetCheckbox}
+              />
+              <span className={styles.targetSymbol}>{aspect.symbol}</span>
+              <span className={styles.targetName}>{aspect.name}</span>
+              <span className={styles.aspectAngle}>{aspect.angle}°</span>
+            </label>
+          ))}
         </div>
 
         <label className={styles.signChangeToggle} style={{ marginTop: 8 }}>

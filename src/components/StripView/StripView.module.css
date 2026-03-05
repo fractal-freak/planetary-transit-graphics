@@ -1,0 +1,254 @@
+/* ─── Strip View Container ─── */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Zodiac Sign Header ─── */
+
+.signHeader {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.labelCol {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.rulerCol {
+  flex: 1;
+  position: relative;
+  min-height: 22px;
+}
+
+.signLabel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  opacity: 0.7;
+}
+
+/* ─── Chart Strip Row ─── */
+
+.strip {
+  display: flex;
+  align-items: stretch;
+  min-height: 40px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.strip:last-of-type {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Chart Label ─── */
+
+.chartLabel {
+  padding: 6px 10px 6px 8px;
+  border-left: 3px solid;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+.chartName {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.chartType {
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.04em;
+}
+
+/* ─── Ruler Area ─── */
+
+.ruler {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 40px;
+  background: rgba(0, 0, 0, 0.015);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Sign Boundaries (every 30°) ─── */
+
+.signBoundary {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+/* ─── Degree Ticks (every 10°) ─── */
+
+.degreeTick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+/* ─── Conjunction Alignment Guides ─── */
+
+.alignmentGuide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(240, 192, 91, 0.6);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ─── Planet Markers ─── */
+
+.planetMarker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  cursor: default;
+  line-height: 1;
+}
+
+.planetGlyph {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 16px;
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+}
+
+/* ─── Cross-Chart Aspect Summary ─── */
+
+.aspectSummary {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aspectSummaryTitle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.35);
+  margin-bottom: 4px;
+}
+
+.aspectRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+.aspectLabel {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  min-width: 60px;
+}
+
+.aspectOrb {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+.aspectCharts {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── View Switcher ─── */
+
+.viewSwitcher {
+  display: flex;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.viewTab {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.viewTab:hover {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.viewTabActive {
+  background: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
