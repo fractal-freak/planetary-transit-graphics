@@ -7,7 +7,6 @@ import { useMundaneTransits } from './hooks/useMundaneTransits';
 import { useAuth } from './contexts/AuthContext';
 import { computeNatalAngles, combineDateAndTime } from './data/natalChart';
 import { initSwissEph, isSweReady } from './api/swisseph';
-import { useSFchtImport } from './hooks/useSFchtImport';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
 import Controls from './components/Controls/Controls';
 import StripView from './components/StripView/StripView';
@@ -17,7 +16,6 @@ import ExportButton from './components/ExportButton/ExportButton';
 import UserMenu from './components/Auth/UserMenu';
 import AuthModal from './components/Auth/AuthModal';
 import ProjectPickerModal from './components/Controls/ProjectPickerModal';
-import ChartPickerModal from './components/Controls/ChartPickerModal';
 import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 
@@ -45,7 +43,6 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [projectModalCreate, setProjectModalCreate] = useState(false);
-  const [dashChartPickerOpen, setDashChartPickerOpen] = useState(false);
   const [activeProject, setActiveProject] = useState(() => {
     try {
       const saved = localStorage.getItem('ptg_activeProject');
@@ -302,37 +299,6 @@ export default function App() {
     setStackCharts(prev => prev.filter(c => c.id !== chartId));
   }
 
-  // Dashboard-level SFcht import
-  const {
-    importStatus: dashImportStatus,
-    fileInputRef: dashFileInputRef,
-    handleFileInput: dashHandleFileInput,
-  } = useSFchtImport({
-    onChartsImported: (charts) => {
-      for (const chart of charts) {
-        handleAddStackChart(chart);
-      }
-      const natalTypes = charts.filter(c => c.chartType === 'natal');
-      if (natalTypes.length === 1) {
-        setNatalChart(refreshAngles({
-          birthDate: natalTypes[0].birthDate,
-          birthTime: natalTypes[0].birthTime,
-          lat: natalTypes[0].lat,
-          lng: natalTypes[0].lng,
-          locationName: natalTypes[0].locationName,
-          positions: natalTypes[0].positions,
-          angles: natalTypes[0].angles || null,
-        }));
-      }
-    },
-  });
-
-  // Dashboard chart picker handler
-  function handleDashSelectChart(chartData) {
-    setNatalChart(refreshAngles(chartData));
-    setMode('natal');
-    setDashChartPickerOpen(false);
-  }
 
   // ── Preset handler ──
   function handleLoadPreset(preset) {
@@ -511,86 +477,9 @@ export default function App() {
 
               {!activeLoading && totalRows === 0 && (
                 <div className={styles.emptyState}>
-                  <div className={styles.dashboard}>
-                    <section className={styles.dashSection}>
-                      <h3 className={styles.dashSectionTitle}>Charts</h3>
-                      <div className={styles.dashBtnGroup}>
-                        <button
-                          className={styles.dashBtn}
-                          onClick={() => dashFileInputRef.current?.click()}
-                        >
-                          <span className={styles.dashBtnIcon}>{'\u2913'}</span>
-                          Import Chart
-                        </button>
-                        {user && savedCharts.length > 0 && (
-                          <button
-                            className={styles.dashBtn}
-                            onClick={() => setDashChartPickerOpen(true)}
-                          >
-                            <span className={styles.dashBtnIcon}>{'\u2750'}</span>
-                            Open Chart
-                          </button>
-                        )}
-                        <button
-                          className={styles.dashBtn}
-                          onClick={() => {
-                            setMode('natal');
-                            setControlsOpen(true);
-                          }}
-                        >
-                          <span className={styles.dashBtnIcon}>+</span>
-                          Add Chart
-                        </button>
-                      </div>
-                      {dashImportStatus && (
-                        <div className={styles.dashImportStatus}>
-                          {dashImportStatus}
-                        </div>
-                      )}
-                    </section>
-
-                    <section className={styles.dashSection}>
-                      <h3 className={styles.dashSectionTitle}>Projects</h3>
-                      <div className={styles.dashBtnGroup}>
-                        <button
-                          className={`${styles.dashBtn} ${styles.dashBtnPrimary}`}
-                          onClick={() => {
-                            setProjectModalCreate(true);
-                            setShowProjectModal(true);
-                          }}
-                        >
-                          <span className={styles.dashBtnIcon}>+</span>
-                          New Project
-                        </button>
-                        <button
-                          className={styles.dashBtn}
-                          onClick={() => {
-                            setProjectModalCreate(false);
-                            setShowProjectModal(true);
-                          }}
-                        >
-                          <span className={styles.dashBtnIcon}>{'\u2630'}</span>
-                          Load Project
-                        </button>
-                      </div>
-                    </section>
-
-                    {activeProject && (
-                      <div className={styles.dashActiveProject}>
-                        Active: <strong>{activeProject.name}</strong>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Hidden file input for dashboard import */}
-                  <input
-                    ref={dashFileInputRef}
-                    type="file"
-                    accept=".SFcht,.sfcht"
-                    multiple
-                    style={{ display: 'none' }}
-                    onChange={dashHandleFileInput}
-                  />
+                  <span className={styles.emptyStateText}>
+                    Open the settings panel to add transits
+                  </span>
                 </div>
               )}
 
@@ -707,12 +596,6 @@ export default function App() {
         initialCreate={projectModalCreate}
       />
 
-      <ChartPickerModal
-        open={dashChartPickerOpen}
-        onClose={() => setDashChartPickerOpen(false)}
-        onSelectChart={handleDashSelectChart}
-        currentChartId={null}
-      />
     </div>
   );
 }

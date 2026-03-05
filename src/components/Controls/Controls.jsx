@@ -178,6 +178,22 @@ export default function Controls({
           {/* ── Mundane Mode Content ── */}
           {mode === 'mundane' && (
             <>
+              {/* Projects (quick access in predictive mode) */}
+              {!activeProject && (
+                <section className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Projects</h2>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button
+                      className={styles.presetsOpenBtn}
+                      onClick={onOpenProjectModal}
+                      style={{ flex: 1, fontSize: '10px' }}
+                    >
+                      Open Project
+                    </button>
+                  </div>
+                </section>
+              )}
+
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Chart Stack</h2>
                 <ChartStackPanel

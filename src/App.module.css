@@ -256,98 +256,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.emptyStateText {
   color: rgba(0, 0, 0, 0.2);
-  font-size: 14px;
-  letter-spacing: 0.05em;
-}
-
-/* ─── Dashboard (empty-state content) ─── */
-
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 280px;
-  width: 100%;
-}
-
-.dashSection {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dashSectionTitle {
-  font-size: 9px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(0, 0, 0, 0.25);
-  margin: 0;
-}
-
-.dashBtnGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.dashBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.015);
-  color: rgba(0, 0, 0, 0.5);
   font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: left;
-}
-
-.dashBtn:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.dashBtnPrimary {
-  background: rgba(0, 0, 0, 0.75);
-  border-color: transparent;
-  color: #f5f3ef;
-}
-
-.dashBtnPrimary:hover {
-  background: rgba(0, 0, 0, 0.88);
-  border-color: transparent;
-  color: #f5f3ef;
-}
-
-.dashBtnIcon {
-  font-size: 14px;
-  width: 18px;
-  text-align: center;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.dashImportStatus {
-  font-size: 10px;
-  font-weight: 500;
-  color: rgba(60, 140, 60, 0.7);
-  text-align: center;
-  padding: 4px 0;
-}
-
-.dashActiveProject {
-  font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
-  text-align: center;
-  padding: 4px 0;
+  letter-spacing: 0.03em;
 }
 
 .dashActiveProject strong {
