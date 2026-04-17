@@ -578,6 +578,21 @@ export default function App() {
               />
               <span className={styles.zoomLabel}>{zoom.toFixed(1)}×</span>
             </div>
+            <button
+              className={styles.nowButton}
+              onClick={() => {
+                const el = scrollRef.current;
+                if (!el) return;
+                const canvasW = el.scrollWidth;
+                const plotW = canvasW - PADDING.left - PADDING.right;
+                const totalMs = endDate - startDate;
+                const now = new Date();
+                const nowX = PADDING.left + ((now - startDate) / totalMs) * plotW;
+                el.scrollLeft = Math.max(0, nowX - el.clientWidth / 2);
+              }}
+            >
+              Now
+            </button>
           </div>
           </>
           )}

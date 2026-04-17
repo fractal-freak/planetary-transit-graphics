@@ -87,7 +87,27 @@
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
-  max-width: 320px;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.nowButton {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nowButton:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.75);
 }
 
 .zoomControl {
@@ -170,8 +190,8 @@
 
 .yAxisGlyph {
   font: 26px "Apple Symbols", "Segoe UI Symbol", serif;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.40);
+  color: rgba(0, 0, 0, 0.85);
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.85);
   line-height: 1;
 }
 
