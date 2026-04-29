@@ -18,6 +18,7 @@ export default function Controls({
   onEndChange,
   transitJobs,
   curves,
+  signChanges,
   onAddJob,
   onRemoveJob,
   onUpdateJob,
@@ -131,6 +132,7 @@ export default function Controls({
               <TransitJobList
                 transitJobs={transitJobs}
                 curves={curves}
+                signChanges={signChanges}
                 onAddJob={onAddJob}
                 onRemoveJob={onRemoveJob}
                 onUpdateJob={onUpdateJob}

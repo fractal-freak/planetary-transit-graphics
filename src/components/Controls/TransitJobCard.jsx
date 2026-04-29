@@ -3,7 +3,7 @@ import { PLANET_MAP, getOtherPlanets, getSlowerPlanets, isFasterThan, NON_RETROG
 import { ASPECTS } from '../../utils/aspects';
 import styles from './Controls.module.css';
 
-export default function TransitJobCard({ job, hasAspects, onRemove, onUpdate }) {
+export default function TransitJobCard({ job, hasAspects, hasAnyActivity, onRemove, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
 
   const transitP = PLANET_MAP[job.transitPlanet];
@@ -49,8 +49,8 @@ export default function TransitJobCard({ job, hasAspects, onRemove, onUpdate }) 
         </button>
       </div>
 
-      {!hasAspects && !transitP.conjunctionOnly && !(job.showSignChanges) && !(job.showRetrogrades) && (
-        <div className={styles.jobNoAspects}>No aspects in this timeframe.</div>
+      {hasAnyActivity === false && (
+        <div className={styles.jobNoAspects}>No transits during this timeframe.</div>
       )}
 
       {expanded && (

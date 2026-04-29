@@ -28,19 +28,51 @@ function refreshAngles(chart) {
   return { ...chart, angles: computeNatalAngles(dt, chart.lat, chart.lng) };
 }
 
-const DEFAULT_START = new Date(2025, 0, 1);
-const DEFAULT_END = new Date(2026, 11, 31);
+/** Default first-time range: today through one week ahead. */
+function defaultDateRange() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  return { start, end };
+}
+
+function readStoredDate(key) {
+  try {
+    const v = localStorage.getItem(key);
+    if (!v) return null;
+    const d = new Date(JSON.parse(v));
+    return isNaN(d.getTime()) ? null : d;
+  } catch { return null; }
+}
+
+function readStoredJSON(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch { return fallback; }
+}
 
 export default function App() {
   const [sweLoaded, setSweLoaded] = useState(false);
   const [page, setPage] = useState('graph'); // 'graph' | 'calendar'
-  const [mode, setMode] = useState('world');
-  const [startDate, setStartDate] = useState(DEFAULT_START);
-  const [endDate, setEndDate] = useState(DEFAULT_END);
-  const [transitJobs, setTransitJobs] = useState(DEFAULT_JOBS);
+  const [mode, setMode] = useState(() =>
+    readStoredJSON('ptg_mode', null) || 'world'
+  );
+  const [startDate, setStartDate] = useState(() =>
+    readStoredDate('ptg_startDate') || defaultDateRange().start
+  );
+  const [endDate, setEndDate] = useState(() =>
+    readStoredDate('ptg_endDate') || defaultDateRange().end
+  );
+  const [transitJobs, setTransitJobs] = useState(() =>
+    readStoredJSON('ptg_transitJobs', null) || DEFAULT_JOBS
+  );
   const [controlsOpen, setControlsOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [orbSettings, setOrbSettings] = useState(getDefaultOrbSettings);
+  const [orbSettings, setOrbSettings] = useState(() =>
+    readStoredJSON('ptg_orbSettings', null) || getDefaultOrbSettings()
+  );
   const [overlayData, setOverlayData] = useState({ crowdedRows: [], rowLayouts: [] });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
@@ -96,6 +128,23 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ptg_natalJobs', JSON.stringify(natalJobs));
   }, [natalJobs]);
+
+  // Persist transit/world-mode settings
+  useEffect(() => {
+    localStorage.setItem('ptg_transitJobs', JSON.stringify(transitJobs));
+  }, [transitJobs]);
+  useEffect(() => {
+    localStorage.setItem('ptg_startDate', JSON.stringify(startDate.toISOString()));
+  }, [startDate]);
+  useEffect(() => {
+    localStorage.setItem('ptg_endDate', JSON.stringify(endDate.toISOString()));
+  }, [endDate]);
+  useEffect(() => {
+    localStorage.setItem('ptg_mode', JSON.stringify(mode));
+  }, [mode]);
+  useEffect(() => {
+    localStorage.setItem('ptg_orbSettings', JSON.stringify(orbSettings));
+  }, [orbSettings]);
 
   // Auto-load default chart when user signs in
   useEffect(() => {
@@ -423,6 +472,7 @@ export default function App() {
           onEndChange={setEndDate}
           transitJobs={transitJobs}
           curves={curves}
+          signChanges={signChanges}
           onAddJob={handleAddJob}
           onRemoveJob={handleRemoveJob}
           onUpdateJob={handleUpdateJob}

@@ -1,5 +1,8 @@
 import { format } from 'date-fns';
 import { PLANET_MAP } from '../data/planets';
+import { ZODIAC_SIGNS, getSignIndex } from '../data/zodiac';
+import { getLongitude } from '../api/ephemeris';
+import { isSweReady } from '../api/swisseph';
 
 /**
  * Build a lookup of calendar events keyed by 'yyyy-MM-dd'.
@@ -23,18 +26,43 @@ export function buildEventMap(curves, signChanges) {
       const targetP = PLANET_MAP[curve.target];
       if (!transitP || !targetP) continue;
 
+      const isSunMoonPair =
+        (curve.transitPlanet === 'Sun' && curve.target === 'Moon') ||
+        (curve.transitPlanet === 'Moon' && curve.target === 'Sun');
+      const lunationLabel =
+        isSunMoonPair && curve.aspect.name === 'Conjunction' ? 'New Moon'
+        : isSunMoonPair && curve.aspect.name === 'Opposition' ? 'Full Moon'
+        : null;
+
       for (const peak of curve.peaks) {
         // Use realPeakDate when the actual perfection sits beyond the chart
         // window — that matches what the graph label shows.
         const date = peak.realPeakDate || peak.date;
         const key = format(date, 'yyyy-MM-dd');
-        const event = {
-          type: 'aspect',
-          date,
-          glyphs: `${transitP.symbol}${curve.aspect.symbol}${targetP.symbol}`,
-          title: `${curve.transitPlanet} ${curve.aspect.name} ${curve.target}`,
-          color: curve.color,
-        };
+
+        let event;
+        if (lunationLabel && isSweReady()) {
+          // Sun-Moon conjunction/opposition → render as New/Full Moon with
+          // the moon's sign at the moment of perfection.
+          const moonLon = getLongitude('Moon', date);
+          const sign = ZODIAC_SIGNS[getSignIndex(moonLon)];
+          event = {
+            type: 'lunation',
+            date,
+            glyphs: `${sign.symbol} ${lunationLabel}`,
+            title: `${lunationLabel} in ${sign.name}`,
+            color: curve.color,
+          };
+        } else {
+          event = {
+            type: 'aspect',
+            date,
+            glyphs: `${transitP.symbol}${curve.aspect.symbol}${targetP.symbol}`,
+            title: `${curve.transitPlanet} ${curve.aspect.name} ${curve.target}`,
+            color: curve.color,
+          };
+        }
+
         if (!map.has(key)) map.set(key, []);
         map.get(key).push(event);
       }

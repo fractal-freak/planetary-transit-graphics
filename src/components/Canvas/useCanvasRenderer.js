@@ -92,17 +92,25 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
     }
     // Inject rows for sign-change-only jobs (e.g. TrueNode with no targets,
     // or any planet with showSignChanges enabled but no active aspect curves).
-    // These jobs produce no curves but should still show a row with a
-    // sign-colored baseline, sign change markers, or eclipse events.
+    // Only inject when there's actual activity in the timeframe — otherwise
+    // an empty row would be drawn for a planet with nothing happening.
     if (transitJobs) {
       const existingRowKeys = new Set(rowOrder.map(r => r.key));
       for (const job of transitJobs) {
         if (!job.showSignChanges && !job.showRetrogrades) continue;
         const rowKey = `planet-${job.transitPlanet}`;
         if (existingRowKeys.has(rowKey)) continue;
+
+        const planet = job.transitPlanet;
+        const hasSignChange = signChanges?.changes?.some(c => c.planet === planet);
+        const hasStation = signChanges?.stations?.some(s => s.planet === planet);
+        const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
+        const hasEclipse = planet === 'TrueNode' && (signChanges?.eclipses?.length ?? 0) > 0;
+        if (!hasSignChange && !hasStation && !hasRetroPeriod && !hasEclipse) continue;
+
         rowOrder.push({
           key: rowKey,
-          rowPlanet: job.transitPlanet,
+          rowPlanet: planet,
           rowTargetPlanet: null,
           jobId: job.id,
         });
