@@ -554,34 +554,12 @@ export default function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <svg
+          <img
             className={styles.wizardHat}
-            viewBox="0 0 13 13"
-            shapeRendering="crispEdges"
+            src={`${import.meta.env.BASE_URL}wizard-hat.png`}
+            alt=""
             aria-hidden="true"
-          >
-            {/* Bent tip flopping toward the left */}
-            <rect x="9" y="0" width="1" height="1" fill="#2050b0" />
-            <rect x="8" y="1" width="2" height="1" fill="#2050b0" />
-            <rect x="7" y="2" width="3" height="1" fill="#2050b0" />
-            <rect x="6" y="3" width="3" height="1" fill="#2050b0" />
-            {/* Body widening down to the brim */}
-            <rect x="6" y="4" width="2" height="1" fill="#2050b0" />
-            <rect x="6" y="5" width="2" height="1" fill="#2050b0" />
-            <rect x="5" y="6" width="3" height="1" fill="#2050b0" />
-            <rect x="4" y="7" width="4" height="1" fill="#2050b0" />
-            <rect x="3" y="8" width="6" height="1" fill="#2050b0" />
-            <rect x="2" y="9" width="8" height="1" fill="#2050b0" />
-            {/* Gold band */}
-            <rect x="2" y="10" width="8" height="1" fill="#ffd96b" />
-            {/* Wide brim, two-tone for depth */}
-            <rect x="1" y="11" width="11" height="1" fill="#2548a0" />
-            <rect x="0" y="12" width="13" height="1" fill="#1a3a80" />
-            {/* Star sparkles */}
-            <rect x="11" y="2" width="1" height="1" fill="#ffd96b" />
-            <rect x="1" y="4" width="1" height="1" fill="#ffd96b" />
-            <rect x="12" y="7" width="1" height="1" fill="#ffd96b" />
-          </svg>
+          />
           <h1 className={styles.title}>Transit Wizard</h1>
           {activeProject && page === 'graph' && (
             <button
