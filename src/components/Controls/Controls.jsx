@@ -130,10 +130,42 @@ export default function Controls({
             </section>
           )}
 
+          {/* ── Presets (shared, visible when signed in) ── */}
+          {user && mode !== 'mundane' && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Presets</h2>
+              <div className={styles.presetsBar}>
+                {favorites.length > 0 && (
+                  <div className={styles.presetFavorites}>
+                    {favorites.map(preset => (
+                      <button
+                        key={preset.id}
+                        className={styles.presetFavBtn}
+                        onClick={() => onLoadPreset(preset)}
+                        title={`Load "${preset.name}" (${preset.mode})`}
+                      >
+                        <span className={styles.presetFavStar}>{'★'}</span>
+                        <span className={styles.presetFavName}>{preset.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button
+                  className={styles.presetsOpenBtn}
+                  onClick={() => setPresetModalOpen(true)}
+                >
+                  {modePresets.length > 0
+                    ? `All Presets (${modePresets.length})`
+                    : 'Save / Load Presets'}
+                </button>
+              </div>
+            </section>
+          )}
+
           {/* ── World Mode Content ── */}
           {mode === 'world' && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Transits</h2>
+              <h2 className={styles.sectionTitle}>Custom Transits</h2>
               <TransitJobList
                 transitJobs={transitJobs}
                 curves={curves}
@@ -238,38 +270,6 @@ export default function Controls({
                 )}
               </section>
             </>
-          )}
-
-          {/* ── Presets (shared, visible when signed in) ── */}
-          {user && mode !== 'mundane' && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Presets</h2>
-              <div className={styles.presetsBar}>
-                {favorites.length > 0 && (
-                  <div className={styles.presetFavorites}>
-                    {favorites.map(preset => (
-                      <button
-                        key={preset.id}
-                        className={styles.presetFavBtn}
-                        onClick={() => onLoadPreset(preset)}
-                        title={`Load "${preset.name}" (${preset.mode})`}
-                      >
-                        <span className={styles.presetFavStar}>{'\u2605'}</span>
-                        <span className={styles.presetFavName}>{preset.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <button
-                  className={styles.presetsOpenBtn}
-                  onClick={() => setPresetModalOpen(true)}
-                >
-                  {modePresets.length > 0
-                    ? `All Presets (${modePresets.length})`
-                    : 'Save / Load Presets'}
-                </button>
-              </div>
-            </section>
           )}
 
           {/* ── Orb Settings (shared) ── */}
