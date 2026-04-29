@@ -103,6 +103,10 @@ export default function App() {
   const [mundaneJobs, setMundaneJobs] = useState([]);
   const [mundaneView, setMundaneView] = useState('timeline'); // 'timeline' | 'strips' | 'matrix' | 'wheel'
 
+  // ── Calendar nav state (lifted so the sidebar can drive it) ──
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
+  const [calendarView, setCalendarView] = useState('month'); // 'month' | 'year'
+
   const canvasRef = useRef(null);
   const scrollRef = useRef(null);
   const stickyYearRef = useRef(null);
@@ -451,6 +455,11 @@ export default function App() {
 
       <main className={styles.main}>
         <Controls
+          page={page}
+          calendarDate={calendarDate}
+          onCalendarDateChange={setCalendarDate}
+          calendarView={calendarView}
+          onCalendarViewChange={setCalendarView}
           mode={mode}
           onModeChange={setMode}
           startDate={startDate}
@@ -497,6 +506,10 @@ export default function App() {
               mundaneJobs={mundaneJobs}
               stackCharts={stackCharts}
               orbSettings={orbSettings}
+              currentDate={calendarDate}
+              onCurrentDateChange={setCalendarDate}
+              view={calendarView}
+              onViewChange={setCalendarView}
             />
           ) : (
           <>

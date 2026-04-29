@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { addMonths, subMonths, format } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
 import DateRangePicker from './DateRangePicker';
 import TransitJobList from './TransitJobList';
@@ -9,7 +10,83 @@ import OrbSettings from './OrbSettings';
 import PresetPickerModal from './PresetPickerModal';
 import styles from './Controls.module.css';
 
+/** Sidebar section that drives the Calendar's nav (Month/Year + prev/next). */
+function CalendarNavSection({ calendarDate, onCalendarDateChange, calendarView, onCalendarViewChange }) {
+  function goPrev() {
+    if (calendarView === 'month') {
+      onCalendarDateChange(d => subMonths(d, 1));
+    } else {
+      onCalendarDateChange(d => new Date(d.getFullYear() - 1, d.getMonth(), 1));
+    }
+  }
+  function goNext() {
+    if (calendarView === 'month') {
+      onCalendarDateChange(d => addMonths(d, 1));
+    } else {
+      onCalendarDateChange(d => new Date(d.getFullYear() + 1, d.getMonth(), 1));
+    }
+  }
+  function goToday() {
+    onCalendarDateChange(new Date());
+  }
+
+  const heading = calendarView === 'month'
+    ? format(calendarDate, 'MMMM yyyy')
+    : String(calendarDate.getFullYear());
+
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>View</h2>
+      <div className={styles.calNavViewSwitcher}>
+        <button
+          type="button"
+          className={`${styles.calNavTab} ${calendarView === 'month' ? styles.calNavTabActive : ''}`}
+          onClick={() => onCalendarViewChange('month')}
+        >
+          Month
+        </button>
+        <button
+          type="button"
+          className={`${styles.calNavTab} ${calendarView === 'year' ? styles.calNavTabActive : ''}`}
+          onClick={() => onCalendarViewChange('year')}
+        >
+          Year
+        </button>
+      </div>
+
+      <div className={styles.calNavRow}>
+        <button
+          type="button"
+          className={styles.calNavArrow}
+          onClick={goPrev}
+          aria-label={calendarView === 'month' ? 'Previous month' : 'Previous year'}
+        >
+          ‹
+        </button>
+        <span className={styles.calNavHeading}>{heading}</span>
+        <button
+          type="button"
+          className={styles.calNavArrow}
+          onClick={goNext}
+          aria-label={calendarView === 'month' ? 'Next month' : 'Next year'}
+        >
+          ›
+        </button>
+      </div>
+
+      <button type="button" className={styles.calNavToday} onClick={goToday}>
+        Today
+      </button>
+    </section>
+  );
+}
+
 export default function Controls({
+  page,
+  calendarDate,
+  onCalendarDateChange,
+  calendarView,
+  onCalendarViewChange,
   mode,
   onModeChange,
   startDate,
@@ -114,16 +191,25 @@ export default function Controls({
             </section>
           )}
 
-          {/* ── Date Range (shared) ── */}
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Date Range</h2>
-            <DateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onStartChange={onStartChange}
-              onEndChange={onEndChange}
+          {/* ── Date Range / Calendar Nav ── */}
+          {page === 'calendar' ? (
+            <CalendarNavSection
+              calendarDate={calendarDate}
+              onCalendarDateChange={onCalendarDateChange}
+              calendarView={calendarView}
+              onCalendarViewChange={onCalendarViewChange}
             />
-          </section>
+          ) : (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Date Range</h2>
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onStartChange={onStartChange}
+                onEndChange={onEndChange}
+              />
+            </section>
+          )}
 
           {/* ── World Mode Content ── */}
           {mode === 'world' && (

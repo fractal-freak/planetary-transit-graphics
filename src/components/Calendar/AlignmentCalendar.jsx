@@ -45,9 +45,13 @@ export default function AlignmentCalendar({
   mundaneJobs = [],
   stackCharts = [],
   orbSettings,
+  currentDate,
+  onCurrentDateChange,
+  view,
+  onViewChange,
 }) {
-  const [currentDate, setCurrentDate] = useState(() => new Date());
-  const [view, setView] = useState('month'); // 'month' | 'year'
+  const setCurrentDate = onCurrentDateChange;
+  const setView = onViewChange;
 
   // Compute range — slides only when the viewed area falls outside it.
   const [calRange, setCalRange] = useState(() => rangeFor(new Date(), 'month'));
