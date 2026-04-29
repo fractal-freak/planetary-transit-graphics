@@ -302,6 +302,51 @@ export default function App() {
     setOverlayData(data);
   }, []);
 
+  // ── Pinch / ctrl-wheel zoom on the timeline ──
+  // Browsers fire `wheel` events with ctrlKey=true for trackpad pinch and
+  // for ctrl+wheel on a mouse. We intercept those, prevent the browser's
+  // default page zoom, and adjust our timeline zoom while keeping the date
+  // under the cursor anchored in place.
+  // Read zoom inside the listener via a ref so the effect doesn't have to
+  // re-attach (and detach) on every zoom change — we'd lose the listener
+  // mid-gesture otherwise.
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    function onWheel(e) {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+
+      const rect = el.getBoundingClientRect();
+      const viewportX = e.clientX - rect.left;
+      const oldZoom = zoomRef.current;
+      const factor = Math.exp(-e.deltaY * 0.01);
+      const newZoom = Math.max(1, Math.min(5, oldZoom * factor));
+      if (newZoom === oldZoom) return;
+
+      // Cursor-anchored: keep the canvas point under the cursor fixed.
+      const ratio = newZoom / oldZoom;
+      const oldCanvasX = el.scrollLeft + viewportX;
+      const newScrollLeft = oldCanvasX * ratio - viewportX;
+
+      setZoom(newZoom);
+      // Apply the new scrollLeft after React lays out the wider/narrower canvas.
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollLeft = Math.max(0, newScrollLeft);
+        }
+      });
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+    // Re-run when sweLoaded flips (canvas div mounts) or when the rendered
+    // graph view changes (mundane sub-views replace the canvas container).
+  }, [sweLoaded, mode, mundaneView, page]);
+
   // ── Sticky year label: scroll-driven, directly updates DOM for smooth animation ──
   useEffect(() => {
     const el = scrollRef.current;
