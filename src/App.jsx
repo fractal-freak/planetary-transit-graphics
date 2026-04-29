@@ -70,6 +70,9 @@ export default function App() {
     readStoredJSON('ptg_transitJobs', null) || DEFAULT_JOBS
   );
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
+    readStoredJSON('ptg_sidebarCollapsed', false)
+  );
   const [zoom, setZoom] = useState(1);
   const [orbSettings, setOrbSettings] = useState(() =>
     readStoredJSON('ptg_orbSettings', null) || getDefaultOrbSettings()
@@ -155,6 +158,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ptg_orbSettings', JSON.stringify(orbSettings));
   }, [orbSettings]);
+  useEffect(() => {
+    localStorage.setItem('ptg_sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   // ── Session restore from Firestore on sign-in ──
   // Firestore is the source of truth for signed-in users. localStorage is
@@ -593,7 +599,16 @@ export default function App() {
         </div>
       </header>
 
-      <main className={styles.main}>
+      <main className={`${styles.main} ${sidebarCollapsed ? styles.mainSidebarCollapsed : ''}`}>
+        <button
+          type="button"
+          className={`${styles.sidebarToggle} ${sidebarCollapsed ? styles.sidebarToggleCollapsed : ''}`}
+          onClick={() => setSidebarCollapsed(c => !c)}
+          aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+          title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+        >
+          {sidebarCollapsed ? '›' : '‹'}
+        </button>
         <Controls
           page={page}
           mode={mode}
