@@ -35,6 +35,7 @@ export default function TransitJobWizard({ onAddJob }) {
         aspects: ['Conjunction'],
         showSignChanges: true,
         showRetrogrades: false,
+        showEclipses: true,
       });
       reset();
       return;

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { PLANET_MAP, SPEED_ORDER } from '../../data/planets';
-import { getElementColor, getElementRGB } from '../../data/zodiac';
+import { getElementColor, getElementRGB, getSignIndex, ZODIAC_SIGNS } from '../../data/zodiac';
+import { getLongitude } from '../../api/ephemeris';
+import { isSweReady } from '../../api/swisseph';
 
 export const PADDING = { top: 40, right: 30, bottom: 50, left: 55 };
 const SIGN_CHANGE_EXTRA_BOTTOM = 30; // extra bottom padding when sign change labels are shown
@@ -97,7 +99,8 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
     if (transitJobs) {
       const existingRowKeys = new Set(rowOrder.map(r => r.key));
       for (const job of transitJobs) {
-        if (!job.showSignChanges && !job.showRetrogrades) continue;
+        const wantsEclipses = job.transitPlanet === 'TrueNode' && (job.showEclipses ?? true);
+        if (!job.showSignChanges && !job.showRetrogrades && !wantsEclipses) continue;
         const rowKey = `planet-${job.transitPlanet}`;
         if (existingRowKeys.has(rowKey)) continue;
 
@@ -105,7 +108,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
         const hasSignChange = signChanges?.changes?.some(c => c.planet === planet);
         const hasStation = signChanges?.stations?.some(s => s.planet === planet);
         const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
-        const hasEclipse = planet === 'TrueNode' && (signChanges?.eclipses?.length ?? 0) > 0;
+        const hasEclipse = wantsEclipses && (signChanges?.eclipses?.length ?? 0) > 0;
         if (!hasSignChange && !hasStation && !hasRetroPeriod && !hasEclipse) continue;
 
         rowOrder.push({
@@ -222,7 +225,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
         const pairKey = `${curve.transitPlanet}-${curve.target}`;
         const dimmed = highlightPair != null && pairKey !== highlightPair;
         const highlighted = highlightPair != null && pairKey === highlightPair;
-        drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed, highlighted, signSegments, baselineY);
+        drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed, highlighted, signSegments, baselineY, signChanges?.eclipses);
       }
 
       // Redraw baseline with dashed pattern for retrograde periods ON TOP of curves.
@@ -1254,7 +1257,7 @@ function getTimeTicks(startDate, endDate, plotW) {
 
 // ─── Aspect curve (confined to a row) ───
 
-function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed = false, highlighted = false, signSegments = null, baselineY) {
+function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed = false, highlighted = false, signSegments = null, baselineY, eclipses = null) {
   const { points, peaks } = curve;
   if (!points || points.length < 2) return;
 
@@ -1343,6 +1346,17 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
 
   // --- COLLECT PEAK LABELS for later collision-aware drawing ---
   if (peaks && rowLabels) {
+    // A Sun-Moon conjunction/opposition is a New / Full Moon; render the
+    // label as "{moonSign} New Moon" / "{moonSign} Full Moon" instead of
+    // the standard glyph triple. Detect the pair once outside the loop.
+    const isSunMoonPair =
+      (curve.transitPlanet === 'Sun' && curve.target === 'Moon') ||
+      (curve.transitPlanet === 'Moon' && curve.target === 'Sun');
+    const lunationKind =
+      isSunMoonPair && curve.aspect.name === 'Conjunction' ? 'new'
+      : isSunMoonPair && curve.aspect.name === 'Opposition' ? 'full'
+      : null;
+
     peaks.forEach(peak => {
       const px = ox + dateToX(peak.date, startDate, endDate, plotW);
       const py = bY - peak.intensity * curveH;
@@ -1363,11 +1377,41 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
         nearMiss = `<${rounded}°`;
       }
       const dateLine = `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
+
+      // ── Lunation / eclipse override ──
+      let lunation = null;
+      let eclipseHit = null;
+      if (lunationKind && isSweReady()) {
+        const moonLon = getLongitude('Moon', d);
+        const signIndex = getSignIndex(moonLon);
+        const sign = ZODIAC_SIGNS[signIndex];
+        lunation = { kind: lunationKind, signIndex, signSymbol: sign.symbol };
+        // If this New / Full Moon is also an eclipse, swap in the eclipse
+        // graphic. Eclipse perfections coincide with the lunation within a
+        // few hours; allow a 1-day window for matching.
+        if (eclipses && eclipses.length > 0) {
+          const dayMs = 86400000;
+          const wantType = lunationKind === 'new' ? 'solar' : 'lunar';
+          const match = eclipses.find(e =>
+            e.type === wantType && Math.abs(e.date - d) < dayMs,
+          );
+          if (match) {
+            eclipseHit = {
+              type: match.type,
+              kind: match.kind,
+              signIndex: match.signIndex,
+              signSymbol: match.signSymbol,
+            };
+          }
+        }
+      }
+
       rowLabels.push({
         x: px, y: py, dateLine, ratio, dimmed, highlighted,
         tSym, tRetro, aspectSym, targetSym, targetRetro, nearMiss,
         isNatal: curve.isNatal || false,
         pairKey: `${curve.transitPlanet}-${curve.target}`,
+        lunation, eclipse: eclipseHit,
       });
     });
   }
@@ -1435,7 +1479,56 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
     return { advance, visualRight };
   }
 
+  // Eclipse peak labels are rendered by a custom path; report the visual
+  // width here so cluster placement still works without going through the
+  // glyph-segments code path.
+  function eclipsePeakLineWidth(lbl) {
+    const text = lbl.eclipse.type === 'solar' ? 'Solar Eclipse' : 'Lunar Eclipse';
+    const ECLIPSE_GLYPH_R = 7;
+    ctx.font = DATE_FONT;
+    const textW = ctx.measureText(text).width;
+    ctx.font = GLYPH_FONT;
+    const signW = ctx.measureText(lbl.eclipse.signSymbol).width;
+    return ECLIPSE_GLYPH_R * 2 + 4 + textW + 4 + signW;
+  }
+
   function layoutGlyphLine(lbl) {
+    // Sun-Moon conjunction/opposition → New Moon / Full Moon. We replace the
+    // glyph triple with a "{signGlyph} New Moon" line. The sign glyph picks
+    // up the moon's element color.
+    if (lbl.lunation && !lbl.eclipse) {
+      const segments = [];
+      let cursor = 0;
+      const signM = glyphMetrics(lbl.lunation.signSymbol, GLYPH_FONT);
+      segments.push({
+        text: lbl.lunation.signSymbol,
+        font: GLYPH_FONT,
+        alphaKey: 'glyph',
+        x: cursor,
+        baseline: 'bottom',
+        yOff: 0,
+        rgb: getElementRGB(lbl.lunation.signIndex),
+      });
+      cursor += signM.advance + 3;
+      const text = lbl.lunation.kind === 'new' ? 'New Moon' : 'Full Moon';
+      ctx.font = DATE_FONT;
+      const textW = ctx.measureText(text).width;
+      segments.push({
+        text,
+        font: DATE_FONT,
+        alphaKey: 'glyph',
+        x: cursor,
+        baseline: 'bottom',
+        yOff: 0,
+      });
+      cursor += textW;
+      return { segments, totalW: cursor };
+    }
+    if (lbl.eclipse) {
+      // Eclipse peak labels use a custom render; report width but no
+      // segments. Callers must check lbl.eclipse before rendering.
+      return { segments: [], totalW: eclipsePeakLineWidth(lbl) };
+    }
     const segments = [];
     let cursor = 0;
     const tM = glyphMetrics(lbl.tSym, GLYPH_FONT);
@@ -1494,7 +1587,86 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
 
   // ── Render a single label at a given position ──
 
+  // Render the eclipse-style peak label on a Sun-Moon row: the same round
+  // eclipse glyph that the Lunar Nodes row uses, with a "{glyph} Solar
+  // Eclipse {sign}" inline label and the date above.
+  function renderEclipsePeakLabel(lbl, finalX, baseY, needsLeader) {
+    const ECLIPSE_GLYPH_R = 7;
+    const text = lbl.eclipse.type === 'solar' ? 'Solar Eclipse' : 'Lunar Eclipse';
+    ctx.font = DATE_FONT;
+    const textW = ctx.measureText(text).width;
+    ctx.font = GLYPH_FONT;
+    const signW = ctx.measureText(lbl.eclipse.signSymbol).width;
+    const lineW = ECLIPSE_GLYPH_R * 2 + 4 + textW + 4 + signW;
+    const dateW = ctx.measureText(lbl.dateLine).width;
+    const maxW = Math.max(lineW, dateW);
+    const halfW = maxW / 2;
+
+    const labelOpacity = lbl.dimmed ? 0.15 : lbl.highlighted ? 1.4 : 1;
+    const dateAlpha = (0.55 * labelOpacity).toFixed(2);
+
+    // Date line — top, centered.
+    ctx.font = DATE_FONT;
+    ctx.fillStyle = `rgba(0,0,0,${dateAlpha})`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(lbl.dateLine, finalX, baseY - 15);
+
+    // Inline glyph + text + sign at baseY.
+    const lineStartX = finalX - lineW / 2;
+    const glyphCx = lineStartX + ECLIPSE_GLYPH_R;
+    const glyphCy = baseY - 7; // visually align with text baseline
+
+    ctx.save();
+    if (lbl.eclipse.type === 'solar') {
+      drawSolarEclipseGlyph(ctx, glyphCx, glyphCy, ECLIPSE_GLYPH_R);
+    } else {
+      drawLunarEclipseGlyph(ctx, glyphCx, glyphCy, ECLIPSE_GLYPH_R);
+    }
+    ctx.restore();
+
+    ctx.font = DATE_FONT;
+    ctx.fillStyle = `rgba(0,0,0,${(0.62 * labelOpacity).toFixed(2)})`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    const textX = lineStartX + ECLIPSE_GLYPH_R * 2 + 4;
+    ctx.fillText(text, textX, baseY);
+
+    // Sign glyph in element color, after the text.
+    ctx.font = GLYPH_FONT;
+    const [r, g, b] = getElementRGB(lbl.eclipse.signIndex);
+    ctx.fillStyle = `rgba(${r},${g},${b},${(0.95 * labelOpacity).toFixed(2)})`;
+    ctx.fillText(lbl.eclipse.signSymbol, textX + textW + 4, baseY);
+
+    // Optional leader to peak point.
+    if (needsLeader) {
+      ctx.beginPath();
+      ctx.moveTo(finalX, baseY + 2);
+      ctx.lineTo(lbl.x, lbl.y);
+      ctx.strokeStyle = `rgba(0,0,0,${(0.18 * labelOpacity).toFixed(2)})`;
+      ctx.lineWidth = 0.75;
+      ctx.setLineDash([2, 2]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    placed.push({
+      left: finalX - halfW - MIN_GAP_X,
+      right: finalX + halfW + MIN_GAP_X,
+      top: baseY - BLOCK_H,
+      bottom: baseY,
+      pairKey: lbl.pairKey,
+    });
+  }
+
   function renderLabel(lbl, finalX, baseY, needsLeader) {
+    // Eclipse override: draw the same circular eclipse glyph the Lunar Nodes
+    // row uses, plus a "Date / {Solar|Lunar} Eclipse {sign}" stack. The
+    // canvas glyph isn't a font character so we bypass the segments path.
+    if (lbl.eclipse) {
+      renderEclipsePeakLabel(lbl, finalX, baseY, needsLeader);
+      return;
+    }
     const { segments, totalW: glyphLineW } = layoutGlyphLine(lbl);
     ctx.font = DATE_FONT;
     const dateW = ctx.measureText(lbl.dateLine).width;
@@ -1516,7 +1688,12 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
     for (const seg of segments) {
       ctx.font = seg.font;
       const alpha = (ALPHA_MAP[seg.alphaKey] * labelOpacity).toFixed(2);
-      ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+      if (seg.rgb) {
+        const [r, g, b] = seg.rgb;
+        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+      } else {
+        ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+      }
       ctx.textAlign = 'left';
       ctx.textBaseline = seg.baseline;
       ctx.fillText(seg.text, startX + seg.x, baseY + (seg.yOff || 0));

@@ -17,7 +17,8 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
         const hasSignChange = signChanges?.changes?.some(c => c.planet === planet);
         const hasStation = signChanges?.stations?.some(s => s.planet === planet);
         const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
-        const hasEclipse = planet === 'TrueNode' && (signChanges?.eclipses?.length ?? 0) > 0;
+        const wantsEclipses = planet === 'TrueNode' && (job.showEclipses ?? true);
+        const hasEclipse = wantsEclipses && (signChanges?.eclipses?.length ?? 0) > 0;
         // While curves are still computing, the activity check would be a
         // false negative — pass null so the card hides the "no transits" line.
         const hasAnyActivity = loading

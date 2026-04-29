@@ -148,6 +148,18 @@ export default function TransitJobCard({ job, hasAspects, hasAnyActivity, onRemo
                 <span className={styles.signChangeLabel}>Retrograde cycles</span>
               </label>
             )}
+
+            {job.transitPlanet === 'TrueNode' && (
+              <label className={styles.signChangeToggle} style={{ marginTop: 4 }}>
+                <input
+                  type="checkbox"
+                  checked={job.showEclipses ?? true}
+                  onChange={() => onUpdate({ showEclipses: !(job.showEclipses ?? true) })}
+                  className={styles.targetCheckbox}
+                />
+                <span className={styles.signChangeLabel}>Eclipses</span>
+              </label>
+            )}
           </div>
         </div>
       )}

@@ -320,9 +320,13 @@ export function useTransits(transitJobs, startDate, endDate, orbSettings) {
       }
 
       // ── Eclipse computation (for TrueNode / Eclipses row) ──
+      // Independent of showSignChanges — controlled by the per-job
+      // showEclipses toggle (defaulted on for backward compat).
       let eclipseEvents = [];
-      const hasTrueNodeJob = transitJobs.some(j => j.transitPlanet === 'TrueNode');
-      if (hasTrueNodeJob) {
+      const eclipsesRequested = transitJobs.some(
+        j => j.transitPlanet === 'TrueNode' && (j.showEclipses ?? true),
+      );
+      if (eclipsesRequested) {
         eclipseEvents = computeEclipses(startDate, endDate);
       }
 
