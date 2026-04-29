@@ -34,8 +34,8 @@
 }
 
 .wizardHat {
-  width: 24px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
   display: block;
   image-rendering: pixelated;
