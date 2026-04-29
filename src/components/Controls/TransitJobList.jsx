@@ -3,7 +3,7 @@ import TransitJobCard from './TransitJobCard';
 import TransitJobWizard from './TransitJobWizard';
 import styles from './Controls.module.css';
 
-export default function TransitJobList({ transitJobs, curves, signChanges, onAddJob, onRemoveJob, onUpdateJob }) {
+export default function TransitJobList({ transitJobs, curves, signChanges, loading, onAddJob, onRemoveJob, onUpdateJob }) {
   // Sort cards by planet speed: slowest (Pluto) first, fastest (Moon) last
   const sorted = [...transitJobs].sort(
     (a, b) => SPEED_ORDER.indexOf(b.transitPlanet) - SPEED_ORDER.indexOf(a.transitPlanet)
@@ -18,7 +18,11 @@ export default function TransitJobList({ transitJobs, curves, signChanges, onAdd
         const hasStation = signChanges?.stations?.some(s => s.planet === planet);
         const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
         const hasEclipse = planet === 'TrueNode' && (signChanges?.eclipses?.length ?? 0) > 0;
-        const hasAnyActivity = hasAspects || hasSignChange || hasStation || hasRetroPeriod || hasEclipse;
+        // While curves are still computing, the activity check would be a
+        // false negative — pass null so the card hides the "no transits" line.
+        const hasAnyActivity = loading
+          ? null
+          : (hasAspects || hasSignChange || hasStation || hasRetroPeriod || hasEclipse);
         return (
           <TransitJobCard
             key={job.id}

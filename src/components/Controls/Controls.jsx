@@ -96,6 +96,7 @@ export default function Controls({
   transitJobs,
   curves,
   signChanges,
+  curvesLoading,
   onAddJob,
   onRemoveJob,
   onUpdateJob,
@@ -219,6 +220,7 @@ export default function Controls({
                 transitJobs={transitJobs}
                 curves={curves}
                 signChanges={signChanges}
+                loading={curvesLoading}
                 onAddJob={onAddJob}
                 onRemoveJob={onRemoveJob}
                 onUpdateJob={onUpdateJob}

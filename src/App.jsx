@@ -7,6 +7,7 @@ import { useMundaneTransits } from './hooks/useMundaneTransits';
 import { useAuth } from './contexts/AuthContext';
 import { computeNatalAngles, combineDateAndTime } from './data/natalChart';
 import { initSwissEph, isSweReady } from './api/swisseph';
+import { loadSession, saveSession } from './firebase/firestore';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
 import Controls from './components/Controls/Controls';
 import StripView from './components/StripView/StripView';
@@ -83,7 +84,12 @@ export default function App() {
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
-  const { user, savedCharts, defaultChartId } = useAuth();
+  const { user, savedCharts, savedPresets, defaultChartId } = useAuth();
+  // 'loading' until Firestore session fetch resolves; then 'restored' (had a
+  // saved session) or 'empty' (no session — eligible to auto-apply preset).
+  // For signed-out users, stays 'loading' so we never write back to Firestore.
+  const [sessionStatus, setSessionStatus] = useState('loading');
+  const autoAppliedPresetRef = useRef(false);
 
   // ── Natal mode state (persisted to localStorage) ──
   const [natalChart, setNatalChart] = useState(() => {
@@ -149,6 +155,86 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ptg_orbSettings', JSON.stringify(orbSettings));
   }, [orbSettings]);
+
+  // ── Session restore from Firestore on sign-in ──
+  // Firestore is the source of truth for signed-in users. localStorage is
+  // a best-effort fallback for the brief pre-restore window and for offline
+  // / signed-out use.
+  useEffect(() => {
+    if (!user) {
+      setSessionStatus('loading');
+      autoAppliedPresetRef.current = false;
+      return;
+    }
+    let cancelled = false;
+    setSessionStatus('loading');
+    (async () => {
+      try {
+        const session = await loadSession(user.uid);
+        if (cancelled) return;
+        const hasContent = session && (
+          (session.transitJobs && session.transitJobs.length > 0) ||
+          (session.natalJobs && session.natalJobs.length > 0)
+        );
+        if (hasContent) {
+          if (session.mode) setMode(session.mode);
+          if (session.startDate) setStartDate(new Date(session.startDate));
+          if (session.endDate) setEndDate(new Date(session.endDate));
+          if (Array.isArray(session.transitJobs)) setTransitJobs(session.transitJobs);
+          if (Array.isArray(session.natalJobs)) setNatalJobs(session.natalJobs);
+          if (session.orbSettings) setOrbSettings(session.orbSettings);
+          setSessionStatus('restored');
+        } else {
+          setSessionStatus('empty');
+        }
+      } catch (err) {
+        console.warn('Session restore failed:', err);
+        if (!cancelled) setSessionStatus('empty');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.uid]);
+
+  // Auto-apply the user's favorite preset when starting a fresh session.
+  // Fires once after sessionStatus becomes 'empty' AND presets have loaded.
+  useEffect(() => {
+    if (!user || sessionStatus !== 'empty' || autoAppliedPresetRef.current) return;
+    if (!savedPresets || savedPresets.length === 0) return;
+    const fav = savedPresets.find(p => p.isFavorite) || savedPresets[0];
+    if (!fav) return;
+    autoAppliedPresetRef.current = true;
+    if (fav.mode && fav.mode !== mode) setMode(fav.mode);
+    if (fav.startDate) setStartDate(new Date(fav.startDate));
+    if (fav.endDate) setEndDate(new Date(fav.endDate));
+    const prefix = fav.mode === 'natal' ? 'natal-job' : 'job';
+    const freshJobs = (fav.jobs || []).map((job, i) => ({
+      ...job,
+      id: `${prefix}-${Date.now()}-${i}`,
+    }));
+    if (fav.mode === 'natal') {
+      setNatalJobs(freshJobs);
+    } else {
+      setTransitJobs(freshJobs);
+    }
+  }, [user, sessionStatus, savedPresets]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save session to Firestore whenever graph state changes (debounced).
+  // Skipped while sessionStatus is 'loading' to avoid clobbering the saved
+  // session with default values before restore completes.
+  useEffect(() => {
+    if (!user || sessionStatus === 'loading') return;
+    const timer = setTimeout(() => {
+      saveSession(user.uid, {
+        mode,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        transitJobs,
+        natalJobs,
+        orbSettings,
+      }).catch(err => console.warn('Session save failed:', err));
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [user, sessionStatus, mode, startDate, endDate, transitJobs, natalJobs, orbSettings]);
 
   // Auto-load default chart when user signs in
   useEffect(() => {
@@ -469,6 +555,7 @@ export default function App() {
           transitJobs={transitJobs}
           curves={curves}
           signChanges={signChanges}
+          curvesLoading={loading}
           onAddJob={handleAddJob}
           onRemoveJob={handleRemoveJob}
           onUpdateJob={handleUpdateJob}

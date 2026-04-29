@@ -414,3 +414,28 @@ export async function renameProject(uid, projectId, newName) {
     updatedAt: serverTimestamp(),
   });
 }
+
+// ── Session snapshot ──
+// Mirrors the localStorage-persisted graph state so it survives storage
+// clears and roams across devices for signed-in users.
+//   users/{uid}/session/current → { mode, startDate, endDate,
+//                                   transitJobs, natalJobs, orbSettings,
+//                                   updatedAt }
+
+function sessionRef(uid) {
+  return doc(db, 'users', uid, 'session', 'current');
+}
+
+export async function loadSession(uid) {
+  const snap = await getDoc(sessionRef(uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function saveSession(uid, state) {
+  // Strip undefined — Firestore rejects them
+  const clean = JSON.parse(JSON.stringify(state));
+  await setDoc(sessionRef(uid), {
+    ...clean,
+    updatedAt: serverTimestamp(),
+  });
+}
