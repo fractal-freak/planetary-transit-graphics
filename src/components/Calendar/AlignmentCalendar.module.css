@@ -257,6 +257,64 @@
   color: rgba(0, 0, 0, 0.18);
 }
 
+/* ─── Event glyphs (large month view) ─── */
+
+.dayEvents {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.eventGlyphs {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  line-height: 1;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.monthLarge .eventGlyphs {
+  font-size: 14px;
+}
+
+.glyph {
+  -webkit-text-stroke: 0.4px currentColor;
+}
+
+.aspectGlyph {
+  font-size: 0.85em;
+  opacity: 0.85;
+  margin: 0 1px;
+}
+
+.eventOverflow {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+
+/* ─── Event dots (small year-view tiles) ─── */
+
+.dayDots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
 /* "Today" pill */
 .dayToday .dayNumber {
   display: inline-flex;

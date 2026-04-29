@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { addMonths, subMonths, format } from 'date-fns';
 import MonthView from './MonthView';
+import { buildPerfectionMap } from '../../utils/calendarEvents';
 import styles from './AlignmentCalendar.module.css';
 
-export default function AlignmentCalendar() {
+export default function AlignmentCalendar({ curves = [] }) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState('month'); // 'month' | 'year'
+
+  const eventsByDay = useMemo(() => buildPerfectionMap(curves), [curves]);
 
   const year = currentDate.getFullYear();
 
@@ -79,13 +82,14 @@ export default function AlignmentCalendar() {
 
       <div className={styles.body}>
         {view === 'month' ? (
-          <MonthView monthDate={currentDate} large />
+          <MonthView monthDate={currentDate} large eventsByDay={eventsByDay} />
         ) : (
           <div className={styles.yearGrid}>
             {Array.from({ length: 12 }, (_, i) => (
               <MonthView
                 key={i}
                 monthDate={new Date(year, i, 1)}
+                eventsByDay={eventsByDay}
                 onMonthClick={() => {
                   setCurrentDate(new Date(year, i, 1));
                   setView('month');

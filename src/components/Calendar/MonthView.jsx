@@ -12,14 +12,18 @@ import styles from './AlignmentCalendar.module.css';
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+const MAX_EVENTS_LARGE = 4;
+const MAX_DOTS_SMALL = 4;
+
 /**
  * Single month calendar grid.
  *
  * @param {Date} monthDate    - any date inside the month to render
  * @param {boolean} large     - true for the standalone month view, false for year-grid tiles
  * @param {Function} onMonthClick - if provided, makes the month title clickable (used in year view)
+ * @param {Map<string, Array>} eventsByDay - 'yyyy-MM-dd' → events[]
  */
-export default function MonthView({ monthDate, large = false, onMonthClick }) {
+export default function MonthView({ monthDate, large = false, onMonthClick, eventsByDay }) {
   const monthStart = startOfMonth(monthDate);
   const monthEnd = endOfMonth(monthDate);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -56,14 +60,63 @@ export default function MonthView({ monthDate, large = false, onMonthClick }) {
             today && styles.dayToday,
           ].filter(Boolean).join(' ');
 
+          const dayKey = format(day, 'yyyy-MM-dd');
+          const events = inMonth && eventsByDay ? eventsByDay.get(dayKey) : null;
+
           return (
             <div key={day.toISOString()} className={cls}>
               <div className={styles.dayNumber}>{day.getDate()}</div>
-              {/* Event glyphs go here once data is wired up */}
+              {events && events.length > 0 && (
+                large ? (
+                  <DayEventsLarge events={events} />
+                ) : (
+                  <DayEventsSmall events={events} />
+                )
+              )}
             </div>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function DayEventsLarge({ events }) {
+  const visible = events.slice(0, MAX_EVENTS_LARGE);
+  const overflow = events.length - visible.length;
+  return (
+    <div className={styles.dayEvents}>
+      {visible.map((e, i) => (
+        <div
+          key={i}
+          className={styles.eventGlyphs}
+          title={`${e.transitPlanet} ${e.aspectName} ${e.targetPlanet}`}
+          style={{ color: e.color }}
+        >
+          <span className={styles.glyph}>{e.transitSymbol}</span>
+          <span className={styles.aspectGlyph}>{e.aspectSymbol}</span>
+          <span className={styles.glyph}>{e.targetSymbol}</span>
+        </div>
+      ))}
+      {overflow > 0 && (
+        <div className={styles.eventOverflow}>+{overflow}</div>
+      )}
+    </div>
+  );
+}
+
+function DayEventsSmall({ events }) {
+  const visible = events.slice(0, MAX_DOTS_SMALL);
+  return (
+    <div className={styles.dayDots}>
+      {visible.map((e, i) => (
+        <span
+          key={i}
+          className={styles.dot}
+          style={{ background: e.color }}
+          title={`${e.transitSymbol} ${e.aspectSymbol} ${e.targetSymbol}`}
+        />
+      ))}
     </div>
   );
 }

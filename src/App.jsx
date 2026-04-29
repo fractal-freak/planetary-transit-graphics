@@ -33,7 +33,7 @@ const DEFAULT_END = new Date(2026, 11, 31);
 
 export default function App() {
   const [sweLoaded, setSweLoaded] = useState(false);
-  const [page, setPage] = useState('transits'); // 'transits' | 'calendar'
+  const [page, setPage] = useState('graph'); // 'graph' | 'calendar'
   const [mode, setMode] = useState('world');
   const [startDate, setStartDate] = useState(DEFAULT_START);
   const [endDate, setEndDate] = useState(DEFAULT_END);
@@ -357,7 +357,7 @@ export default function App() {
         <div className={styles.headerLeft}>
           <span className={styles.headerDot} />
           <h1 className={styles.title}>Planetary Transit Graphics</h1>
-          {activeProject && page === 'transits' && (
+          {activeProject && page === 'graph' && (
             <button
               className={styles.projectBadge}
               onClick={() => setShowProjectModal(true)}
@@ -370,10 +370,10 @@ export default function App() {
         <nav className={styles.pageNav}>
           <button
             type="button"
-            className={`${styles.pageNavBtn} ${page === 'transits' ? styles.pageNavBtnActive : ''}`}
-            onClick={() => setPage('transits')}
+            className={`${styles.pageNavBtn} ${page === 'graph' ? styles.pageNavBtnActive : ''}`}
+            onClick={() => setPage('graph')}
           >
-            Transits
+            Graph
           </button>
           <button
             type="button"
@@ -385,7 +385,7 @@ export default function App() {
         </nav>
 
         <div className={styles.headerRight}>
-          {page === 'transits' && (
+          {page === 'graph' && (
             <>
               <button
                 className={styles.projectBtn}
@@ -402,7 +402,7 @@ export default function App() {
 
       {page === 'calendar' ? (
         <main className={styles.main}>
-          <AlignmentCalendar />
+          <AlignmentCalendar curves={activeCurves} />
         </main>
       ) : (
       <main className={styles.main}>
