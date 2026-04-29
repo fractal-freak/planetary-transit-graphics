@@ -402,7 +402,7 @@ export default function App() {
 
       {page === 'calendar' ? (
         <main className={styles.main}>
-          <AlignmentCalendar curves={activeCurves} />
+          <AlignmentCalendar curves={activeCurves} signChanges={activeSignChanges} />
         </main>
       ) : (
       <main className={styles.main}>

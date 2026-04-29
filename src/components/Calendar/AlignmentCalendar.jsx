@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
 import { addMonths, subMonths, format } from 'date-fns';
 import MonthView from './MonthView';
-import { buildPerfectionMap } from '../../utils/calendarEvents';
+import { buildEventMap } from '../../utils/calendarEvents';
 import styles from './AlignmentCalendar.module.css';
 
-export default function AlignmentCalendar({ curves = [] }) {
+export default function AlignmentCalendar({ curves = [], signChanges = null }) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState('month'); // 'month' | 'year'
 
-  const eventsByDay = useMemo(() => buildPerfectionMap(curves), [curves]);
+  const eventsByDay = useMemo(
+    () => buildEventMap(curves, signChanges),
+    [curves, signChanges]
+  );
 
   const year = currentDate.getFullYear();
 

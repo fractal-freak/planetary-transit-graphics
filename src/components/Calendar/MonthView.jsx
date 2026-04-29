@@ -90,12 +90,9 @@ function DayEventsLarge({ events }) {
         <div
           key={i}
           className={styles.eventGlyphs}
-          title={`${e.transitPlanet} ${e.aspectName} ${e.targetPlanet}`}
-          style={{ color: e.color }}
+          title={e.title}
         >
-          <span className={styles.glyph}>{e.transitSymbol}</span>
-          <span className={styles.aspectGlyph}>{e.aspectSymbol}</span>
-          <span className={styles.glyph}>{e.targetSymbol}</span>
+          {e.glyphs}
         </div>
       ))}
       {overflow > 0 && (
@@ -114,7 +111,7 @@ function DayEventsSmall({ events }) {
           key={i}
           className={styles.dot}
           style={{ background: e.color }}
-          title={`${e.transitSymbol} ${e.aspectSymbol} ${e.targetSymbol}`}
+          title={e.title}
         />
       ))}
     </div>

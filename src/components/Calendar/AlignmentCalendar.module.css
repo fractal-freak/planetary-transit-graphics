@@ -267,27 +267,18 @@
 }
 
 .eventGlyphs {
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
+  display: inline-block;
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
-  line-height: 1;
+  line-height: 1.1;
   white-space: nowrap;
   font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+  -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.85);
+  letter-spacing: 0.5px;
 }
 
 .monthLarge .eventGlyphs {
   font-size: 14px;
-}
-
-.glyph {
-  -webkit-text-stroke: 0.4px currentColor;
-}
-
-.aspectGlyph {
-  font-size: 0.85em;
-  opacity: 0.85;
-  margin: 0 1px;
 }
 
 .eventOverflow {
