@@ -449,19 +449,6 @@ export default function App() {
         </div>
       </header>
 
-      {page === 'calendar' ? (
-        <main className={styles.main}>
-          <AlignmentCalendar
-            mode={mode}
-            transitJobs={transitJobs}
-            natalJobs={natalJobs}
-            natalChart={natalChart}
-            mundaneJobs={mundaneJobs}
-            stackCharts={stackCharts}
-            orbSettings={orbSettings}
-          />
-        </main>
-      ) : (
       <main className={styles.main}>
         <Controls
           mode={mode}
@@ -501,6 +488,18 @@ export default function App() {
         />
 
         <div className={styles.chartArea}>
+          {page === 'calendar' ? (
+            <AlignmentCalendar
+              mode={mode}
+              transitJobs={transitJobs}
+              natalJobs={natalJobs}
+              natalChart={natalChart}
+              mundaneJobs={mundaneJobs}
+              stackCharts={stackCharts}
+              orbSettings={orbSettings}
+            />
+          ) : (
+          <>
           {/* Mundane mode view switcher */}
           {mode === 'mundane' && stackCharts.length > 0 && (
             <div className={styles.viewSwitcherBar}>
@@ -683,9 +682,10 @@ export default function App() {
           </div>
           </>
           )}
+          </>
+          )}
         </div>
       </main>
-      )}
 
       {showAuthModal && (
         <AuthModal onClose={() => setShowAuthModal(false)} />
