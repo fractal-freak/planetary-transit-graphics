@@ -811,10 +811,19 @@ function drawEclipseMarkers(ctx, eclipses, plotW, rowH, rowTop, startDate, endDa
 
     let placed = false;
 
+    // Allow labels to extend past row bounds by up to one label-height. The
+    // eclipse row is typically the topmost (slowest planet), and its label
+    // stack is tall (46px) — strict row clipping was hiding labels in short
+    // viewports. Collision detection still prevents overlap with sign-change
+    // labels in the same row.
+    const overflowSlack = LABEL_H + 8;
+    const minTop = rowTop - overflowSlack;
+    const maxBottom = rowTop + rowH + overflowSlack;
+
     // Phase 1 & 2: try centred above, then centred below
     for (const tryTop of [aboveTop, belowTop]) {
       const tryBottom = tryTop + LABEL_H;
-      if (tryTop < rowTop + 2 || tryBottom > rowTop + rowH - 2) continue;
+      if (tryTop < minTop || tryBottom > maxBottom) continue;
       const rect = makeRect(x, textHalfW, tryTop);
       if (!collides(rect)) {
         drawLabel(x, tryTop, dateLine, typeLabel, r, g, b, ec.signSymbol);
@@ -828,7 +837,7 @@ function drawEclipseMarkers(ctx, eclipses, plotW, rowH, rowTop, startDate, endDa
     if (!placed) {
       for (let nudge = 1; nudge <= 4 && !placed; nudge++) {
         for (const yTop of [aboveTop, belowTop]) {
-          if (yTop < rowTop + 2 || yTop + LABEL_H > rowTop + rowH - 2) continue;
+          if (yTop < minTop || yTop + LABEL_H > maxBottom) continue;
           // Try right, then left
           for (const dir of [1, -1]) {
             const labelX = x + dir * nudge * NUDGE_STEP;
