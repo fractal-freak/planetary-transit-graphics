@@ -560,7 +560,7 @@ export default function App() {
             alt=""
             aria-hidden="true"
           />
-          <h1 className={styles.title}>Transit Wizard</h1>
+          <h1 className={styles.title}>Transit Wiz</h1>
           {activeProject && page === 'graph' && (
             <button
               className={styles.projectBadge}
