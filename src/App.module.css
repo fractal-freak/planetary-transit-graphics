@@ -33,6 +33,14 @@
   flex-shrink: 0;
 }
 
+.wizardHat {
+  width: 24px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
+  image-rendering: pixelated;
+}
+
 /* Sidebar collapse toggle — sits at the sidebar/chart seam, vertically centered */
 .sidebarToggle {
   position: absolute;
@@ -70,10 +78,14 @@
 }
 
 .title {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: rgba(0, 0, 0, 0.65);
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(0, 0, 0, 0.75);
+  margin: 0;
+  /* Slight nudge — Press Start 2P sits a hair high relative to the hat */
+  padding-top: 2px;
 }
 
 .headerRight {

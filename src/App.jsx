@@ -554,8 +554,29 @@ export default function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <span className={styles.headerDot} />
-          <h1 className={styles.title}>Planetary Transit Graphics</h1>
+          <svg
+            className={styles.wizardHat}
+            viewBox="0 0 12 10"
+            shapeRendering="crispEdges"
+            aria-hidden="true"
+          >
+            {/* hat body — pointed top tapering down */}
+            <rect x="6" y="0" width="1" height="1" fill="#2050b0" />
+            <rect x="5" y="1" width="3" height="1" fill="#2050b0" />
+            <rect x="5" y="2" width="3" height="1" fill="#2050b0" />
+            <rect x="4" y="3" width="5" height="1" fill="#2050b0" />
+            <rect x="4" y="4" width="5" height="1" fill="#2050b0" />
+            <rect x="3" y="5" width="6" height="1" fill="#2050b0" />
+            <rect x="2" y="6" width="8" height="1" fill="#2050b0" />
+            <rect x="1" y="7" width="10" height="1" fill="#2050b0" />
+            {/* brim */}
+            <rect x="0" y="8" width="12" height="1" fill="#1a3a80" />
+            <rect x="2" y="9" width="8" height="1" fill="#1a3a80" />
+            {/* star sparkle */}
+            <rect x="3" y="3" width="1" height="1" fill="#ffd96b" />
+            <rect x="9" y="5" width="1" height="1" fill="#ffd96b" />
+          </svg>
+          <h1 className={styles.title}>Transit Wizard</h1>
           {activeProject && page === 'graph' && (
             <button
               className={styles.projectBadge}
