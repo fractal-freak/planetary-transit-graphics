@@ -317,28 +317,37 @@ export default function App() {
     if (!el) return;
 
     function onWheel(e) {
-      if (!e.ctrlKey) return;
-      e.preventDefault();
+      // Pinch / ctrl-wheel → zoom, cursor-anchored.
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const rect = el.getBoundingClientRect();
+        const viewportX = e.clientX - rect.left;
+        const oldZoom = zoomRef.current;
+        const factor = Math.exp(-e.deltaY * 0.01);
+        const newZoom = Math.max(1, Math.min(5, oldZoom * factor));
+        if (newZoom === oldZoom) return;
+        const ratio = newZoom / oldZoom;
+        const oldCanvasX = el.scrollLeft + viewportX;
+        const newScrollLeft = oldCanvasX * ratio - viewportX;
+        setZoom(newZoom);
+        requestAnimationFrame(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollLeft = Math.max(0, newScrollLeft);
+          }
+        });
+        return;
+      }
 
-      const rect = el.getBoundingClientRect();
-      const viewportX = e.clientX - rect.left;
-      const oldZoom = zoomRef.current;
-      const factor = Math.exp(-e.deltaY * 0.01);
-      const newZoom = Math.max(1, Math.min(5, oldZoom * factor));
-      if (newZoom === oldZoom) return;
-
-      // Cursor-anchored: keep the canvas point under the cursor fixed.
-      const ratio = newZoom / oldZoom;
-      const oldCanvasX = el.scrollLeft + viewportX;
-      const newScrollLeft = oldCanvasX * ratio - viewportX;
-
-      setZoom(newZoom);
-      // Apply the new scrollLeft after React lays out the wider/narrower canvas.
-      requestAnimationFrame(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollLeft = Math.max(0, newScrollLeft);
-        }
-      });
+      // Regular two-finger / wheel scroll → horizontal pan along the timeline.
+      // Only meaningful when zoomed in (otherwise the canvas == viewport).
+      // Map both deltaX and deltaY to scrollLeft so a vertical wheel still
+      // scrubs through time, and prevent the page from scrolling underneath.
+      if (zoomRef.current > 1) {
+        const delta = e.deltaX + e.deltaY;
+        if (delta === 0) return;
+        e.preventDefault();
+        el.scrollLeft += delta;
+      }
     }
 
     el.addEventListener('wheel', onWheel, { passive: false });
