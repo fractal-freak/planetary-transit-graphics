@@ -542,10 +542,6 @@ export default function App() {
       <main className={styles.main}>
         <Controls
           page={page}
-          calendarDate={calendarDate}
-          onCalendarDateChange={setCalendarDate}
-          calendarView={calendarView}
-          onCalendarViewChange={setCalendarView}
           mode={mode}
           onModeChange={setMode}
           startDate={startDate}
