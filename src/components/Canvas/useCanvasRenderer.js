@@ -1767,18 +1767,26 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
         baseY -= BUMP_H;
       }
 
-      // Horizontal offset fallback
+      // Horizontal offset fallback — try a series of offsets in both
+      // directions and pick the closest one that fits. Wide labels (eclipses,
+      // lunations) need more than the default 55px nudge to clear nearby
+      // sign-change labels in adjacent rows.
       if (!fits) {
         const resetY = lbl.y - 8;
-        const leftX = lbl.x - LEADER_OFFSET_X;
-        if (leftX - halfW - MIN_GAP_X >= plotLeft && !collides(leftX, resetY, halfW)) {
-          fits = true; finalX = leftX; baseY = resetY; needsLeader = true;
-        }
-        if (!fits) {
-          const rightX = lbl.x + LEADER_OFFSET_X;
-          if (rightX + halfW + MIN_GAP_X <= plotRight && !collides(rightX, resetY, halfW)) {
-            fits = true; finalX = rightX; baseY = resetY; needsLeader = true;
+        const offsets = [LEADER_OFFSET_X, LEADER_OFFSET_X * 1.5, LEADER_OFFSET_X * 2, LEADER_OFFSET_X * 2.5, LEADER_OFFSET_X * 3];
+        for (const off of offsets) {
+          // Alternate right then left at each distance (closer of the two
+          // wins overall since we sort by absolute offset).
+          for (const dir of [1, -1]) {
+            const tryX = lbl.x + dir * off;
+            if (tryX - halfW - MIN_GAP_X < plotLeft) continue;
+            if (tryX + halfW + MIN_GAP_X > plotRight) continue;
+            if (!collides(tryX, resetY, halfW)) {
+              fits = true; finalX = tryX; baseY = resetY; needsLeader = true;
+              break;
+            }
           }
+          if (fits) break;
         }
       }
 
