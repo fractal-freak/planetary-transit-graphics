@@ -83,6 +83,14 @@
   color: rgba(0, 0, 0, 0.75);
 }
 
+.loadingHint {
+  margin-left: 10px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.04em;
+  font-style: italic;
+}
+
 /* ─── View switcher (Month / Year) ─── */
 
 .viewSwitcher {
