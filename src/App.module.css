@@ -46,6 +46,47 @@
   gap: 10px;
 }
 
+/* ─── Page nav (Transits / Calendar) ─── */
+
+.pageNav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.pageNavBtn {
+  padding: 4px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.pageNavBtn:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.pageNavBtnActive,
+.pageNavBtnActive:hover {
+  background: white;
+  color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.header {
+  position: relative;
+}
+
 /* ─── Main layout ─── */
 
 .main {

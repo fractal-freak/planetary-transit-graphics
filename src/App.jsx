@@ -16,6 +16,7 @@ import ExportButton from './components/ExportButton/ExportButton';
 import UserMenu from './components/Auth/UserMenu';
 import AuthModal from './components/Auth/AuthModal';
 import ProjectPickerModal from './components/Controls/ProjectPickerModal';
+import AlignmentCalendar from './components/Calendar/AlignmentCalendar';
 import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 
@@ -32,6 +33,7 @@ const DEFAULT_END = new Date(2026, 11, 31);
 
 export default function App() {
   const [sweLoaded, setSweLoaded] = useState(false);
+  const [page, setPage] = useState('transits'); // 'transits' | 'calendar'
   const [mode, setMode] = useState('world');
   const [startDate, setStartDate] = useState(DEFAULT_START);
   const [endDate, setEndDate] = useState(DEFAULT_END);
@@ -355,7 +357,7 @@ export default function App() {
         <div className={styles.headerLeft}>
           <span className={styles.headerDot} />
           <h1 className={styles.title}>Planetary Transit Graphics</h1>
-          {activeProject && (
+          {activeProject && page === 'transits' && (
             <button
               className={styles.projectBadge}
               onClick={() => setShowProjectModal(true)}
@@ -364,18 +366,45 @@ export default function App() {
             </button>
           )}
         </div>
-        <div className={styles.headerRight}>
+
+        <nav className={styles.pageNav}>
           <button
-            className={styles.projectBtn}
-            onClick={() => setShowProjectModal(true)}
+            type="button"
+            className={`${styles.pageNavBtn} ${page === 'transits' ? styles.pageNavBtnActive : ''}`}
+            onClick={() => setPage('transits')}
           >
-            Projects
+            Transits
           </button>
-          <ExportButton canvasRef={canvasRef} />
+          <button
+            type="button"
+            className={`${styles.pageNavBtn} ${page === 'calendar' ? styles.pageNavBtnActive : ''}`}
+            onClick={() => setPage('calendar')}
+          >
+            Calendar
+          </button>
+        </nav>
+
+        <div className={styles.headerRight}>
+          {page === 'transits' && (
+            <>
+              <button
+                className={styles.projectBtn}
+                onClick={() => setShowProjectModal(true)}
+              >
+                Projects
+              </button>
+              <ExportButton canvasRef={canvasRef} />
+            </>
+          )}
           <UserMenu onSignInClick={() => setShowAuthModal(true)} />
         </div>
       </header>
 
+      {page === 'calendar' ? (
+        <main className={styles.main}>
+          <AlignmentCalendar />
+        </main>
+      ) : (
       <main className={styles.main}>
         <Controls
           mode={mode}
@@ -598,6 +627,7 @@ export default function App() {
           )}
         </div>
       </main>
+      )}
 
       {showAuthModal && (
         <AuthModal onClose={() => setShowAuthModal(false)} />
