@@ -90,6 +90,21 @@ export const IconSliders = () => (
   </svg>
 );
 
+export const IconGlobe = () => (
+  <svg {...baseProps}>
+    <circle cx="12" cy="12" r="9" />
+    <ellipse cx="12" cy="12" rx="4" ry="9" />
+    <path d="M3 12h18" />
+  </svg>
+);
+
+export const IconSaturn = () => (
+  <svg {...baseProps}>
+    <circle cx="12" cy="12" r="4.5" />
+    <ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-20 12 12)" />
+  </svg>
+);
+
 export const IconSun = () => (
   <svg {...baseProps}>
     <circle cx="12" cy="12" r="4" />

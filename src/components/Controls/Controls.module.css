@@ -83,6 +83,23 @@
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.modeTabIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+}
+
+.modeTabIcon svg {
+  width: 13px;
+  height: 13px;
 }
 
 .modeTab:hover {

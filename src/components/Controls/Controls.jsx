@@ -18,6 +18,9 @@ import {
   IconTarget,
   IconUser,
   IconSidebar,
+  IconSaturn,
+  IconGlobe,
+  IconSparkles,
 } from './sectionIcons';
 import styles from './Controls.module.css';
 
@@ -104,19 +107,22 @@ export default function Controls({
               className={`${styles.modeTab} ${mode === 'world' ? styles.modeTabActive : ''}`}
               onClick={() => onModeChange('world')}
             >
-              World
+              <span className={styles.modeTabIcon}><IconGlobe /></span>
+              <span>World</span>
             </button>
             <button
               className={`${styles.modeTab} ${mode === 'natal' ? styles.modeTabActive : ''}`}
               onClick={() => onModeChange('natal')}
             >
-              Natal
+              <span className={styles.modeTabIcon}><IconUser /></span>
+              <span>Natal</span>
             </button>
             <button
               className={`${styles.modeTab} ${mode === 'mundane' ? styles.modeTabActive : ''}`}
               onClick={() => onModeChange('mundane')}
             >
-              Predictive
+              <span className={styles.modeTabIcon}><IconSparkles /></span>
+              <span>Predictive</span>
             </button>
           </div>
 
@@ -192,7 +198,7 @@ export default function Controls({
 
           {/* ── World Mode Content ── */}
           {mode === 'world' && (
-            <CollapsibleSection id="customTransits" title="Custom Transits" icon={<IconTarget />}>
+            <CollapsibleSection id="customTransits" title="Custom Transits" icon={<IconSaturn />}>
               <TransitJobList
                 transitJobs={transitJobs}
                 curves={curves}
