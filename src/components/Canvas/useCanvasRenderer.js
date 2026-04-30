@@ -1380,12 +1380,16 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
 
   // --- COLLECT PEAK LABELS for later collision-aware drawing ---
   if (peaks && rowLabels) {
-    // A Sun-Moon conjunction/opposition is a New / Full Moon; render the
-    // label as "{moonSign} New Moon" / "{moonSign} Full Moon" instead of
-    // the standard glyph triple. Detect the pair once outside the loop.
-    const isSunMoonPair =
+    // A Sun-Moon conjunction/opposition between two transiting bodies is a
+    // real New / Full Moon — render as "{moonSign} New Moon" / "Full Moon"
+    // instead of the standard glyph triple. Skip in natal mode: a transit
+    // Moon conjunct *natal* Sun isn't a real lunation (the actual transit
+    // Sun is elsewhere), so the New/Full Moon and eclipse swap shouldn't
+    // apply.
+    const isSunMoonPair = !curve.isNatal && (
       (curve.transitPlanet === 'Sun' && curve.target === 'Moon') ||
-      (curve.transitPlanet === 'Moon' && curve.target === 'Sun');
+      (curve.transitPlanet === 'Moon' && curve.target === 'Sun')
+    );
     const lunationKind =
       isSunMoonPair && curve.aspect.name === 'Conjunction' ? 'new'
       : isSunMoonPair && curve.aspect.name === 'Opposition' ? 'full'
