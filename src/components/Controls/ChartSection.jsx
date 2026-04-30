@@ -91,9 +91,10 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
   }
 
   function handleStartSave() {
-    const defaultName = natalChart.locationName
-      ? natalChart.locationName.split(',')[0].trim()
-      : `Chart ${natalChart.birthDate}`;
+    const defaultName = natalChart.name
+      || (natalChart.locationName
+        ? natalChart.locationName.split(',')[0].trim()
+        : `Chart ${natalChart.birthDate}`);
     setSaveName(defaultName);
     setView('saving');
   }

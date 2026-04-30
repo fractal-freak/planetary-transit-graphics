@@ -10,6 +10,7 @@ import styles from './Controls.module.css';
  * The chart summary display has moved to ChartSection.
  */
 export default function NatalDataInput({ onNatalChartChange, onCancel }) {
+  const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00');
   const [location, setLocation] = useState('');
@@ -23,7 +24,7 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
   }, []);
 
   function handleCalculate() {
-    if (!birthDate) return;
+    if (!birthDate || !name.trim()) return;
     const lat = locationData?.lat;
     const lng = locationData?.lng;
     const dateTime = combineDateAndTime(birthDate, birthTime, lat, lng);
@@ -32,6 +33,7 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
       ? computeNatalAngles(dateTime, lat, lng)
       : null;
     onNatalChartChange({
+      name: name.trim(),
       birthDate,
       birthTime,
       lat: lat || null,
@@ -75,6 +77,18 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
 
   return (
     <div className={styles.natalForm}>
+      <label className={styles.natalLabel}>
+        <span className={styles.natalLabelText}>Name</span>
+        <input
+          type="text"
+          className={styles.natalInput}
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Chart name"
+          autoFocus
+        />
+      </label>
+
       <div className={styles.natalFormRow}>
         <label className={styles.natalLabel}>
           <span className={styles.natalLabelText}>Date</span>
@@ -152,7 +166,7 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
       <button
         className={`${styles.wizardBtn} ${styles.wizardBtnPrimary}`}
         onClick={handleCalculate}
-        disabled={!birthDate}
+        disabled={!birthDate || !name.trim()}
         style={{ marginTop: '4px' }}
       >
         Calculate Chart
