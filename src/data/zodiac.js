@@ -28,13 +28,30 @@ export function getSignIndex(longitude) {
 /**
  * Element RGB values by zodiac element.
  * signIndex % 4 maps to element: 0=Fire, 1=Earth, 2=Air, 3=Water.
+ *
+ * The active set is module-level so canvas/strip/wheel renderers can keep
+ * calling `getElementColor()` without prop-drilling. ColorContext mutates it
+ * via `setElementRGB()` when the user picks a different palette.
  */
-const ELEMENT_RGB = [
+export const DEFAULT_ELEMENT_RGB = [
   [200, 60, 60],   // 0 = Fire  — red
   [60, 150, 60],   // 1 = Earth — green
   [190, 170, 40],  // 2 = Air   — yellow
   [50, 100, 200],  // 3 = Water — blue
 ];
+
+let ELEMENT_RGB = DEFAULT_ELEMENT_RGB;
+
+/** Override the four element RGBs at runtime (called by ColorContext). */
+export function setElementRGB(rgbArray) {
+  if (!Array.isArray(rgbArray) || rgbArray.length !== 4) return;
+  ELEMENT_RGB = rgbArray.map(c => [c[0], c[1], c[2]]);
+}
+
+/** Reset to the built-in defaults. */
+export function resetElementRGB() {
+  ELEMENT_RGB = DEFAULT_ELEMENT_RGB;
+}
 
 /** Get the element color as rgba string for a given sign index + alpha. */
 export function getElementColor(signIndex, alpha = 0.45) {

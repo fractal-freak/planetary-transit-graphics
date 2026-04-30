@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useCanvasRenderer, PADDING } from './useCanvasRenderer';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useColors } from '../../contexts/ColorContext';
 import styles from './Canvas.module.css';
 
 export { PADDING };
@@ -49,12 +50,19 @@ const TransitCanvas = forwardRef(function TransitCanvas(
   const canvasH = baseHeight;
 
   const { theme } = useTheme();
+  const { version: colorsVersion } = useColors();
 
   // Renderer returns a stable repaint function
   const repaint = useCanvasRenderer(canvasRef, {
     curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom,
     highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, theme,
   });
+
+  // Repaint when the user picks a new color palette — kept as its own effect
+  // so we don't have to expand useCanvasRenderer's internal deps array.
+  useEffect(() => {
+    repaint();
+  }, [colorsVersion, repaint]);
 
   // Sync overlay data after each paint — notify parent for DOM overlays
   useEffect(() => {

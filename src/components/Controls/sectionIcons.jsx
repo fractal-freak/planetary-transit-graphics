@@ -127,6 +127,16 @@ export const IconSun = () => (
   </svg>
 );
 
+export const IconPalette = () => (
+  <svg {...baseProps}>
+    <path d="M12 3a9 9 0 1 0 4 17c.6 0 1-.4 1-1 0-.4-.2-.7-.4-1-.3-.4-.4-.7-.4-1.1 0-.6.4-1 1-1h1.4A3.4 3.4 0 0 0 22 12.5C22 7.3 17.5 3 12 3z" />
+    <circle cx="7.5" cy="11" r="1.25" fill="currentColor" />
+    <circle cx="10" cy="7" r="1.25" fill="currentColor" />
+    <circle cx="14.5" cy="7" r="1.25" fill="currentColor" />
+    <circle cx="17" cy="11" r="1.25" fill="currentColor" />
+  </svg>
+);
+
 export const IconMoon = () => (
   <svg {...baseProps}>
     <path d="M21 12.8A9 9 0 0 1 11.2 3a7 7 0 1 0 9.8 9.8z" />

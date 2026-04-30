@@ -6,6 +6,7 @@ import ChartSection from './ChartSection';
 import NatalJobList from './NatalJobList';
 import ChartStackPanel from './ChartStackPanel';
 import OrbSettings from './OrbSettings';
+import ColorSettings from './ColorSettings';
 import PresetPickerModal from './PresetPickerModal';
 import CollapsibleSection from './CollapsibleSection';
 import ThemeToggle from './ThemeToggle';
@@ -21,6 +22,7 @@ import {
   IconSaturn,
   IconGlobe,
   IconSparkles,
+  IconPalette,
 } from './sectionIcons';
 import styles from './Controls.module.css';
 
@@ -301,6 +303,11 @@ export default function Controls({
               </CollapsibleSection>
             </>
           )}
+
+          {/* ── Colors (shared across all modes) ── */}
+          <CollapsibleSection id="colors" title="Colors" icon={<IconPalette />}>
+            <ColorSettings />
+          </CollapsibleSection>
 
           {/* ── Orb Settings (shared) ── */}
           <OrbSettings

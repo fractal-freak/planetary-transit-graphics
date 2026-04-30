@@ -210,6 +210,295 @@
   padding: 6px 4px 0 28px;
 }
 
+/* ─── Colors section ─── */
+
+.colorSettingsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colorSetsHeader {
+  display: flex;
+  align-items: center;
+}
+
+.colorSetsToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  padding: 5px 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.colorSetsToggle:hover {
+  color: var(--fg-strong);
+  border-color: var(--border);
+}
+
+.colorSetsLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+.colorSetsCurrent {
+  flex: 1;
+  font-weight: 500;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colorSetsChevron {
+  font-size: 9px;
+  color: var(--fg-subtle);
+  flex-shrink: 0;
+}
+
+.colorSetsList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 0 6px;
+}
+
+.colorSetRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.colorSetRow:hover {
+  background: var(--bg-subtle);
+}
+
+.colorSetRowActive {
+  border-color: var(--fg-faint);
+  background: var(--bg-subtle-2);
+}
+
+.colorSetSelect {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  min-width: 0;
+}
+
+.colorSetSwatches {
+  display: inline-flex;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.colorSetSwatchMini {
+  width: 8px;
+  height: 14px;
+  border-radius: 1px;
+}
+
+.colorSetName {
+  flex: 1;
+  font-size: 11px;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colorSetDefault {
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  flex-shrink: 0;
+}
+
+.colorSetActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding-right: 2px;
+}
+
+.colorSetIconBtn {
+  background: none;
+  border: none;
+  color: var(--fg-subtle);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 5px;
+  border-radius: 4px;
+  font-family: inherit;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.colorSetIconBtn:hover {
+  color: var(--fg);
+}
+
+.colorSetIconBtnDanger:hover {
+  color: rgba(200, 50, 50, 0.85);
+}
+
+.colorSetSaveAs {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 10px;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.colorSetSaveAs:hover {
+  color: var(--fg);
+  border-color: var(--fg-subtle);
+}
+
+.colorSetRenameRow,
+.colorSetConfirmRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.colorSetInput {
+  flex: 1;
+  padding: 4px 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--fg-strong);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.colorSetMicroBtn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.colorSetMicroBtn:hover {
+  background: var(--bg-subtle-2);
+  color: var(--fg-strong);
+  border-color: var(--border);
+}
+
+.colorSetMicroBtnDanger {
+  color: rgba(200, 50, 50, 0.85);
+}
+
+.colorSetMicroBtnDanger:hover {
+  background: rgba(200, 50, 50, 0.08);
+  color: rgba(200, 50, 50, 1);
+  border-color: rgba(200, 50, 50, 0.4);
+}
+
+.colorSetConfirmText {
+  flex: 1;
+  font-size: 10px;
+  color: var(--fg-muted);
+}
+
+/* ─── Element rows ─── */
+
+.elementList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.elementRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.elementRow:hover {
+  background: var(--bg-subtle);
+}
+
+.elementSymbol {
+  font-family: 'Apple Symbols', 'Segoe UI Symbol', 'Noto Sans Symbols 2', serif;
+  font-size: 14px;
+  line-height: 1;
+  width: 16px;
+  text-align: center;
+  color: var(--fg);
+}
+
+.elementName {
+  flex: 1;
+  font-size: 11px;
+  color: var(--fg);
+  letter-spacing: 0.01em;
+}
+
+.elementSwatch {
+  width: 28px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.elementSwatch:hover {
+  border-color: var(--fg-subtle);
+  transform: scale(1.05);
+}
+
+.elementColorInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  border: none;
+  padding: 0;
+}
+
 /* ─── Theme toggle (sidebar bottom) ─── */
 
 .sidebarSpacer {

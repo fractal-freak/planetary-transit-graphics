@@ -3,6 +3,7 @@ import { PLANET_MAP } from '../../data/planets';
 import { getChartType } from '../../data/chartTypes';
 import { ZODIAC_SIGNS, getElementColor } from '../../data/zodiac';
 import { computeCrossChartAspects } from '../../utils/crossChartAspects';
+import { useColors } from '../../contexts/ColorContext';
 import styles from './StripView.module.css';
 
 /**
@@ -14,6 +15,9 @@ import styles from './StripView.module.css';
  * guides appear at degrees where multiple charts have planets.
  */
 export default function StripView({ stackCharts, orbSettings }) {
+  // Subscribe to color changes — re-render when the active palette is edited
+  useColors();
+
   // Compute cross-chart aspects for alignment guides
   const crossAspects = useMemo(() => {
     if (!stackCharts || stackCharts.length < 2) return [];

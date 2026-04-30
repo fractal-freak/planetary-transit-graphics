@@ -3,6 +3,7 @@ import { PLANET_MAP } from '../../data/planets';
 import { ZODIAC_SIGNS, getElementColor } from '../../data/zodiac';
 import { getChartType } from '../../data/chartTypes';
 import { angularSeparation, ASPECTS, isHardAspect } from '../../utils/aspects';
+import { useColors } from '../../contexts/ColorContext';
 import styles from './WheelView.module.css';
 
 /**
@@ -17,6 +18,8 @@ export default function WheelView({ stackCharts, orbSettings }) {
   const [selectedChart, setSelectedChart] = useState(0);
   const [showAspects, setShowAspects] = useState(true);
   const [wheelMode, setWheelMode] = useState('single'); // 'single' | 'bi' | 'tri'
+
+  const { version: colorsVersion } = useColors();
 
   // Charts to display on wheel
   const wheelCharts = useMemo(() => {
@@ -45,7 +48,7 @@ export default function WheelView({ stackCharts, orbSettings }) {
     ctx.scale(dpr, dpr);
 
     drawWheel(ctx, size, wheelCharts, showAspects);
-  }, [wheelCharts, showAspects]);
+  }, [wheelCharts, showAspects, colorsVersion]);
 
   // Resize observer
   useEffect(() => {
