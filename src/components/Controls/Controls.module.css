@@ -4,17 +4,50 @@
   width: 260px;
   flex-shrink: 0;
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  margin: 10px 0 10px 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
 .controlsInner {
-  padding: 20px 16px;
+  padding: 8px 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 2px;
+}
+
+/* ─── Top toolbar (collapse button) ─── */
+
+.sidebarTopBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0 8px;
+}
+
+.sidebarTopBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebarTopBtn:hover {
+  background: var(--bg-subtle-2);
+  color: var(--fg-strong);
 }
 
 /* ─── Mode Tabs ─── */
@@ -25,7 +58,7 @@
   background: var(--bg-subtle-2);
   border-radius: 8px;
   padding: 3px;
-  margin-bottom: -12px;
+  margin: 0 0 12px;
 }
 
 .modeTab {
@@ -53,7 +86,24 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.section {}
+/* Section row — collapsed sections sit tight against each other; an open
+   section gets a little breathing room above and below its body. */
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionOpen {
+  margin: 6px 0 14px;
+}
+
+.sectionOpen:first-child {
+  margin-top: 0;
+}
+
+.sectionClosed + .sectionClosed {
+  margin-top: 0;
+}
 
 .sectionTitle {
   font-size: 10px;
@@ -67,25 +117,44 @@
 .sectionTitleToggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  padding: 0 0 12px;
+  padding: 6px 8px;
   margin: 0;
   background: transparent;
   border: none;
-  font-size: 10px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
   font-family: inherit;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--fg-muted);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--fg);
   cursor: pointer;
   text-align: left;
-  transition: color 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .sectionTitleToggle:hover {
+  background: var(--bg-subtle-2);
   color: var(--fg-strong);
+}
+
+.sectionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-muted);
+  flex-shrink: 0;
+}
+
+.sectionTitleText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sectionToggleArrow {
@@ -94,6 +163,11 @@
   display: inline-block;
   text-align: center;
   color: var(--fg-subtle);
+  flex-shrink: 0;
+}
+
+.sectionBody {
+  padding: 6px 4px 0 28px;
 }
 
 /* ─── Theme toggle (sidebar bottom) ─── */

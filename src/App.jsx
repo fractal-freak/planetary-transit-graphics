@@ -622,15 +622,20 @@ export default function App() {
       </header>
 
       <main className={`${styles.main} ${sidebarCollapsed ? styles.mainSidebarCollapsed : ''}`}>
-        <button
-          type="button"
-          className={`${styles.sidebarToggle} ${sidebarCollapsed ? styles.sidebarToggleCollapsed : ''}`}
-          onClick={() => setSidebarCollapsed(c => !c)}
-          aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
-          title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
-        >
-          {sidebarCollapsed ? '›' : '‹'}
-        </button>
+        {sidebarCollapsed && (
+          <button
+            type="button"
+            className={styles.sidebarOpenBtn}
+            onClick={() => setSidebarCollapsed(false)}
+            aria-label="Show sidebar"
+            title="Show sidebar"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M9 4v16" />
+            </svg>
+          </button>
+        )}
         <Controls
           page={page}
           mode={mode}
@@ -650,6 +655,8 @@ export default function App() {
           onOrbChange={handleOrbChange}
           isOpen={controlsOpen}
           onToggleOpen={() => setControlsOpen(o => !o)}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebarCollapsed={() => setSidebarCollapsed(c => !c)}
           natalChart={natalChart}
           onNatalChartChange={chart => setNatalChart(refreshAngles(chart))}
           natalJobs={natalJobs}

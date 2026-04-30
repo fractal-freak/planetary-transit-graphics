@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PLANETS, PLANET_MAP, SPEED_ORDER } from '../../data/planets';
+import { IconTarget } from './sectionIcons';
 import styles from './Controls.module.css';
 
 // All planets sorted slowest-first (matches chart row ordering)
@@ -11,18 +12,20 @@ export default function OrbSettings({ orbSettings, onOrbChange }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className={styles.orbSettingsWrap}>
+    <section className={`${styles.section} ${open ? styles.sectionOpen : styles.sectionClosed}`}>
       <button
         type="button"
-        className={styles.orbToggle}
+        className={styles.sectionTitleToggle}
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
       >
-        <span>{open ? '▾' : '▸'}</span>
-        <span>Settings</span>
+        <span className={styles.sectionIcon}><IconTarget /></span>
+        <span className={styles.sectionTitleText}>Orb Settings</span>
+        <span className={styles.sectionToggleArrow}>{open ? '▾' : '▸'}</span>
       </button>
 
       {open && (
-        <div className={styles.orbList}>
+        <div className={`${styles.sectionBody} ${styles.orbList}`}>
           {SORTED_PLANETS.map(p => {
             const orb = orbSettings[p.id] ?? 8;
             return (
@@ -43,6 +46,6 @@ export default function OrbSettings({ orbSettings, onOrbChange }) {
           })}
         </div>
       )}
-    </div>
+    </section>
   );
 }

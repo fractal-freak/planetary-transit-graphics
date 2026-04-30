@@ -9,6 +9,16 @@ import OrbSettings from './OrbSettings';
 import PresetPickerModal from './PresetPickerModal';
 import CollapsibleSection from './CollapsibleSection';
 import ThemeToggle from './ThemeToggle';
+import {
+  IconFolder,
+  IconCalendar,
+  IconStar,
+  IconChart,
+  IconStack,
+  IconSparkles,
+  IconUser,
+  IconSidebar,
+} from './sectionIcons';
 import styles from './Controls.module.css';
 
 export default function Controls({
@@ -30,6 +40,8 @@ export default function Controls({
   onOrbChange,
   isOpen,
   onToggleOpen,
+  sidebarCollapsed,
+  onToggleSidebarCollapsed,
   natalChart,
   onNatalChartChange,
   natalJobs,
@@ -71,6 +83,21 @@ export default function Controls({
 
       <aside className={`${styles.controls} ${isOpen ? styles.controlsOpen : ''}`}>
         <div className={styles.controlsInner}>
+          {/* ── Top toolbar — sidebar collapse button (desktop) ── */}
+          {onToggleSidebarCollapsed && (
+            <div className={styles.sidebarTopBar}>
+              <button
+                type="button"
+                className={styles.sidebarTopBtn}
+                onClick={onToggleSidebarCollapsed}
+                aria-label="Hide sidebar"
+                title="Hide sidebar"
+              >
+                <IconSidebar />
+              </button>
+            </div>
+          )}
+
           {/* ── Mode Tabs ── */}
           <div className={styles.modeTabs}>
             <button
@@ -95,7 +122,7 @@ export default function Controls({
 
           {/* ── Active Project ── */}
           {activeProject && (
-            <CollapsibleSection id="project" title="Project">
+            <CollapsibleSection id="project" title="Project" icon={<IconFolder />}>
               <div style={{
                 padding: '8px 10px',
                 background: 'rgba(0,0,0,0.03)',
@@ -122,7 +149,7 @@ export default function Controls({
           {/* Date Range — Graph page only; the Calendar page has its own
               header with Month/Year, prev/next, and Today buttons. */}
           {page !== 'calendar' && (
-            <CollapsibleSection id="dateRange" title="Date Range">
+            <CollapsibleSection id="dateRange" title="Date Range" icon={<IconCalendar />}>
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
@@ -134,7 +161,7 @@ export default function Controls({
 
           {/* ── Presets (shared) ── */}
           {mode !== 'mundane' && (
-            <CollapsibleSection id="presets" title="Presets">
+            <CollapsibleSection id="presets" title="Presets" icon={<IconStar />}>
               <div className={styles.presetsBar}>
                 {favorites.length > 0 && (
                   <div className={styles.presetFavorites}>
@@ -165,7 +192,7 @@ export default function Controls({
 
           {/* ── World Mode Content ── */}
           {mode === 'world' && (
-            <CollapsibleSection id="customTransits" title="Custom Transits">
+            <CollapsibleSection id="customTransits" title="Custom Transits" icon={<IconSparkles />}>
               <TransitJobList
                 transitJobs={transitJobs}
                 curves={curves}
@@ -181,14 +208,14 @@ export default function Controls({
           {/* ── Natal Mode Content ── */}
           {mode === 'natal' && (
             <>
-              <CollapsibleSection id="chart" title="Chart">
+              <CollapsibleSection id="chart" title="Chart" icon={<IconUser />}>
                 <ChartSection
                   natalChart={natalChart}
                   onNatalChartChange={onNatalChartChange}
                 />
               </CollapsibleSection>
 
-              <CollapsibleSection id="natalTransits" title="Natal Transits">
+              <CollapsibleSection id="natalTransits" title="Natal Transits" icon={<IconSparkles />}>
                 {!natalChart ? (
                   <div style={{
                     padding: '12px',
@@ -220,7 +247,7 @@ export default function Controls({
             <>
               {/* Projects (quick access in predictive mode) */}
               {!activeProject && (
-                <CollapsibleSection id="mundaneProjects" title="Projects">
+                <CollapsibleSection id="mundaneProjects" title="Projects" icon={<IconFolder />}>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       className={styles.presetsOpenBtn}
@@ -233,7 +260,7 @@ export default function Controls({
                 </CollapsibleSection>
               )}
 
-              <CollapsibleSection id="chartStack" title="Chart Stack">
+              <CollapsibleSection id="chartStack" title="Chart Stack" icon={<IconStack />}>
                 <ChartStackPanel
                   stackCharts={stackCharts || []}
                   onAddChart={onAddStackChart}
@@ -241,7 +268,7 @@ export default function Controls({
                 />
               </CollapsibleSection>
 
-              <CollapsibleSection id="predictiveTransits" title="Predictive Transits">
+              <CollapsibleSection id="predictiveTransits" title="Predictive Transits" icon={<IconSparkles />}>
                 {(!stackCharts || stackCharts.length === 0) ? (
                   <div style={{
                     padding: '12px',

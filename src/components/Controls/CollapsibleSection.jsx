@@ -3,7 +3,7 @@ import styles from './Controls.module.css';
 
 const STORAGE_PREFIX = 'transitwiz.section.';
 
-export default function CollapsibleSection({ id, title, children, defaultOpen = true }) {
+export default function CollapsibleSection({ id, title, icon, children, defaultOpen = true }) {
   const [open, setOpen] = useState(() => {
     if (!id) return defaultOpen;
     try {
@@ -25,17 +25,18 @@ export default function CollapsibleSection({ id, title, children, defaultOpen = 
   }
 
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${open ? styles.sectionOpen : styles.sectionClosed}`}>
       <button
         type="button"
         className={styles.sectionTitleToggle}
         onClick={toggle}
         aria-expanded={open}
       >
+        {icon && <span className={styles.sectionIcon}>{icon}</span>}
+        <span className={styles.sectionTitleText}>{title}</span>
         <span className={styles.sectionToggleArrow}>{open ? '▾' : '▸'}</span>
-        <span>{title}</span>
       </button>
-      {open && children}
+      {open && <div className={styles.sectionBody}>{children}</div>}
     </section>
   );
 }

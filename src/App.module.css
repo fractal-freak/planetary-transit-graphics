@@ -43,40 +43,33 @@
   image-rendering: pixelated;
 }
 
-/* Sidebar collapse toggle — sits at the sidebar/chart seam, vertically centered */
-.sidebarToggle {
+/* Floating "show sidebar" button — only visible when the sidebar is hidden.
+   Mirrors the ghost-icon style of the in-sidebar collapse button. */
+.sidebarOpenBtn {
   position: absolute;
-  top: 50%;
-  /* Sidebar is 260px wide; place toggle so it straddles the boundary */
-  left: calc(260px - 11px);
-  transform: translateY(-50%);
-  background: var(--bg-page);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  width: 22px;
-  height: 44px;
+  top: 14px;
+  left: 12px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 1;
-  color: var(--fg);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  color: var(--fg-muted);
   cursor: pointer;
+  font-family: inherit;
   z-index: 8;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s, left 0.2s ease;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.sidebarToggle:hover {
-  background: var(--bg-elevated);
-  border-color: var(--fg-subtle);
-  color: var(--fg-primary);
-}
-
-.sidebarToggleCollapsed {
-  left: 0;
+.sidebarOpenBtn:hover {
+  background: var(--bg-subtle-2);
+  color: var(--fg-strong);
+  border-color: var(--border);
 }
 
 .title {
@@ -445,7 +438,7 @@
     max-width: 100px;
   }
 
-  .sidebarToggle {
+  .sidebarOpenBtn {
     display: none;
   }
 }
