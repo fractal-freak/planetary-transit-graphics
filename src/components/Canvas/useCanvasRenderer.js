@@ -20,7 +20,7 @@ const CLUSTER_THRESHOLD_X = 40;       // px — peaks within this distance form 
 const COMPACT_GAP = 2;                // px between labels in a cluster column
 const MAX_DISPLACEMENT_RATIO = 0.70;  // max label displacement as fraction of row height
 
-export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef }) {
+export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, theme }) {
   // Store latest props in a ref so repaint() always sees current values
   const propsRef = useRef();
   propsRef.current = { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom };
@@ -43,7 +43,7 @@ export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs,
     });
     return () => cancelAnimationFrame(rafId);
 
-  }, [curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH]); // Note: highlightPairRef not a dep
+  }, [curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, theme]);
 
   return repaint;
 }
@@ -70,8 +70,23 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
     const plotW = W - PADDING.left - PADDING.right;
     const totalPlotH = H - PADDING.top - bottomPad;
 
-    // Background — offwhite
-    ctx.fillStyle = '#f5f3ef';
+    // Theme palette — read from CSS vars so canvas tracks dark/light mode
+    const css = getComputedStyle(document.documentElement);
+    const themeColor = (name, fallback) => {
+      const v = css.getPropertyValue(name).trim();
+      return v || fallback;
+    };
+    const T = {
+      bg:        themeColor('--canvas-bg', '#f5f3ef'),
+      grid:      themeColor('--canvas-grid', 'rgba(0,0,0,0.06)'),
+      axis:      themeColor('--canvas-axis', 'rgba(0,0,0,0.55)'),
+      weekend:   themeColor('--canvas-weekend', 'rgba(0,0,0,0.035)'),
+      text:      themeColor('--canvas-text', 'rgba(0,0,0,0.55)'),
+      textMuted: themeColor('--canvas-text-muted', 'rgba(0,0,0,0.4)'),
+    };
+
+    // Background
+    ctx.fillStyle = T.bg;
     ctx.fillRect(0, 0, W, H);
 
     // Derive rows from curves' rowKey grouping.
@@ -150,7 +165,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
     // Draw time grid — grid lines and axis labels follow the row area
     const rowAreaTop = PADDING.top + rowOffsetY;
     const rowAreaBottom = rowAreaTop + usedH;
-    drawTimeGrid(ctx, W, H, plotW, totalPlotH, startDate, endDate, rowAreaTop, rowAreaBottom, zoom);
+    drawTimeGrid(ctx, W, H, plotW, totalPlotH, startDate, endDate, rowAreaTop, rowAreaBottom, zoom, T);
 
     // Collect all placed label hit areas across rows (for hover hit-testing)
     const allPlacedLabels = [];
@@ -242,7 +257,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
         for (const rp of rowRetrogradePeriods) {
           const rpStartX = dateToX(rp.startDate, startDate, endDate, plotW);
           const rpEndX = dateToX(rp.endDate, startDate, endDate, plotW);
-          ctx.fillStyle = '#f5f3ef';
+          ctx.fillStyle = T.bg;
           ctx.fillRect(ox + rpStartX, baselineY - 1.5, rpEndX - rpStartX, 3);
         }
         ctx.restore();
@@ -672,7 +687,7 @@ function drawStationMarkers(ctx, stations, plotW, rowH, rowTop, startDate, endDa
     // Mask baseline behind the diamond
     ctx.beginPath();
     ctx.rect(x - MARKER_R - 1, baselineY - 1.5, (MARKER_R + 1) * 2, 3);
-    ctx.fillStyle = '#f5f3ef';
+    ctx.fillStyle = T.bg;
     ctx.fill();
 
     // Diamond marker — opaque fill in sign element color
@@ -1002,7 +1017,7 @@ function drawRowLabelSingle(ctx, planetId, rowTop, rowH) {
 
 // ─── Time grid ───
 
-function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, rowAreaBottom, zoom) {
+function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, rowAreaBottom, zoom, T = { grid: 'rgba(0,0,0,0.06)', text: 'rgba(0,0,0,0.55)', textMuted: 'rgba(0,0,0,0.4)', weekend: 'rgba(0,0,0,0.035)' }) {
   const ox = PADDING.left;
   // Use row area bounds for grid lines & labels (defaults to full plot area)
   const gridTop = rowAreaTop ?? PADDING.top;
@@ -1022,7 +1037,7 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
     if (showDayLabels) {
       const shadeCursor = new Date(startDate);
       shadeCursor.setHours(0, 0, 0, 0);
-      ctx.fillStyle = 'rgba(0,0,0,0.035)';
+      ctx.fillStyle = T.weekend;
       while (shadeCursor <= endDate) {
         const dow = shadeCursor.getDay(); // 0=Sun, 6=Sat
         if (dow === 0 || dow === 6) {
@@ -1047,13 +1062,13 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       }
       dayCursor.setDate(dayCursor.getDate() + 1);
     }
-    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.strokeStyle = T.grid;
     ctx.lineWidth = 0.5;
     ctx.stroke();
 
     // Day-of-month labels (only when zoomed in far enough)
     if (showDayLabels) {
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillStyle = T.text;
       ctx.font = '600 10px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
 
@@ -1139,13 +1154,13 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       dayCursorH.setDate(dayCursorH.getDate() + 1);
     }
 
-    ctx.strokeStyle = 'rgba(0,0,0,0.035)';
+    ctx.strokeStyle = T.weekend;
     ctx.lineWidth = 0.5;
     ctx.stroke();
 
     // Hour labels — smaller and lighter than day labels to keep visual hierarchy
     if (showHourLabels && hourTicks.length > 0) {
-      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.fillStyle = T.textMuted;
       ctx.font = '500 8px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
 
@@ -1206,7 +1221,7 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       ctx.beginPath();
       ctx.moveTo(cx, gridTop);
       ctx.lineTo(cx, gridBottom);
-      ctx.strokeStyle = isYear ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.15)';
+      ctx.strokeStyle = isYear ? T.text : T.textMuted;
       ctx.lineWidth = isYear ? 1.25 : 0.75;
       ctx.stroke();
     }
@@ -1214,7 +1229,7 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
     // Skip ticks determined to be invisible or colliding
     if (skipTickIdx.has(idx)) return;
 
-    ctx.fillStyle = isYear ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.55)';
+    ctx.fillStyle = isYear ? T.text : T.text;
     ctx.font = isYear ? '600 11px Inter, system-ui, sans-serif' : '600 10px Inter, system-ui, sans-serif';
     const halfLabelW = ctx.measureText(label).width / 2;
 

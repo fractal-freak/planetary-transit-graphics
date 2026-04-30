@@ -11,28 +11,29 @@
 
 .label {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--fg-muted);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .trigger {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 2px 4px 2px 8px;
   transition: border-color 0.2s;
 }
 
 .trigger:hover {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--fg-subtle);
 }
 
 .trigger:focus-within {
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--fg-subtle);
 }
 
 .triggerError {
@@ -47,7 +48,7 @@
   background: none;
   border: none;
   outline: none;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   font-size: 12px;
   font-family: inherit;
   padding: 4px 0;
@@ -56,7 +57,7 @@
 }
 
 .dateInput::selection {
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--border);
 }
 
 .calIconBtn {
@@ -74,7 +75,7 @@
 
 .calIconBtn:hover {
   opacity: 0.8;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--bg-subtle-2);
 }
 
 /* ─── Dropdown ─── */
@@ -83,7 +84,7 @@
   position: fixed;
   z-index: 9999;
   background: #faf9f6;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   padding: 12px;
@@ -103,7 +104,7 @@
 .navBtn {
   background: none;
   border: none;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--fg);
   font-size: 18px;
   cursor: pointer;
   padding: 2px 8px;
@@ -114,8 +115,8 @@
 }
 
 .navBtn:hover {
-  color: rgba(0, 0, 0, 0.8);
-  background: rgba(0, 0, 0, 0.04);
+  color: var(--fg-strong);
+  background: var(--bg-subtle-2);
 }
 
 .navCenter {
@@ -127,7 +128,7 @@
 .navTitle {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   letter-spacing: 0.02em;
 }
 
@@ -136,7 +137,7 @@
   border: none;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   letter-spacing: 0.02em;
   cursor: pointer;
   padding: 3px 6px;
@@ -146,8 +147,8 @@
 }
 
 .navTitleBtn:hover {
-  color: rgba(0, 0, 0, 0.95);
-  background: rgba(0, 0, 0, 0.06);
+  color: var(--fg-primary);
+  background: var(--border-soft);
 }
 
 /* ─── Day labels ─── */
@@ -162,7 +163,7 @@
 .dayLabel {
   font-size: 9px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   text-align: center;
   padding: 2px 0;
   letter-spacing: 0.04em;
@@ -188,7 +189,7 @@
   justify-content: center;
   font-size: 11px;
   font-family: inherit;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--fg-strong);
   background: none;
   border: none;
   border-radius: 6px;
@@ -197,23 +198,23 @@
 }
 
 .dayCell:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.9);
+  background: var(--border-soft);
+  color: var(--fg-primary);
 }
 
 .dayCell:disabled {
-  color: rgba(0, 0, 0, 0.15);
+  color: var(--fg-faint);
   cursor: not-allowed;
 }
 
 .selected {
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--fg-strong);
   color: #fff;
   font-weight: 600;
 }
 
 .selected:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--fg-primary);
   color: #fff;
 }
 
@@ -234,7 +235,7 @@
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   background: none;
   border: none;
   border-radius: 6px;
@@ -243,18 +244,18 @@
 }
 
 .monthCell:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.9);
+  background: var(--border-soft);
+  color: var(--fg-primary);
 }
 
 .selectedMonth {
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--fg-strong);
   color: #fff;
   font-weight: 600;
 }
 
 .selectedMonth:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--fg-primary);
   color: #fff;
 }
 
@@ -275,7 +276,7 @@
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   background: none;
   border: none;
   border-radius: 6px;
@@ -284,18 +285,18 @@
 }
 
 .yearCell:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.9);
+  background: var(--border-soft);
+  color: var(--fg-primary);
 }
 
 .selectedYear {
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--fg-strong);
   color: #fff;
   font-weight: 600;
 }
 
 .selectedYear:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--fg-primary);
   color: #fff;
 }
 
@@ -306,9 +307,9 @@
   margin-top: 8px;
   padding: 5px 0;
   background: none;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--fg);
   font-size: 10px;
   font-weight: 600;
   font-family: inherit;
@@ -318,9 +319,9 @@
 }
 
 .todayBtn:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.18);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--bg-subtle-2);
+  border-color: var(--fg-faint);
+  color: var(--fg-strong);
 }
 
 /* ─── Back button ─── */
@@ -329,9 +330,9 @@
   width: 100%;
   padding: 5px 0;
   background: none;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-size: 10px;
   font-weight: 500;
   font-family: inherit;
@@ -341,7 +342,7 @@
 }
 
 .backBtn:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.18);
-  color: rgba(0, 0, 0, 0.6);
+  background: var(--bg-subtle-2);
+  border-color: var(--fg-faint);
+  color: var(--fg);
 }

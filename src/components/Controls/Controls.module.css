@@ -3,8 +3,8 @@
 .controls {
   width: 260px;
   flex-shrink: 0;
-  background: rgba(240, 238, 233, 0.95);
-  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-soft);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@
 .modeTabs {
   display: flex;
   gap: 0;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--bg-subtle-2);
   border-radius: 8px;
   padding: 3px;
   margin-bottom: -12px;
@@ -33,7 +33,7 @@
   padding: 6px 0;
   border: none;
   background: transparent;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   font-size: 11px;
   font-weight: 600;
   font-family: inherit;
@@ -44,12 +44,12 @@
 }
 
 .modeTab:hover {
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
 }
 
 .modeTabActive {
-  background: rgba(255, 255, 255, 0.8);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--bg-elevated);
+  color: var(--fg-strong);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -60,8 +60,80 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   margin-bottom: 12px;
+}
+
+.sectionTitleToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0 0 12px;
+  margin: 0;
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.sectionTitleToggle:hover {
+  color: var(--fg-strong);
+}
+
+.sectionToggleArrow {
+  font-size: 9px;
+  width: 10px;
+  display: inline-block;
+  text-align: center;
+  color: var(--fg-subtle);
+}
+
+/* ─── Theme toggle (sidebar bottom) ─── */
+
+.sidebarSpacer {
+  flex: 1;
+  min-height: 16px;
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--fg);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.themeToggle:hover {
+  background: var(--bg-subtle-2);
+  border-color: var(--border);
+  color: var(--fg-strong);
+}
+
+.themeToggleLabel {
+  letter-spacing: 0.04em;
+}
+
+.themeToggleIcon {
+  font-size: 13px;
+  line-height: 1;
 }
 
 /* ─── Calendar nav (sidebar replaces date range when on Calendar page) ─── */
@@ -69,7 +141,7 @@
 .calNavViewSwitcher {
   display: flex;
   gap: 0;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--bg-subtle-2);
   border-radius: 8px;
   padding: 3px;
   margin-bottom: 10px;
@@ -80,7 +152,7 @@
   padding: 6px 0;
   border: none;
   background: transparent;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   font-size: 11px;
   font-weight: 500;
   font-family: inherit;
@@ -91,13 +163,13 @@
 }
 
 .calNavTab:hover {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
 }
 
 .calNavTabActive,
 .calNavTabActive:hover {
-  background: rgba(255, 255, 255, 0.85);
-  color: rgba(0, 0, 0, 0.78);
+  background: var(--bg-elevated);
+  color: var(--fg-strong);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -114,11 +186,11 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
   font-size: 16px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,9 +199,9 @@
 }
 
 .calNavArrow:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.8);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--border-soft);
+  color: var(--fg-strong);
+  border-color: var(--fg-faint);
 }
 
 .calNavHeading {
@@ -137,7 +209,7 @@
   text-align: center;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -147,9 +219,9 @@
   padding: 6px 0;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--fg);
+  background: var(--bg-subtle-2);
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   font-family: inherit;
   letter-spacing: 0.04em;
@@ -157,8 +229,8 @@
 }
 
 .calNavToday:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.8);
+  background: var(--border-soft);
+  color: var(--fg-strong);
 }
 
 /* ─── Date Range ─── */
@@ -180,16 +252,16 @@
 
 .dateLabelText {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .dateInput {
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   padding: 6px 8px;
   font-size: 12px;
   font-family: inherit;
@@ -200,7 +272,7 @@
 
 .dateInput:focus {
   outline: none;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--fg-subtle);
 }
 
 /* ─── Quick Range Buttons ─── */
@@ -216,10 +288,10 @@
 .quickRangeBtn {
   flex: 1;
   padding: 5px 0;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   font-size: 10px;
   font-weight: 600;
   font-family: inherit;
@@ -229,13 +301,13 @@
 }
 
 .quickRangeBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.18);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--border-soft);
+  border-color: var(--fg-faint);
+  color: var(--fg-strong);
 }
 
 .dateSep {
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   font-size: 14px;
   margin-top: 16px;
 }
@@ -252,18 +324,18 @@
 
 .jobCard {
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
   overflow: hidden;
   transition: border-color 0.2s;
 }
 
 .jobCard:hover {
-  border-color: rgba(0, 0, 0, 0.14);
+  border-color: var(--border);
 }
 
 .jobCardExpanded {
-  border-color: rgba(0, 0, 0, 0.14);
+  border-color: var(--border);
 }
 
 .jobCardHeader {
@@ -278,7 +350,7 @@
 .jobPlanet {
   font-size: 14px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--fg-strong);
   flex: 1;
 }
 
@@ -286,14 +358,14 @@
   padding: 4px 10px 6px;
   font-size: 9px;
   font-style: italic;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   letter-spacing: 0.02em;
 }
 
 .jobRemove {
   background: none;
   border: none;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   cursor: pointer;
   font-size: 10px;
   padding: 2px 4px;
@@ -309,7 +381,7 @@
 
 .jobCardBody {
   padding: 6px 10px 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid var(--border-soft);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -326,15 +398,15 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
 }
 
 /* ─── Wizard ─── */
 
 .wizardContainer {
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -350,14 +422,14 @@
 .wizardTitle {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   letter-spacing: 0.02em;
 }
 
 .wizardClose {
   background: none;
   border: none;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   cursor: pointer;
   font-size: 11px;
   padding: 2px 4px;
@@ -368,7 +440,7 @@
 }
 
 .wizardClose:hover {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
 }
 
 /* ─── Planet Grid (Wizard Step 1) ─── */
@@ -386,27 +458,27 @@
   gap: 2px;
   padding: 8px 4px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.01);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
   cursor: pointer;
   transition: all 0.15s;
   font-family: inherit;
 }
 
 .planetBtn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--border-soft);
+  border-color: var(--fg-faint);
 }
 
 .planetBtnSymbol {
   font-size: 16px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
 }
 
 .planetBtnName {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   letter-spacing: 0.03em;
 }
 
@@ -429,7 +501,7 @@
 }
 
 .targetItem:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--bg-subtle);
 }
 
 .targetAllLabel {
@@ -440,28 +512,28 @@
   border-radius: 5px;
   cursor: pointer;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-weight: 500;
 }
 
 .targetCheckbox {
   width: 13px;
   height: 13px;
-  accent-color: rgba(0, 0, 0, 0.7);
+  accent-color: var(--fg-strong);
   cursor: pointer;
 }
 
 .targetSymbol {
   font-size: 13px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--fg);
   width: 16px;
   text-align: center;
 }
 
 .targetName {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--fg);
   letter-spacing: 0.02em;
 }
 
@@ -477,13 +549,13 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--border-soft);
 }
 
 .targetDividerText {
   font-size: 8px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -491,7 +563,7 @@
 
 .wizardDivider {
   height: 1px;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--border-soft);
   margin: 8px 0 6px;
 }
 
@@ -507,9 +579,9 @@
 .wizardBtn {
   padding: 5px 14px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--fg);
   font-size: 11px;
   font-weight: 500;
   font-family: inherit;
@@ -518,9 +590,9 @@
 }
 
 .wizardBtn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.7);
-  border-color: rgba(0, 0, 0, 0.18);
+  background: var(--border-soft);
+  color: var(--fg-strong);
+  border-color: var(--fg-faint);
 }
 
 .wizardBtn:disabled {
@@ -529,15 +601,15 @@
 }
 
 .wizardBtnPrimary {
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--fg-strong);
   color: #f5f3ef;
-  border-color: rgba(0, 0, 0, 0.75);
+  border-color: var(--fg-strong);
 }
 
 .wizardBtnPrimary:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   color: #fff;
-  border-color: rgba(0, 0, 0, 0.85);
+  border-color: var(--fg-primary);
 }
 
 /* ─── Add Transit Button ─── */
@@ -546,9 +618,9 @@
   width: 100%;
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border: 1px dashed var(--border);
   background: transparent;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
@@ -558,9 +630,9 @@
 }
 
 .addTransitBtn:hover {
-  border-color: rgba(0, 0, 0, 0.25);
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.02);
+  border-color: var(--fg-subtle);
+  color: var(--fg);
+  background: var(--bg-subtle);
 }
 
 /* ─── Aspect Toggles ─── */
@@ -577,9 +649,9 @@
   gap: 8px;
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.01);
-  color: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
@@ -588,19 +660,19 @@
 }
 
 .aspectToggle:hover {
-  border-color: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.03);
+  border-color: var(--border);
+  color: var(--fg);
+  background: var(--bg-subtle);
 }
 
 .aspectEnabled {
-  border-color: rgba(0, 0, 0, 0.18);
-  color: rgba(0, 0, 0, 0.75);
-  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--fg-faint);
+  color: var(--fg-strong);
+  background: var(--bg-subtle-2);
 }
 
 .aspectEnabled:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--border-soft);
 }
 
 .aspectSymbol {
@@ -619,7 +691,7 @@
 
 .aspectAngle {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -636,7 +708,7 @@
 
 .signChangeLabel {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--fg);
   letter-spacing: 0.02em;
 }
 
@@ -653,7 +725,7 @@
   -webkit-appearance: none;
   appearance: none;
   height: 3px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -665,28 +737,28 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   border: none;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .zoomSlider::-webkit-slider-thumb:hover {
-  background: rgba(0, 0, 0, 1);
+  background: var(--fg-primary);
 }
 
 .zoomSlider::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   border: none;
   cursor: pointer;
 }
 
 .zoomLabel {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   min-width: 30px;
   text-align: right;
@@ -711,12 +783,12 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   transition: color 0.15s;
 }
 
 .orbToggle:hover {
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
 }
 
 .orbList {
@@ -735,7 +807,7 @@
 .orbPlanetSymbol {
   font-size: 14px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.50);
+  color: var(--fg);
   width: 20px;
   text-align: center;
   flex-shrink: 0;
@@ -746,7 +818,7 @@
   -webkit-appearance: none;
   appearance: none;
   height: 3px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -758,28 +830,28 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   border: none;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .orbSlider::-webkit-slider-thumb:hover {
-  background: rgba(0, 0, 0, 1);
+  background: var(--fg-primary);
 }
 
 .orbSlider::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   border: none;
   cursor: pointer;
 }
 
 .orbValue {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   min-width: 28px;
   text-align: right;
@@ -794,8 +866,8 @@
   right: 20px;
   z-index: 100;
   background: rgba(245, 243, 239, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border);
+  color: var(--fg);
   border-radius: 20px;
   padding: 9px 18px;
   font-size: 13px;
@@ -807,8 +879,8 @@
 }
 
 .mobileToggle:hover {
-  border-color: rgba(0, 0, 0, 0.25);
-  color: rgba(0, 0, 0, 0.8);
+  border-color: var(--fg-subtle);
+  color: var(--fg-strong);
 }
 
 /* ─── Natal Data Input ─── */
@@ -834,16 +906,16 @@
 
 .natalLabelText {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .natalInput {
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   padding: 6px 8px;
   font-size: 12px;
   font-family: inherit;
@@ -853,11 +925,11 @@
 
 .natalInput:focus {
   outline: none;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--fg-subtle);
 }
 
 .natalInput::placeholder {
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
 }
 
 .natalLocationWrap {
@@ -880,8 +952,8 @@
 .natalLocationResults {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
   max-height: 160px;
@@ -891,11 +963,11 @@
 .natalLocationResult {
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--bg-subtle-2);
   padding: 6px 8px;
   font-size: 10px;
   font-family: inherit;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   text-align: left;
   cursor: pointer;
   transition: background 0.1s;
@@ -907,13 +979,13 @@
 }
 
 .natalLocationResult:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.75);
+  background: var(--bg-subtle-2);
+  color: var(--fg-strong);
 }
 
 .natalSearching {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   padding: 2px 0;
   letter-spacing: 0.02em;
 }
@@ -925,8 +997,8 @@
   flex-direction: column;
   gap: 8px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
   padding: 10px;
 }
 
@@ -953,7 +1025,7 @@
 
 .summaryChevron {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   flex-shrink: 0;
   width: 10px;
   transition: transform 0.2s;
@@ -975,14 +1047,14 @@
 
 .natalSummaryDate {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   font-weight: 500;
   letter-spacing: 0.02em;
 }
 
 .natalSummaryLocation {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   letter-spacing: 0.02em;
   margin-top: -4px;
   overflow: hidden;
@@ -993,7 +1065,7 @@
 .natalClearBtn {
   background: none;
   border: none;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   cursor: pointer;
   font-size: 10px;
   padding: 2px 6px;
@@ -1024,7 +1096,7 @@
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
   font-size: 13px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   width: 16px;
   text-align: center;
   text-rendering: optimizeLegibility;
@@ -1032,14 +1104,14 @@
 
 .natalGridDeg {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
 
 .natalDegInline {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
 }
@@ -1057,7 +1129,7 @@
 .chartActionBtn {
   background: none;
   border: none;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   font-size: 10px;
   font-weight: 500;
   font-family: inherit;
@@ -1069,12 +1141,12 @@
 }
 
 .chartActionBtn:hover {
-  color: rgba(0, 0, 0, 0.6);
-  background: rgba(0, 0, 0, 0.03);
+  color: var(--fg);
+  background: var(--bg-subtle);
 }
 
 .chartActionDot {
-  color: rgba(0, 0, 0, 0.12);
+  color: var(--border);
   font-size: 10px;
   user-select: none;
 }
@@ -1089,7 +1161,7 @@
 .chartPickerTitle {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   letter-spacing: 0.02em;
 }
 
@@ -1109,7 +1181,7 @@
 .chartNameText {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1130,8 +1202,8 @@
   gap: 6px;
   padding: 8px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
   margin-bottom: 4px;
 }
 
@@ -1160,19 +1232,19 @@
   align-items: center;
   gap: 2px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.01);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
   transition: all 0.15s;
   overflow: hidden;
 }
 
 .savedChartItem:hover {
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--border);
 }
 
 .savedChartItemActive {
-  border-color: rgba(0, 0, 0, 0.15);
-  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--fg-faint);
+  background: var(--bg-subtle-2);
 }
 
 .savedChartLoad {
@@ -1192,7 +1264,7 @@
 .savedChartName {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1201,12 +1273,12 @@
 .savedChartDefault {
   font-size: 9px;
   font-weight: 400;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
 }
 
 .savedChartMeta {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   letter-spacing: 0.02em;
 }
 
@@ -1221,7 +1293,7 @@
 .savedChartAction {
   background: none;
   border: none;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   cursor: pointer;
   font-size: 12px;
   padding: 4px 5px;
@@ -1232,7 +1304,7 @@
 }
 
 .savedChartAction:hover {
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
 }
 
 .savedChartActionDanger {
@@ -1282,7 +1354,7 @@
 
 .savedChartsEmpty {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   text-align: center;
   padding: 8px 0;
   letter-spacing: 0.02em;
@@ -1300,7 +1372,7 @@
     max-height: 0;
     overflow: hidden;
     border-right: none;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--border-soft);
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 90;
     border-radius: 16px 16px 0 0;
@@ -1339,8 +1411,8 @@
   gap: 5px;
   padding: 5px 8px;
   border-radius: 5px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.015);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
   cursor: pointer;
   font-family: inherit;
   transition: all 0.12s;
@@ -1348,8 +1420,8 @@
 }
 
 .presetFavBtn:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.12);
+  background: var(--bg-subtle-2);
+  border-color: var(--border);
 }
 
 .presetFavStar {
@@ -1361,7 +1433,7 @@
 .presetFavName {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--fg);
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -1388,9 +1460,9 @@
   width: 100%;
   padding: 6px 10px;
   border-radius: 5px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.02);
-  color: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
   font-size: 10px;
   font-weight: 500;
   font-family: inherit;
@@ -1400,7 +1472,7 @@
 }
 
 .presetsOpenBtn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.55);
-  border-color: rgba(0, 0, 0, 0.12);
+  background: var(--border-soft);
+  color: var(--fg);
+  border-color: var(--border);
 }

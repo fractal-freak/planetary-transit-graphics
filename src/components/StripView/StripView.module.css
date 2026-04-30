@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   font-size: 14px;
   letter-spacing: 0.05em;
 }
@@ -25,7 +25,7 @@
   display: flex;
   align-items: stretch;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border-soft);
   padding-bottom: 4px;
   margin-bottom: 2px;
 }
@@ -61,11 +61,11 @@
   display: flex;
   align-items: stretch;
   min-height: 40px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--bg-subtle-2);
 }
 
 .strip:last-of-type {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 /* ─── Chart Label ─── */
@@ -82,7 +82,7 @@
 .chartName {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--fg-strong);
   letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
@@ -92,7 +92,7 @@
 
 .chartType {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   letter-spacing: 0.04em;
 }
 
@@ -103,9 +103,9 @@
   width: 100%;
   height: 100%;
   min-height: 40px;
-  background: rgba(0, 0, 0, 0.015);
-  border-left: 1px solid rgba(0, 0, 0, 0.08);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-subtle);
+  border-left: 1px solid var(--border-soft);
+  border-right: 1px solid var(--border-soft);
 }
 
 /* ─── Sign Boundaries (every 30°) ─── */
@@ -115,7 +115,7 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--border-soft);
   pointer-events: none;
 }
 
@@ -126,7 +126,7 @@
   bottom: 0;
   width: 1px;
   height: 4px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border);
   pointer-events: none;
 }
 
@@ -167,8 +167,8 @@
   margin-top: 16px;
   padding: 12px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.025);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -179,7 +179,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   margin-bottom: 4px;
 }
 
@@ -194,13 +194,13 @@
 .aspectLabel {
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   min-width: 60px;
 }
 
 .aspectOrb {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   min-width: 40px;
   text-align: right;
@@ -208,7 +208,7 @@
 
 .aspectCharts {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   letter-spacing: 0.02em;
   flex: 1;
   overflow: hidden;
@@ -221,7 +221,7 @@
 .viewSwitcher {
   display: flex;
   gap: 0;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--bg-subtle-2);
   border-radius: 8px;
   padding: 3px;
   flex-shrink: 0;
@@ -232,7 +232,7 @@
   padding: 6px 12px;
   border: none;
   background: transparent;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   font-size: 11px;
   font-weight: 600;
   font-family: inherit;
@@ -244,11 +244,11 @@
 }
 
 .viewTab:hover {
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
 }
 
 .viewTabActive {
   background: rgba(255, 255, 255, 0.8);
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fg-strong);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }

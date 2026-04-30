@@ -7,6 +7,8 @@ import NatalJobList from './NatalJobList';
 import ChartStackPanel from './ChartStackPanel';
 import OrbSettings from './OrbSettings';
 import PresetPickerModal from './PresetPickerModal';
+import CollapsibleSection from './CollapsibleSection';
+import ThemeToggle from './ThemeToggle';
 import styles from './Controls.module.css';
 
 export default function Controls({
@@ -91,8 +93,7 @@ export default function Controls({
 
           {/* ── Active Project ── */}
           {activeProject && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Project</h2>
+            <CollapsibleSection id="project" title="Project">
               <div style={{
                 padding: '8px 10px',
                 background: 'rgba(0,0,0,0.03)',
@@ -113,27 +114,25 @@ export default function Controls({
                   Manage Projects
                 </button>
               </div>
-            </section>
+            </CollapsibleSection>
           )}
 
           {/* Date Range — Graph page only; the Calendar page has its own
               header with Month/Year, prev/next, and Today buttons. */}
           {page !== 'calendar' && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Date Range</h2>
+            <CollapsibleSection id="dateRange" title="Date Range">
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
                 onStartChange={onStartChange}
                 onEndChange={onEndChange}
               />
-            </section>
+            </CollapsibleSection>
           )}
 
           {/* ── Presets (shared) ── */}
           {mode !== 'mundane' && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Presets</h2>
+            <CollapsibleSection id="presets" title="Presets">
               <div className={styles.presetsBar}>
                 {favorites.length > 0 && (
                   <div className={styles.presetFavorites}>
@@ -159,13 +158,12 @@ export default function Controls({
                     : 'Save / Load Presets'}
                 </button>
               </div>
-            </section>
+            </CollapsibleSection>
           )}
 
           {/* ── World Mode Content ── */}
           {mode === 'world' && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Custom Transits</h2>
+            <CollapsibleSection id="customTransits" title="Custom Transits">
               <TransitJobList
                 transitJobs={transitJobs}
                 curves={curves}
@@ -175,27 +173,25 @@ export default function Controls({
                 onRemoveJob={onRemoveJob}
                 onUpdateJob={onUpdateJob}
               />
-            </section>
+            </CollapsibleSection>
           )}
 
           {/* ── Natal Mode Content ── */}
           {mode === 'natal' && (
             <>
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Chart</h2>
+              <CollapsibleSection id="chart" title="Chart">
                 <ChartSection
                   natalChart={natalChart}
                   onNatalChartChange={onNatalChartChange}
                 />
-              </section>
+              </CollapsibleSection>
 
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Natal Transits</h2>
+              <CollapsibleSection id="natalTransits" title="Natal Transits">
                 {!natalChart ? (
                   <div style={{
                     padding: '12px',
                     textAlign: 'center',
-                    color: 'rgba(0,0,0,0.2)',
+                    color: 'var(--fg-subtle)',
                     fontSize: '11px',
                     letterSpacing: '0.02em',
                   }}>
@@ -211,7 +207,7 @@ export default function Controls({
                     onUpdateJob={onUpdateNatalJob}
                   />
                 )}
-              </section>
+              </CollapsibleSection>
             </>
           )}
 
@@ -220,8 +216,7 @@ export default function Controls({
             <>
               {/* Projects (quick access in predictive mode) */}
               {!activeProject && (
-                <section className={styles.section}>
-                  <h2 className={styles.sectionTitle}>Projects</h2>
+                <CollapsibleSection id="mundaneProjects" title="Projects">
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       className={styles.presetsOpenBtn}
@@ -231,25 +226,23 @@ export default function Controls({
                       Open Project
                     </button>
                   </div>
-                </section>
+                </CollapsibleSection>
               )}
 
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Chart Stack</h2>
+              <CollapsibleSection id="chartStack" title="Chart Stack">
                 <ChartStackPanel
                   stackCharts={stackCharts || []}
                   onAddChart={onAddStackChart}
                   onRemoveChart={onRemoveStackChart}
                 />
-              </section>
+              </CollapsibleSection>
 
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Predictive Transits</h2>
+              <CollapsibleSection id="predictiveTransits" title="Predictive Transits">
                 {(!stackCharts || stackCharts.length === 0) ? (
                   <div style={{
                     padding: '12px',
                     textAlign: 'center',
-                    color: 'rgba(0,0,0,0.2)',
+                    color: 'var(--fg-subtle)',
                     fontSize: '11px',
                     letterSpacing: '0.02em',
                   }}>
@@ -268,7 +261,7 @@ export default function Controls({
                     onUpdateJob={onUpdateMundaneJob}
                   />
                 )}
-              </section>
+              </CollapsibleSection>
             </>
           )}
 
@@ -277,6 +270,10 @@ export default function Controls({
             orbSettings={orbSettings}
             onOrbChange={onOrbChange}
           />
+
+          {/* ── Theme toggle (sidebar bottom) ── */}
+          <div className={styles.sidebarSpacer} />
+          <ThemeToggle />
         </div>
       </aside>
 

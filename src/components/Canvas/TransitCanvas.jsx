@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useCanvasRenderer, PADDING } from './useCanvasRenderer';
+import { useTheme } from '../../contexts/ThemeContext';
 import styles from './Canvas.module.css';
 
 export { PADDING };
@@ -47,10 +48,12 @@ const TransitCanvas = forwardRef(function TransitCanvas(
   const canvasW = Math.round(baseWidth * zoom);
   const canvasH = baseHeight;
 
+  const { theme } = useTheme();
+
   // Renderer returns a stable repaint function
   const repaint = useCanvasRenderer(canvasRef, {
     curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom,
-    highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef,
+    highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, theme,
   });
 
   // Sync overlay data after each paint — notify parent for DOM overlays

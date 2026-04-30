@@ -3,6 +3,8 @@
   flex-direction: column;
   height: 100dvh;
   overflow: hidden;
+  background: var(--bg-page);
+  color: var(--fg);
 }
 
 /* ─── Header ─── */
@@ -14,7 +16,7 @@
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  background: rgba(245, 243, 239, 0.9);
+  background: color-mix(in srgb, var(--bg-page) 90%, transparent);
   backdrop-filter: blur(16px);
   z-index: 10;
 }
@@ -48,8 +50,8 @@
   /* Sidebar is 260px wide; place toggle so it straddles the boundary */
   left: calc(260px - 11px);
   transform: translateY(-50%);
-  background: #f5f3ef;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--bg-page);
+  border: 1px solid var(--border);
   border-radius: 4px;
   width: 22px;
   height: 44px;
@@ -60,7 +62,7 @@
   font-family: inherit;
   font-size: 14px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   cursor: pointer;
   z-index: 8;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -68,9 +70,9 @@
 }
 
 .sidebarToggle:hover {
-  background: #fff;
-  border-color: rgba(0, 0, 0, 0.25);
-  color: rgba(0, 0, 0, 0.85);
+  background: var(--bg-elevated);
+  border-color: var(--fg-subtle);
+  color: var(--fg-primary);
 }
 
 .sidebarToggleCollapsed {
@@ -82,7 +84,7 @@
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: rgba(0, 0, 0, 0.75);
+  color: var(--fg-strong);
   margin: 0;
   /* Slight nudge — Press Start 2P sits a hair high relative to the hat */
   padding-top: 2px;
@@ -101,8 +103,8 @@
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-subtle-2);
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   padding: 2px;
 }
@@ -111,7 +113,7 @@
   padding: 4px 14px;
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -121,13 +123,13 @@
 }
 
 .pageNavBtn:hover {
-  color: rgba(0, 0, 0, 0.75);
+  color: var(--fg-strong);
 }
 
 .pageNavBtnActive,
 .pageNavBtnActive:hover {
-  background: white;
-  color: rgba(0, 0, 0, 0.8);
+  background: var(--bg-elevated);
+  color: var(--fg-strong);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
@@ -183,7 +185,7 @@
 .zoomBar {
   flex-shrink: 0;
   padding: 8px 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -195,9 +197,9 @@
   padding: 4px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--fg);
+  background: var(--bg-subtle-2);
+  border: 1px solid var(--border);
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
@@ -205,8 +207,8 @@
 }
 
 .nowButton:hover {
-  background: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.75);
+  background: var(--border);
+  color: var(--fg-strong);
 }
 
 .zoomControl {
@@ -221,7 +223,7 @@
   -webkit-appearance: none;
   appearance: none;
   height: 6px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border);
   border-radius: 3px;
   outline: none;
   cursor: pointer;
@@ -233,28 +235,28 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   border: none;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .zoomSlider::-webkit-slider-thumb:hover {
-  background: rgba(0, 0, 0, 1);
+  background: var(--fg-primary);
 }
 
 .zoomSlider::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--fg-primary);
   border: none;
   cursor: pointer;
 }
 
 .zoomLabel {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   min-width: 30px;
   text-align: right;
@@ -275,8 +277,8 @@
   top: 0;
   left: 0;
   bottom: 0;
-  background: #f5f3ef;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-page);
+  border-right: 1px solid var(--border);
 }
 
 .yAxisLabel {
@@ -289,8 +291,8 @@
 
 .yAxisGlyph {
   font: 26px "Apple Symbols", "Segoe UI Symbol", serif;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.85);
+  color: var(--fg-primary);
+  -webkit-text-stroke: 0.6px var(--fg-primary);
   line-height: 1;
 }
 
@@ -308,7 +310,7 @@
   font-size: 10px;
   font-weight: 500;
   font-family: Inter, system-ui, sans-serif;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   letter-spacing: 0.01em;
   white-space: nowrap;
   text-align: center;
@@ -332,7 +334,7 @@
   position: absolute;
   top: 0;
   font: 600 11px Inter, system-ui, sans-serif;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--fg-strong);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -342,7 +344,7 @@
 .viewSwitcherBar {
   flex-shrink: 0;
   padding: 8px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-soft);
   max-width: 280px;
 }
 
@@ -356,14 +358,14 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: rgba(245, 243, 239, 0.7);
+  background: color-mix(in srgb, var(--bg-page) 70%, transparent);
   backdrop-filter: blur(4px);
   z-index: 20;
 }
 
 .loadingText {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   letter-spacing: 0.05em;
 }
 
@@ -378,7 +380,7 @@
 }
 
 .emptyStateText {
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   font-size: 12px;
   letter-spacing: 0.03em;
 }
@@ -415,21 +417,21 @@
 
 .projectBtn {
   background: none;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   padding: 5px 10px;
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s;
 }
 
 .projectBtn:hover {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.15);
-  color: rgba(0, 0, 0, 0.65);
+  background: var(--bg-subtle);
+  border-color: var(--fg-faint);
+  color: var(--fg-strong);
 }
 
 /* ─── Mobile ─── */

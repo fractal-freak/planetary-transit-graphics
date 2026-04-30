@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-soft);
   flex-shrink: 0;
   gap: 16px;
 }
@@ -34,7 +34,7 @@
 .heading {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.75);
+  color: var(--fg-strong);
   letter-spacing: 0.02em;
   min-width: 130px;
   text-align: center;
@@ -45,11 +45,11 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
   font-size: 16px;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,9 +58,9 @@
 }
 
 .navBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.8);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--border-soft);
+  color: var(--fg-strong);
+  border-color: var(--fg-faint);
 }
 
 .todayBtn {
@@ -68,9 +68,9 @@
   padding: 4px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--fg);
+  background: var(--border-soft);
+  border: 1px solid var(--border);
   border-radius: 6px;
   white-space: nowrap;
   font-family: inherit;
@@ -79,14 +79,14 @@
 }
 
 .todayBtn:hover {
-  background: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.75);
+  background: var(--border);
+  color: var(--fg-strong);
 }
 
 .loadingHint {
   margin-left: 10px;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   letter-spacing: 0.04em;
   font-style: italic;
 }
@@ -95,8 +95,8 @@
 
 .viewSwitcher {
   display: inline-flex;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-subtle-2);
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   padding: 2px;
 }
@@ -105,7 +105,7 @@
   padding: 4px 14px;
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -115,13 +115,13 @@
 }
 
 .viewTab:hover {
-  color: rgba(0, 0, 0, 0.75);
+  color: var(--fg-strong);
 }
 
 .viewTabActive,
 .viewTabActive:hover {
   background: white;
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--fg-strong);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
@@ -139,7 +139,7 @@
   display: flex;
   flex-direction: column;
   background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -153,12 +153,12 @@
 .monthTitle {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--fg-strong);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
   padding: 12px 8px 10px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--bg-subtle-2);
 }
 
 .monthLarge .monthTitle {
@@ -181,8 +181,8 @@
 }
 
 .monthTitleBtn:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.8);
+  background: var(--bg-subtle-2);
+  color: var(--fg-strong);
 }
 
 /* ─── Weekday header row ─── */
@@ -190,14 +190,14 @@
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.015);
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
 }
 
 .weekday {
   font-size: 9px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   letter-spacing: 0.08em;
   padding: 6px 0;
   text-align: center;
@@ -226,8 +226,8 @@
 }
 
 .day {
-  border-right: 1px solid rgba(0, 0, 0, 0.04);
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-right: 1px solid var(--bg-subtle-2);
+  border-top: 1px solid var(--bg-subtle-2);
   padding: 4px 6px;
   position: relative;
   min-height: 0;
@@ -247,7 +247,7 @@
 .dayNumber {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -262,7 +262,7 @@
 }
 
 .dayOutside .dayNumber {
-  color: rgba(0, 0, 0, 0.18);
+  color: var(--fg-faint);
 }
 
 /* ─── Event glyphs (large month view) ─── */
@@ -280,8 +280,8 @@
   line-height: 1.1;
   white-space: nowrap;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.85);
+  color: var(--fg-primary);
+  -webkit-text-stroke: 0.3px var(--fg-primary);
   letter-spacing: 0.5px;
 }
 
@@ -292,7 +292,7 @@
 .eventOverflow {
   font-size: 9px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   letter-spacing: 0.02em;
   margin-top: 1px;
 }

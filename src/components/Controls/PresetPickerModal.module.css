@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--fg-subtle);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@
 .title {
   font-size: 15px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.72);
+  color: var(--fg-strong);
   letter-spacing: 0.01em;
 }
 
@@ -46,7 +46,7 @@
   background: none;
   border: none;
   font-size: 20px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   cursor: pointer;
   line-height: 1;
   padding: 4px;
@@ -54,7 +54,7 @@
 }
 
 .closeBtn:hover {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
 }
 
 /* ── Search ── */
@@ -68,9 +68,9 @@
   width: 100%;
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.75);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-strong);
   font-size: 12px;
   font-family: inherit;
   outline: none;
@@ -78,11 +78,11 @@
 }
 
 .searchInput:focus {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--fg-subtle);
 }
 
 .searchInput::placeholder {
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
 }
 
 /* ── Scrollable body ── */
@@ -99,7 +99,7 @@
 }
 
 .body::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border);
   border-radius: 2px;
 }
 
@@ -113,7 +113,7 @@
 }
 
 .presetItem:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--bg-subtle);
 }
 
 .presetBtn {
@@ -136,7 +136,7 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--fg-strong);
 }
 
 .presetNameText {
@@ -173,7 +173,7 @@
 
 .presetMeta {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
@@ -197,7 +197,7 @@
   background: none;
   border: none;
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   cursor: pointer;
   padding: 4px 5px;
   border-radius: 4px;
@@ -207,8 +207,8 @@
 }
 
 .presetActionBtn:hover {
-  color: rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.04);
+  color: var(--fg);
+  background: var(--bg-subtle-2);
 }
 
 /* ── Inline edit / delete ── */
@@ -225,9 +225,9 @@
   width: 100%;
   padding: 5px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(0, 0, 0, 0.02);
-  color: rgba(0, 0, 0, 0.75);
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--fg-strong);
   font-size: 11px;
   font-family: inherit;
   outline: none;
@@ -235,7 +235,7 @@
 }
 
 .inlineInput:focus {
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--fg-subtle);
 }
 
 .inlineActions {
@@ -252,13 +252,13 @@
   font-family: inherit;
   cursor: pointer;
   transition: all 0.12s;
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.5);
+  background: var(--border-soft);
+  color: var(--fg);
 }
 
 .inlineBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--border);
+  color: var(--fg-strong);
 }
 
 .inlineBtnDanger {
@@ -273,7 +273,7 @@
 
 .deleteText {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
 }
 
 /* ── Save row (inline in footer) ── */
@@ -289,7 +289,7 @@
 .empty {
   padding: 24px 16px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   font-size: 12px;
   letter-spacing: 0.02em;
 }
@@ -299,7 +299,7 @@
 .capWarning {
   text-align: center;
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   padding: 4px 0 0;
 }
 
@@ -308,7 +308,7 @@
 .footer {
   padding: 10px 16px 14px;
   flex-shrink: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border-soft);
   display: flex;
   gap: 8px;
 }
@@ -317,9 +317,9 @@
   flex: 1;
   padding: 7px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
   font-size: 11px;
   font-weight: 500;
   font-family: inherit;
@@ -329,9 +329,9 @@
 }
 
 .footerBtn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.65);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--border-soft);
+  color: var(--fg-strong);
+  border-color: var(--fg-faint);
 }
 
 .footerBtn:disabled {
@@ -341,7 +341,7 @@
 
 .presetCount {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   text-align: center;
   padding-top: 4px;
 }

@@ -4,9 +4,9 @@
   gap: 6px;
   padding: 7px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--fg);
   font-size: 12px;
   font-family: inherit;
   font-weight: 500;
@@ -16,9 +16,9 @@
 }
 
 .exportBtn:hover {
-  border-color: rgba(0, 0, 0, 0.25);
-  color: rgba(0, 0, 0, 0.8);
-  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--fg-subtle);
+  color: var(--fg-strong);
+  background: var(--border-soft);
 }
 
 .exportBtn:active {

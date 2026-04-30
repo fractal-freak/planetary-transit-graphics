@@ -11,6 +11,56 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ── Theme tokens (light is default) ───────────────────────── */
+  --bg-page:        #f5f3ef;
+  --bg-sidebar:     rgba(240, 238, 233, 0.95);
+  --bg-elevated:    #ffffff;
+  --bg-subtle:      rgba(0, 0, 0, 0.03);
+  --bg-subtle-2:    rgba(0, 0, 0, 0.04);
+
+  --fg-primary:     rgba(0, 0, 0, 0.85);
+  --fg-strong:      rgba(0, 0, 0, 0.75);
+  --fg:             rgba(0, 0, 0, 0.55);
+  --fg-muted:       rgba(0, 0, 0, 0.4);
+  --fg-subtle:      rgba(0, 0, 0, 0.25);
+  --fg-faint:       rgba(0, 0, 0, 0.12);
+
+  --border:         rgba(0, 0, 0, 0.1);
+  --border-soft:    rgba(0, 0, 0, 0.06);
+
+  /* Canvas-specific tokens read by useCanvasRenderer */
+  --canvas-bg:      #f5f3ef;
+  --canvas-grid:    rgba(0, 0, 0, 0.06);
+  --canvas-axis:    rgba(0, 0, 0, 0.55);
+  --canvas-weekend: rgba(0, 0, 0, 0.035);
+  --canvas-text:    rgba(0, 0, 0, 0.55);
+  --canvas-text-muted: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] {
+  --bg-page:        #1a1d22;
+  --bg-sidebar:     rgba(28, 31, 36, 0.95);
+  --bg-elevated:    #232730;
+  --bg-subtle:      rgba(255, 255, 255, 0.05);
+  --bg-subtle-2:    rgba(255, 255, 255, 0.07);
+
+  --fg-primary:     rgba(255, 255, 255, 0.92);
+  --fg-strong:      rgba(255, 255, 255, 0.82);
+  --fg:             rgba(255, 255, 255, 0.65);
+  --fg-muted:       rgba(255, 255, 255, 0.45);
+  --fg-subtle:      rgba(255, 255, 255, 0.30);
+  --fg-faint:       rgba(255, 255, 255, 0.15);
+
+  --border:         rgba(255, 255, 255, 0.12);
+  --border-soft:    rgba(255, 255, 255, 0.07);
+
+  --canvas-bg:      #1a1d22;
+  --canvas-grid:    rgba(255, 255, 255, 0.08);
+  --canvas-axis:    rgba(255, 255, 255, 0.7);
+  --canvas-weekend: rgba(255, 255, 255, 0.05);
+  --canvas-text:    rgba(255, 255, 255, 0.7);
+  --canvas-text-muted: rgba(255, 255, 255, 0.45);
 }
 
 a {

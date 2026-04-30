@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--fg-subtle);
   font-size: 14px;
   letter-spacing: 0.05em;
 }
@@ -38,7 +38,7 @@
 
 .controlLabel {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--fg-muted);
   letter-spacing: 0.02em;
 }
 
@@ -47,7 +47,7 @@
   -webkit-appearance: none;
   appearance: none;
   height: 3px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -59,7 +59,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--fg-strong);
   border: none;
   cursor: pointer;
 }
@@ -68,14 +68,14 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--fg-strong);
   border: none;
   cursor: pointer;
 }
 
 .orbValue {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   min-width: 24px;
 }
@@ -83,13 +83,13 @@
 .checkbox {
   width: 13px;
   height: 13px;
-  accent-color: rgba(0, 0, 0, 0.7);
+  accent-color: var(--fg-strong);
   cursor: pointer;
 }
 
 .aspectCount {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   margin-left: auto;
   letter-spacing: 0.02em;
 }
@@ -116,13 +116,13 @@
 
 .pairVs {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   font-style: italic;
 }
 
 .pairCount {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   margin-left: auto;
   letter-spacing: 0.02em;
 }
@@ -132,7 +132,7 @@
 .matrixWrap {
   overflow-x: auto;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-soft);
 }
 
 .matrix {
@@ -144,9 +144,9 @@
 .cornerCell {
   width: 32px;
   height: 28px;
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid var(--border-soft);
 }
 
 .colHeader {
@@ -155,9 +155,9 @@
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   font-size: 14px;
   font-weight: normal;
-  background: rgba(0, 0, 0, 0.015);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid var(--bg-subtle);
   min-width: 42px;
 }
 
@@ -166,9 +166,9 @@
   padding: 2px 4px;
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   font-size: 14px;
-  background: rgba(0, 0, 0, 0.015);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  background: var(--bg-subtle);
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--bg-subtle);
   min-width: 32px;
 }
 
@@ -177,8 +177,8 @@
 .cell {
   text-align: center;
   padding: 3px 2px;
-  border-right: 1px solid rgba(0, 0, 0, 0.03);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  border-right: 1px solid var(--bg-subtle);
+  border-bottom: 1px solid var(--bg-subtle);
   min-width: 42px;
   height: 32px;
   vertical-align: middle;
@@ -205,7 +205,7 @@
 
 .cellOrb {
   font-size: 8px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   display: block;
   line-height: 1;
@@ -217,8 +217,8 @@
 .tightestSection {
   padding: 12px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.025);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -229,7 +229,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--fg-muted);
   margin-bottom: 4px;
 }
 
@@ -243,7 +243,7 @@
 
 .tightestRank {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--fg-subtle);
   font-variant-numeric: tabular-nums;
   min-width: 16px;
   text-align: right;
@@ -252,13 +252,13 @@
 .tightestLabel {
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
   min-width: 60px;
 }
 
 .tightestOrb {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
   min-width: 40px;
   text-align: right;
@@ -266,7 +266,7 @@
 
 .tightestCharts {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--fg-subtle);
   letter-spacing: 0.02em;
   flex: 1;
   overflow: hidden;
