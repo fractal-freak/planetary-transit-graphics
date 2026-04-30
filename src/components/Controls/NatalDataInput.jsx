@@ -24,10 +24,10 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
 
   function handleCalculate() {
     if (!birthDate) return;
-    const dateTime = combineDateAndTime(birthDate, birthTime);
-    const positions = computeNatalPositions(dateTime);
     const lat = locationData?.lat;
     const lng = locationData?.lng;
+    const dateTime = combineDateAndTime(birthDate, birthTime, lat, lng);
+    const positions = computeNatalPositions(dateTime);
     const angles = (lat != null && lng != null)
       ? computeNatalAngles(dateTime, lat, lng)
       : null;

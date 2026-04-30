@@ -5,7 +5,7 @@ import { useTransits } from './hooks/useTransits';
 import { useNatalTransits } from './hooks/useNatalTransits';
 import { useMundaneTransits } from './hooks/useMundaneTransits';
 import { useAuth } from './contexts/AuthContext';
-import { computeNatalAngles, combineDateAndTime } from './data/natalChart';
+import { computeNatalAngles, computeNatalPositions, combineDateAndTime } from './data/natalChart';
 import { initSwissEph, isSweReady } from './api/swisseph';
 import { loadSession, saveSession } from './firebase/firestore';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
@@ -22,12 +22,21 @@ import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 import { resolveRelativeDates } from './data/defaultPresets';
 
-/** Recompute angles from birth data (fixes stale cached values). */
+/**
+ * Recompute positions and angles from birth data on load. This fixes stale
+ * cached values for charts that were saved before the timezone fix — their
+ * stored positions/angles were computed treating birth time as the device's
+ * local time. Now that combineDateAndTime resolves the birthplace's tz from
+ * lat/lng, refreshing on load corrects any drift.
+ */
 function refreshAngles(chart) {
-  if (!chart || chart.lat == null || chart.lng == null || !chart.birthDate) return chart;
+  if (!chart || !chart.birthDate) return chart;
   if (!isSweReady()) return chart; // defer until WASM is loaded
-  const dt = combineDateAndTime(chart.birthDate, chart.birthTime);
-  return { ...chart, angles: computeNatalAngles(dt, chart.lat, chart.lng) };
+  const hasLoc = chart.lat != null && chart.lng != null;
+  const dt = combineDateAndTime(chart.birthDate, chart.birthTime, chart.lat, chart.lng);
+  const positions = computeNatalPositions(dt);
+  const angles = hasLoc ? computeNatalAngles(dt, chart.lat, chart.lng) : null;
+  return { ...chart, positions, angles };
 }
 
 /** Default first-time range: today through one week ahead. */
