@@ -292,7 +292,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
       let stationRects = [];
       if (rowStations.length > 0) {
         stationRects = computeStationRects(ctx, rowStations, plotW, baselineY, startDate, endDate);
-        drawStationMarkers(ctx, rowStations, plotW, rowH, rowTop, startDate, endDate, baselineY);
+        drawStationMarkers(ctx, rowStations, plotW, rowH, rowTop, startDate, endDate, baselineY, T);
       }
 
       // Draw eclipse markers for the Eclipses row
@@ -672,7 +672,7 @@ function computeStationRects(ctx, stations, plotW, baselineY, startDate, endDate
 
 // ─── Station markers on baseline (diamonds + labels below) ───
 
-function drawStationMarkers(ctx, stations, plotW, rowH, rowTop, startDate, endDate, baselineY) {
+function drawStationMarkers(ctx, stations, plotW, rowH, rowTop, startDate, endDate, baselineY, T = { bg: '#f5f3ef' }) {
   const ox = PADDING.left;
   const MARKER_R = 5;
   const ST_GLYPH_FONT = '600 14px "Apple Symbols", "Segoe UI Symbol", Inter, system-ui, sans-serif';
