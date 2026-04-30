@@ -398,11 +398,24 @@ export function computeAspectCurve(longA, longB, aspectAngle, orb, getLonA, getL
  * its neighbours. This catches retrograde oscillations where a single
  * continuous activation can contain multiple bumps. Every peak gets a
  * label — no minimum intensity threshold.
+ *
+ * Always emits a peak at the first/last sample when that sample is active,
+ * even if it isn't a strict local max. This guarantees cut-off curves get
+ * an identifying edge label — e.g. a slow Pluto curve descending into the
+ * window with a retrograde wobble that makes a later sample slightly
+ * higher than the boundary.
  */
 export function findPeaks(curve) {
   if (curve.length === 0) return [];
 
   const peaks = [];
+  const peakIndices = new Set();
+
+  function addPeak(i) {
+    if (peakIndices.has(i)) return;
+    peaks.push({ ...curve[i], index: i });
+    peakIndices.add(i);
+  }
 
   for (let i = 0; i < curve.length; i++) {
     const { intensity } = curve[i];
@@ -412,9 +425,33 @@ export function findPeaks(curve) {
     const next = i < curve.length - 1 ? curve[i + 1].intensity : 0;
 
     if (intensity >= prev && intensity >= next) {
-      peaks.push({ ...curve[i], index: i });
+      // Plateau dedup: when the previous sample has the same intensity, the
+      // start of the plateau is already marked — skip this one to avoid
+      // generating a peak at every sample in a flat region.
+      if (i > 0 && Math.abs(curve[i - 1].intensity - intensity) < 1e-9) continue;
+      addPeak(i);
     }
   }
 
+  // Synthesize boundary peaks for cut-off curves. Without this, a curve that
+  // enters or leaves the window already in activation but isn't a strict
+  // local max at the boundary (e.g. nearby retrograde wobble) would render
+  // with no label identifying it. Only add an edge peak when no other peak
+  // dominates that boundary's intensity — an internal peak with higher
+  // intensity is the "real" exact aspect and doesn't need an edge twin.
+  const lastIdx = curve.length - 1;
+  const EPS = 1e-9;
+  if (curve[0].intensity > 0) {
+    const i0 = curve[0].intensity;
+    const dominated = peaks.some(p => p.index !== 0 && p.intensity >= i0 - EPS);
+    if (!dominated) addPeak(0);
+  }
+  if (lastIdx > 0 && curve[lastIdx].intensity > 0) {
+    const iL = curve[lastIdx].intensity;
+    const dominated = peaks.some(p => p.index !== lastIdx && p.intensity >= iL - EPS);
+    if (!dominated) addPeak(lastIdx);
+  }
+
+  peaks.sort((a, b) => a.index - b.index);
   return peaks;
 }
