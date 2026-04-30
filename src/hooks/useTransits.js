@@ -249,12 +249,15 @@ export function useTransits(transitJobs, startDate, endDate, orbSettings) {
       }
 
       // Deduplicate: if multiple jobs produce the same planet-pair + aspect
-      // curve (e.g. two jobs both tracking Jupiter↔Saturn conjunction), keep
-      // only the first one to avoid drawing identical overlapping curves.
+      // curve, keep only the first one. The pair is canonicalised by sorting
+      // the two planet names so that "Sun → Moon" and "Moon → Sun" are
+      // recognised as the same curve — they always render on the faster
+      // planet's row, so without this dedup the curve would be drawn twice.
       const seenCurves = new Set();
       const deduped = [];
       for (const c of result) {
-        const curveKey = `${c.transitPlanet}-${c.target}-${c.aspect.name}`;
+        const pairKey = [c.transitPlanet, c.target].sort().join('-');
+        const curveKey = `${pairKey}-${c.aspect.name}`;
         if (seenCurves.has(curveKey)) continue;
         seenCurves.add(curveKey);
         deduped.push(c);
