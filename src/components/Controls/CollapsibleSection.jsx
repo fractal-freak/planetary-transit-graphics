@@ -33,8 +33,23 @@ export default function CollapsibleSection({ id, title, icon, children, defaultO
         aria-expanded={open}
       >
         {icon && <span className={styles.sectionIcon}>{icon}</span>}
-        <span className={styles.sectionTitleText}>{title}</span>
-        <span className={styles.sectionToggleArrow}>{open ? '▾' : '▸'}</span>
+        <span className={styles.sectionTitleGroup}>
+          <span className={styles.sectionTitleText}>{title}</span>
+          <svg
+            className={`${styles.sectionToggleArrow} ${open ? styles.sectionToggleArrowOpen : ''}`}
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </span>
       </button>
       {open && <div className={styles.sectionBody}>{children}</div>}
     </section>

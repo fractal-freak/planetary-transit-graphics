@@ -150,6 +150,13 @@
   flex-shrink: 0;
 }
 
+.sectionTitleGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
 .sectionTitleText {
   white-space: nowrap;
   overflow: hidden;
@@ -157,13 +164,16 @@
 }
 
 .sectionToggleArrow {
-  font-size: 12px;
-  line-height: 1;
-  margin-left: 2px;
-  color: var(--fg-subtle);
+  display: inline-block;
   flex-shrink: 0;
+  color: var(--fg-subtle);
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transform: rotate(-90deg);
+  transition: opacity 0.15s, color 0.15s, transform 0.15s;
+}
+
+.sectionToggleArrowOpen {
+  transform: rotate(0deg);
 }
 
 .sectionTitleToggle:hover .sectionToggleArrow {
