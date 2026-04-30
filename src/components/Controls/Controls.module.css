@@ -113,22 +113,14 @@
 }
 
 /* Section row — collapsed sections sit tight against each other; an open
-   section gets a little breathing room above and below its body. */
+   section keeps its header pinned in place and adds room below for the body. */
 .section {
   display: flex;
   flex-direction: column;
 }
 
 .sectionOpen {
-  margin: 6px 0 14px;
-}
-
-.sectionOpen:first-child {
-  margin-top: 0;
-}
-
-.sectionClosed + .sectionClosed {
-  margin-top: 0;
+  margin-bottom: 12px;
 }
 
 .sectionTitle {
