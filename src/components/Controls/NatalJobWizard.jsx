@@ -29,8 +29,9 @@ export default function NatalJobWizard({ natalChart, onAddJob }) {
 
   function handlePickPlanet(planetId) {
     setTransitPlanet(planetId);
-    // Default: select all natal planets EXCEPT the transit planet itself, plus angles if available
-    const defaultTargets = SPEED_ORDER.filter(id => id !== planetId);
+    // Default: select all natal planets (including self — e.g. Mercury return,
+    // solar return) plus angles if available.
+    const defaultTargets = [...SPEED_ORDER];
     const angleTargets = natalChart?.angles ? NATAL_ANGLE_IDS : [];
     setNatalTargets([...defaultTargets, ...angleTargets]);
     setStep(2);
@@ -45,7 +46,7 @@ export default function NatalJobWizard({ natalChart, onAddJob }) {
   }
 
   function handleToggleAll() {
-    const allOthers = SPEED_ORDER.filter(id => id !== transitPlanet);
+    const allOthers = [...SPEED_ORDER];
     const angleTargets = natalChart?.angles ? NATAL_ANGLE_IDS : [];
     const allTargets = [...allOthers, ...angleTargets];
     if (natalTargets.length === allTargets.length) {
@@ -113,7 +114,7 @@ export default function NatalJobWizard({ natalChart, onAddJob }) {
   const transitP = PLANET_MAP[transitPlanet];
   const positions = natalChart?.positions || {};
   const angles = natalChart?.angles || null;
-  const allOthers = SPEED_ORDER.filter(id => id !== transitPlanet);
+  const allOthers = [...SPEED_ORDER];
   const angleTargets = angles ? NATAL_ANGLE_IDS : [];
   const allTargets = [...allOthers, ...angleTargets];
 
