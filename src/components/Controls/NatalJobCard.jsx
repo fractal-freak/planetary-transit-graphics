@@ -4,7 +4,7 @@ import { ASPECTS } from '../../utils/aspects';
 import { formatDegree } from '../../data/natalChart';
 import styles from './Controls.module.css';
 
-export default function NatalJobCard({ job, natalChart, hasAspects, onRemove, onUpdate }) {
+export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivity, onRemove, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
 
   const transitP = PLANET_MAP[job.transitPlanet];
@@ -55,8 +55,8 @@ export default function NatalJobCard({ job, natalChart, hasAspects, onRemove, on
         </button>
       </div>
 
-      {!hasAspects && !transitP.conjunctionOnly && !(job.showSignChanges) && !(job.showRetrogrades) && (
-        <div className={styles.jobNoAspects}>No aspects in this timeframe.</div>
+      {hasAnyActivity === false && (
+        <div className={styles.jobNoAspects}>No transits during this timeframe.</div>
       )}
 
       {expanded && (

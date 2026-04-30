@@ -72,8 +72,10 @@ export function useTransits(transitJobs, startDate, endDate, orbSettings) {
     cancelledRef.current = false;
     setLoading(true);
 
-    // Use requestAnimationFrame to avoid blocking the UI on first paint
-    const rafId = requestAnimationFrame(() => {
+    // Defer to a macrotask so the prior effect's cleanup settles. setTimeout
+    // is more reliable than rAF in React 19 strict-mode double-mount, where
+    // rAF can be cancelled before firing.
+    const timeoutId = setTimeout(() => {
       if (cancelledRef.current) return;
 
       // Collect unique bodies needed across all jobs
@@ -377,7 +379,7 @@ export function useTransits(transitJobs, startDate, endDate, orbSettings) {
 
     return () => {
       cancelledRef.current = true;
-      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depsKey]);

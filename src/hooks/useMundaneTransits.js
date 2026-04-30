@@ -63,7 +63,7 @@ export function useMundaneTransits(mundaneJobs, stackCharts, startDate, endDate,
     cancelledRef.current = false;
     setLoading(true);
 
-    const rafId = requestAnimationFrame(() => {
+    const timeoutId = setTimeout(() => {
       if (cancelledRef.current) return;
 
       // Build merged target set: all positions from all stacked charts,
@@ -378,7 +378,7 @@ export function useMundaneTransits(mundaneJobs, stackCharts, startDate, endDate,
 
     return () => {
       cancelledRef.current = true;
-      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depsKey]);

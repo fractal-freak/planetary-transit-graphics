@@ -34,6 +34,8 @@ export default function Controls({
   onNatalChartChange,
   natalJobs,
   natalCurves,
+  natalSignChanges,
+  natalLoading,
   onAddNatalJob,
   onRemoveNatalJob,
   onUpdateNatalJob,
@@ -202,6 +204,8 @@ export default function Controls({
                     natalChart={natalChart}
                     natalJobs={natalJobs}
                     natalCurves={natalCurves}
+                    natalSignChanges={natalSignChanges}
+                    natalLoading={natalLoading}
                     onAddJob={onAddNatalJob}
                     onRemoveJob={onRemoveNatalJob}
                     onUpdateJob={onUpdateNatalJob}

@@ -61,13 +61,17 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
     if (!startDate || !endDate || natalJobs.length === 0 || !natalChart?.positions) {
       setCurves([]);
       setSignChanges({ changes: [], initialSigns: {}, eclipses: [], stations: [], retrogradePeriods: [] });
+      setLoading(false);
       return;
     }
 
     cancelledRef.current = false;
     setLoading(true);
 
-    const rafId = requestAnimationFrame(() => {
+    // Schedule on a macrotask so the effect cleanup of any prior run has a
+    // chance to settle. setTimeout(0) is more reliable than rAF in React 19
+    // strict-mode double-mount, where rAF can be cancelled before firing.
+    const timeoutId = setTimeout(() => {
       if (cancelledRef.current) return;
 
       // Merge planet positions + chart angles into one lookup
@@ -345,7 +349,7 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
 
     return () => {
       cancelledRef.current = true;
-      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depsKey]);

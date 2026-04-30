@@ -654,6 +654,8 @@ export default function App() {
           onNatalChartChange={chart => setNatalChart(refreshAngles(chart))}
           natalJobs={natalJobs}
           natalCurves={natalCurves}
+          natalSignChanges={natalSignChanges}
+          natalLoading={natalLoading}
           onAddNatalJob={handleAddNatalJob}
           onRemoveNatalJob={handleRemoveNatalJob}
           onUpdateNatalJob={handleUpdateNatalJob}
