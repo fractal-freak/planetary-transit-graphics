@@ -123,20 +123,20 @@
   margin: 0;
   background: transparent;
   border: none;
-  border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
   letter-spacing: 0.01em;
   text-transform: none;
-  color: var(--fg);
+  color: var(--fg-muted);
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.15s;
 }
 
-.sectionTitleToggle:hover {
-  background: var(--bg-subtle-2);
+.sectionTitleToggle:hover,
+.sectionTitleToggle:hover .sectionIcon,
+.sectionTitleToggle:hover .sectionToggleArrow {
   color: var(--fg-strong);
 }
 
