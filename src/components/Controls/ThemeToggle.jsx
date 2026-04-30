@@ -1,4 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
+import { IconSun, IconMoon } from './sectionIcons';
 import styles from './Controls.module.css';
 
 export default function ThemeToggle() {
@@ -9,13 +10,13 @@ export default function ThemeToggle() {
       type="button"
       className={styles.themeToggle}
       onClick={toggleTheme}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
+      <span className={styles.themeToggleIcon} aria-hidden="true">
+        {isDark ? <IconMoon /> : <IconSun />}
+      </span>
       <span className={styles.themeToggleLabel}>
         {isDark ? 'Dark Mode' : 'Light Mode'}
-      </span>
-      <span className={styles.themeToggleIcon} aria-hidden="true">
-        {isDark ? '☀' : '☾'}
       </span>
     </button>
   );

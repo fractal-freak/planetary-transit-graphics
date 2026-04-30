@@ -15,7 +15,7 @@ import {
   IconStar,
   IconChart,
   IconStack,
-  IconSparkles,
+  IconTarget,
   IconUser,
   IconSidebar,
 } from './sectionIcons';
@@ -192,7 +192,7 @@ export default function Controls({
 
           {/* ── World Mode Content ── */}
           {mode === 'world' && (
-            <CollapsibleSection id="customTransits" title="Custom Transits" icon={<IconSparkles />}>
+            <CollapsibleSection id="customTransits" title="Custom Transits" icon={<IconTarget />}>
               <TransitJobList
                 transitJobs={transitJobs}
                 curves={curves}
@@ -215,7 +215,7 @@ export default function Controls({
                 />
               </CollapsibleSection>
 
-              <CollapsibleSection id="natalTransits" title="Natal Transits" icon={<IconSparkles />}>
+              <CollapsibleSection id="natalTransits" title="Natal Transits" icon={<IconTarget />}>
                 {!natalChart ? (
                   <div style={{
                     padding: '12px',
@@ -268,7 +268,7 @@ export default function Controls({
                 />
               </CollapsibleSection>
 
-              <CollapsibleSection id="predictiveTransits" title="Predictive Transits" icon={<IconSparkles />}>
+              <CollapsibleSection id="predictiveTransits" title="Predictive Transits" icon={<IconTarget />}>
                 {(!stackCharts || stackCharts.length === 0) ? (
                   <div style={{
                     padding: '12px',
@@ -301,9 +301,10 @@ export default function Controls({
             orbSettings={orbSettings}
             onOrbChange={onOrbChange}
           />
+        </div>
 
-          {/* ── Theme toggle (sidebar bottom) ── */}
-          <div className={styles.sidebarSpacer} />
+        {/* ── Theme toggle — anchored at sidebar bottom ── */}
+        <div className={styles.sidebarFooter}>
           <ThemeToggle />
         </div>
       </aside>

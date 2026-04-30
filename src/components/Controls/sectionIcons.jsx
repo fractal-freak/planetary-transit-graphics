@@ -76,3 +76,29 @@ export const IconSidebar = () => (
     <path d="M9 4v16" />
   </svg>
 );
+
+// Three horizontal sliders with off-center thumbs — used for Orb Settings
+// (it's a panel of preference toggles).
+export const IconSliders = () => (
+  <svg {...baseProps}>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <circle cx="15" cy="6" r="2.25" fill="currentColor" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <circle cx="9" cy="12" r="2.25" fill="currentColor" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+    <circle cx="17" cy="18" r="2.25" fill="currentColor" />
+  </svg>
+);
+
+export const IconSun = () => (
+  <svg {...baseProps}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+  </svg>
+);
+
+export const IconMoon = () => (
+  <svg {...baseProps}>
+    <path d="M21 12.8A9 9 0 0 1 11.2 3a7 7 0 1 0 9.8 9.8z" />
+  </svg>
+);

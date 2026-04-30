@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PLANETS, PLANET_MAP, SPEED_ORDER } from '../../data/planets';
-import { IconTarget } from './sectionIcons';
+import { IconSliders } from './sectionIcons';
 import styles from './Controls.module.css';
 
 // All planets sorted slowest-first (matches chart row ordering)
@@ -19,7 +19,7 @@ export default function OrbSettings({ orbSettings, onOrbChange }) {
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
       >
-        <span className={styles.sectionIcon}><IconTarget /></span>
+        <span className={styles.sectionIcon}><IconSliders /></span>
         <span className={styles.sectionTitleGroup}>
           <span className={styles.sectionTitleText}>Orb Settings</span>
           <svg
