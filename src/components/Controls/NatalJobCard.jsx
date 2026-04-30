@@ -31,8 +31,9 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
     }
   }
 
-  // All planets except the transit planet are valid natal targets
-  const allOthers = SPEED_ORDER.filter(id => id !== job.transitPlanet);
+  // All planets are valid natal targets (including self — e.g. Mercury return,
+  // solar return, Saturn return).
+  const allOthers = [...SPEED_ORDER];
 
   return (
     <div className={`${styles.jobCard} ${expanded ? styles.jobCardExpanded : ''}`}>
