@@ -321,13 +321,18 @@ export function useTransits(transitJobs, startDate, endDate, orbSettings) {
         initialSigns[`planet-${job.transitPlanet}`] = initialSignIndex;
       }
 
-      // ── Eclipse computation (for TrueNode / Eclipses row) ──
-      // Independent of showSignChanges — controlled by the per-job
-      // showEclipses toggle (defaulted on for backward compat).
+      // ── Eclipse computation ──
+      // Needed for: (a) the Eclipses row (TrueNode jobs with showEclipses on),
+      // and (b) Sun-Moon conjunction/opposition jobs so eclipse-coincident
+      // New/Full Moon labels can swap to the eclipse glyph.
       let eclipseEvents = [];
-      const eclipsesRequested = transitJobs.some(
-        j => j.transitPlanet === 'TrueNode' && (j.showEclipses ?? true),
-      );
+      const eclipsesRequested = transitJobs.some(j => {
+        if (j.transitPlanet === 'TrueNode' && (j.showEclipses ?? true)) return true;
+        const isSunMoon = (j.transitPlanet === 'Sun' && j.targets.includes('Moon'))
+          || (j.transitPlanet === 'Moon' && j.targets.includes('Sun'));
+        const hasSyzygy = j.aspects.includes('Conjunction') || j.aspects.includes('Opposition');
+        return isSunMoon && hasSyzygy;
+      });
       if (eclipsesRequested) {
         eclipseEvents = computeEclipses(startDate, endDate);
       }
