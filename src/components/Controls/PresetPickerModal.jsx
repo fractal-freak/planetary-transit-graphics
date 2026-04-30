@@ -8,6 +8,14 @@ import {
   togglePresetFavorite,
   updatePresetJobs,
 } from '../../firebase/firestore';
+import {
+  loadAnonPresets,
+  saveAnonPreset,
+  renameAnonPreset,
+  deleteAnonPreset,
+  toggleAnonPresetFavorite,
+  updateAnonPresetJobs,
+} from '../../utils/anonPresets';
 import styles from './PresetPickerModal.module.css';
 
 const MAX_PRESETS = 30;
@@ -71,7 +79,7 @@ export default function PresetPickerModal({
   // ── Helpers ──
 
   async function refreshPresets() {
-    const presets = await loadPresets(user.uid);
+    const presets = user ? await loadPresets(user.uid) : loadAnonPresets();
     setSavedPresets(presets);
   }
 
@@ -101,7 +109,8 @@ export default function PresetPickerModal({
     // If trying to favorite and already at max, block
     if (!currentFav && favoriteCount >= MAX_FAVORITES) return;
     try {
-      await togglePresetFavorite(user.uid, presetId, !currentFav);
+      if (user) await togglePresetFavorite(user.uid, presetId, !currentFav);
+      else toggleAnonPresetFavorite(presetId, !currentFav);
       await refreshPresets();
     } catch (err) {
       console.error('Toggle favorite failed:', err);
@@ -111,7 +120,8 @@ export default function PresetPickerModal({
   async function handleRename(presetId) {
     if (!editName.trim()) return;
     try {
-      await renamePreset(user.uid, presetId, editName.trim());
+      if (user) await renamePreset(user.uid, presetId, editName.trim());
+      else renameAnonPreset(presetId, editName.trim());
       await refreshPresets();
       setEditingId(null);
       setEditName('');
@@ -122,7 +132,8 @@ export default function PresetPickerModal({
 
   async function handleDelete(presetId) {
     try {
-      await deletePreset(user.uid, presetId);
+      if (user) await deletePreset(user.uid, presetId);
+      else deleteAnonPreset(presetId);
       await refreshPresets();
       setConfirmDeleteId(null);
     } catch (err) {
@@ -134,7 +145,8 @@ export default function PresetPickerModal({
     if (!hasJobs) return;
     try {
       const cleanJobs = currentJobs.map(job => JSON.parse(JSON.stringify(job)));
-      await updatePresetJobs(user.uid, presetId, currentMode, cleanJobs, startDate, endDate);
+      if (user) await updatePresetJobs(user.uid, presetId, currentMode, cleanJobs, startDate, endDate);
+      else updateAnonPresetJobs(presetId, currentMode, cleanJobs, startDate, endDate);
       await refreshPresets();
       setConfirmOverwriteId(null);
     } catch (err) {
@@ -149,13 +161,15 @@ export default function PresetPickerModal({
     try {
       // Serialize jobs to plain objects — strip undefined values that Firestore rejects
       const cleanJobs = currentJobs.map(job => JSON.parse(JSON.stringify(job)));
-      await savePreset(user.uid, {
+      const data = {
         name: saveName.trim(),
         mode: currentMode,
         jobs: cleanJobs,
         startDate: startDate ? startDate.toISOString() : null,
         endDate: endDate ? endDate.toISOString() : null,
-      });
+      };
+      if (user) await savePreset(user.uid, data);
+      else saveAnonPreset(data);
       await refreshPresets();
       setIsSaving(false);
       setSaveName('');

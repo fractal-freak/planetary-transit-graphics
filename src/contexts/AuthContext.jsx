@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { ensureUserDoc, loadCharts, loadFolders, loadPresets, loadStacks, loadProjects, getDefaultChartId } from '../firebase/firestore';
+import { ensureUserDoc, loadCharts, loadFolders, loadPresets, loadStacks, loadProjects, getDefaultChartId, seedDefaultPresetsIfNeeded } from '../firebase/firestore';
+import { loadAnonPresets } from '../utils/anonPresets';
 
 const AuthContext = createContext(null);
 
@@ -41,6 +42,13 @@ export function AuthProvider({ children }) {
             setSavedFolders([]);
           }
           try {
+            // Seed default presets on first load (idempotent — checks
+            // user.defaultsSeededAt flag). Then load.
+            try {
+              await seedDefaultPresetsIfNeeded(firebaseUser.uid);
+            } catch (seedErr) {
+              console.warn('Default preset seeding failed:', seedErr);
+            }
             const presets = await loadPresets(firebaseUser.uid);
             setSavedPresets(presets);
           } catch (presetErr) {
@@ -67,7 +75,13 @@ export function AuthProvider({ children }) {
       } else {
         setSavedCharts([]);
         setSavedFolders([]);
-        setSavedPresets([]);
+        // Anonymous users still get the 5 starred default presets via
+        // localStorage. seeded on first read, deletions/edits stick.
+        try {
+          setSavedPresets(loadAnonPresets());
+        } catch {
+          setSavedPresets([]);
+        }
         setSavedStacks([]);
         setSavedProjects([]);
         setDefaultChartIdState(null);

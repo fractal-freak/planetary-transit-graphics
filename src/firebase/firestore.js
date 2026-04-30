@@ -9,8 +9,10 @@ import {
   serverTimestamp,
   query,
   orderBy,
+  deleteField,
 } from 'firebase/firestore';
 import { db } from './config';
+import { DEFAULT_PRESETS } from '../data/defaultPresets';
 
 /**
  * Firestore schema:
@@ -228,7 +230,7 @@ export async function loadPresets(uid) {
  */
 export async function savePreset(uid, presetData, presetId) {
   const ref = presetId ? presetRef(uid, presetId) : doc(presetsCol(uid));
-  await setDoc(ref, {
+  const payload = {
     name: presetData.name || 'Untitled Preset',
     mode: presetData.mode || 'world',
     jobs: presetData.jobs || [],
@@ -237,12 +239,15 @@ export async function savePreset(uid, presetData, presetId) {
     isFavorite: presetData.isFavorite || false,
     createdAt: presetData.createdAt || serverTimestamp(),
     updatedAt: serverTimestamp(),
-  });
+  };
+  if (presetData.relativeRange) payload.relativeRange = presetData.relativeRange;
+  await setDoc(ref, payload);
   return ref.id;
 }
 
 /**
  * Update a preset's jobs, mode, and date range (overwrite current setup), keeping name & favorite.
+ * Drops `relativeRange` since the user is committing explicit dates.
  */
 export async function updatePresetJobs(uid, presetId, mode, jobs, startDate, endDate) {
   await updateDoc(presetRef(uid, presetId), {
@@ -250,6 +255,7 @@ export async function updatePresetJobs(uid, presetId, mode, jobs, startDate, end
     jobs,
     startDate: startDate ? startDate.toISOString() : null,
     endDate: endDate ? endDate.toISOString() : null,
+    relativeRange: deleteField(),
     updatedAt: serverTimestamp(),
   });
 }
@@ -279,6 +285,50 @@ export async function togglePresetFavorite(uid, presetId, isFavorite) {
     isFavorite,
     updatedAt: serverTimestamp(),
   });
+}
+
+/**
+ * Seed the 5 default starred presets into the user's preset collection on
+ * first load. Tracks `defaultsSeededAt` in localStorage (keyed by uid) so
+ * deletions stick — once seeded, this function becomes a no-op for that
+ * (user, browser) pair.
+ *
+ * The function body is also idempotent on its own: it skips defaults whose
+ * names already exist (no duplicate writes), and only attaches
+ * `relativeRange` to same-named presets that don't already have it. So
+ * even if the flag is missing on a fresh device, repeated calls don't
+ * produce duplicates or repeated writes.
+ *
+ * Returns the number of presets actually written.
+ */
+export async function seedDefaultPresetsIfNeeded(uid) {
+  const flagKey = `transitwiz.user.${uid}.defaultsSeededAt`;
+  if (typeof localStorage !== 'undefined' && localStorage.getItem(flagKey)) return 0;
+  const existing = await getDocs(presetsCol(uid));
+  const byName = new Map(existing.docs.map(d => [d.data().name, d]));
+  const writes = [];
+  for (const def of DEFAULT_PRESETS) {
+    const match = byName.get(def.name);
+    if (match) {
+      // Existing same-named preset — attach relativeRange + favorite flag
+      // without touching jobs, so user customizations are preserved but
+      // dates become today-relative.
+      if (!match.data().relativeRange) {
+        writes.push(updateDoc(match.ref, {
+          relativeRange: def.relativeRange,
+          isFavorite: true,
+          updatedAt: serverTimestamp(),
+        }));
+      }
+    } else {
+      writes.push(savePreset(uid, def));
+    }
+  }
+  await Promise.all(writes);
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(flagKey, new Date().toISOString());
+  }
+  return writes.length;
 }
 
 // ── Chart Stacks ──

@@ -130,8 +130,8 @@ export default function Controls({
             </section>
           )}
 
-          {/* ── Presets (shared, visible when signed in) ── */}
-          {user && mode !== 'mundane' && (
+          {/* ── Presets (shared) ── */}
+          {mode !== 'mundane' && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Presets</h2>
               <div className={styles.presetsBar}>

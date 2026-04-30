@@ -20,6 +20,7 @@ import ProjectPickerModal from './components/Controls/ProjectPickerModal';
 import AlignmentCalendar from './components/Calendar/AlignmentCalendar';
 import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
+import { resolveRelativeDates } from './data/defaultPresets';
 
 /** Recompute angles from birth data (fixes stale cached values). */
 function refreshAngles(chart) {
@@ -507,9 +508,16 @@ export default function App() {
     if (preset.mode && preset.mode !== mode) {
       setMode(preset.mode);
     }
-    // Restore saved date range if present
-    if (preset.startDate) setStartDate(new Date(preset.startDate));
-    if (preset.endDate) setEndDate(new Date(preset.endDate));
+    // Resolve dates: prefer today-relative range if present (default presets),
+    // otherwise use stored explicit dates (user-saved presets).
+    if (preset.relativeRange) {
+      const { startDate: s, endDate: e } = resolveRelativeDates(preset.relativeRange);
+      setStartDate(new Date(s));
+      setEndDate(new Date(e));
+    } else {
+      if (preset.startDate) setStartDate(new Date(preset.startDate));
+      if (preset.endDate) setEndDate(new Date(preset.endDate));
+    }
     // Re-assign fresh IDs to avoid conflicts
     const prefix = preset.mode === 'natal' ? 'natal-job' : 'job';
     const freshJobs = (preset.jobs || []).map((job, i) => ({
