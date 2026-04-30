@@ -221,7 +221,7 @@ export default function Controls({
                 />
               </CollapsibleSection>
 
-              <CollapsibleSection id="natalTransits" title="Natal Transits" icon={<IconTarget />}>
+              <CollapsibleSection id="natalTransits" title="Natal Transits" icon={<IconSaturn />}>
                 {!natalChart ? (
                   <div style={{
                     padding: '12px',

@@ -101,19 +101,19 @@ export const IconGlobe = () => (
 export const IconSaturn = () => (
   <svg {...baseProps}>
     <defs>
-      {/* Hide the back half of the ring inside the planet (the upper lens
-          from y=5.5 to y=9). Sweep=0 traces the upper planet arc. */}
+      {/* Hide the back half of the ring where it would otherwise show
+          through the upper half of the planet interior. */}
       <mask id="tw-saturn-back" maskUnits="userSpaceOnUse">
         <rect x="0" y="0" width="24" height="24" fill="#fff" />
-        <path d="M6.23 9 A6.5 6.5 0 0 0 17.77 9 Z" fill="#000" />
+        <path d="M5.5 12 A6.5 6.5 0 0 1 18.5 12 Z" fill="#000" />
       </mask>
     </defs>
     <ellipse
       cx="12"
-      cy="9"
+      cy="12"
       rx="11"
       ry="2.6"
-      transform="rotate(-18 12 9)"
+      transform="rotate(-18 12 12)"
       mask="url(#tw-saturn-back)"
     />
     <circle cx="12" cy="12" r="6.5" />
