@@ -100,8 +100,8 @@ export const IconGlobe = () => (
 
 export const IconSaturn = () => (
   <svg {...baseProps}>
-    <circle cx="12" cy="12" r="4.5" />
-    <ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-20 12 12)" />
+    <circle cx="12" cy="12" r="6.5" />
+    <ellipse cx="12" cy="12" rx="11" ry="2.6" transform="rotate(-18 12 12)" />
   </svg>
 );
 
