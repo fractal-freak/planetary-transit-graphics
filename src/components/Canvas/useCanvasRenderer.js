@@ -1017,6 +1017,25 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
   const showDayLabels = pixelsPerDay >= 12;
 
   if (showDays) {
+    // Weekend shading — only when day labels are visible (zoomed enough to
+    // read individual days), so weeks read as visual rhythm.
+    if (showDayLabels) {
+      const shadeCursor = new Date(startDate);
+      shadeCursor.setHours(0, 0, 0, 0);
+      ctx.fillStyle = 'rgba(0,0,0,0.035)';
+      while (shadeCursor <= endDate) {
+        const dow = shadeCursor.getDay(); // 0=Sun, 6=Sat
+        if (dow === 0 || dow === 6) {
+          const x0 = ox + dateToX(shadeCursor, startDate, endDate, plotW);
+          const next = new Date(shadeCursor);
+          next.setDate(next.getDate() + 1);
+          const x1 = ox + dateToX(next > endDate ? endDate : next, startDate, endDate, plotW);
+          ctx.fillRect(x0, gridTop, x1 - x0, gridBottom - gridTop);
+        }
+        shadeCursor.setDate(shadeCursor.getDate() + 1);
+      }
+    }
+
     ctx.beginPath();
     const dayCursor = new Date(startDate);
     dayCursor.setHours(0, 0, 0, 0);
