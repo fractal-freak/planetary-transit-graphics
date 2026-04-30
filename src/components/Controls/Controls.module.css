@@ -151,19 +151,23 @@
 }
 
 .sectionTitleText {
-  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sectionToggleArrow {
-  font-size: 9px;
-  width: 10px;
-  display: inline-block;
-  text-align: center;
+  font-size: 12px;
+  line-height: 1;
+  margin-left: 2px;
   color: var(--fg-subtle);
   flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.sectionTitleToggle:hover .sectionToggleArrow {
+  opacity: 1;
 }
 
 .sectionBody {
