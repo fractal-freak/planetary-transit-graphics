@@ -76,13 +76,23 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
       const v = css.getPropertyValue(name).trim();
       return v || fallback;
     };
+    // Parse "rgba(r, g, b, a)" → "r, g, b" so callers that need to apply
+    // their own dynamic alpha can do `rgba(${T.textRGB}, ${alpha})`.
+    const rgbOnly = (s, fallback = '0, 0, 0') => {
+      const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(s || '');
+      return m ? `${m[1]}, ${m[2]}, ${m[3]}` : fallback;
+    };
+    const textColor = themeColor('--canvas-text', 'rgba(0,0,0,0.55)');
+    const textMutedColor = themeColor('--canvas-text-muted', 'rgba(0,0,0,0.4)');
     const T = {
-      bg:        themeColor('--canvas-bg', '#f5f3ef'),
-      grid:      themeColor('--canvas-grid', 'rgba(0,0,0,0.06)'),
-      axis:      themeColor('--canvas-axis', 'rgba(0,0,0,0.55)'),
-      weekend:   themeColor('--canvas-weekend', 'rgba(0,0,0,0.035)'),
-      text:      themeColor('--canvas-text', 'rgba(0,0,0,0.55)'),
-      textMuted: themeColor('--canvas-text-muted', 'rgba(0,0,0,0.4)'),
+      bg:           themeColor('--canvas-bg', '#f5f3ef'),
+      grid:         themeColor('--canvas-grid', 'rgba(0,0,0,0.06)'),
+      axis:         themeColor('--canvas-axis', 'rgba(0,0,0,0.55)'),
+      weekend:      themeColor('--canvas-weekend', 'rgba(0,0,0,0.035)'),
+      text:         textColor,
+      textMuted:    textMutedColor,
+      textRGB:      rgbOnly(textColor),
+      textMutedRGB: rgbOnly(textMutedColor),
     };
 
     // Background
@@ -284,7 +294,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
 
       // Draw sign change markers ON TOP of curves (text-only, below baseline)
       if (rowSignChanges.length > 0) {
-        drawSignChangeMarkers(ctx, rowSignChanges, plotW, rowH, rowTop, startDate, endDate, baselineY, isEclipseRow);
+        drawSignChangeMarkers(ctx, rowSignChanges, plotW, rowH, rowTop, startDate, endDate, baselineY, isEclipseRow, T);
       }
 
       // Draw station markers ON TOP of curves (diamonds + labels below baseline)
@@ -299,7 +309,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
       if (isEclipseRow) {
         const rowEclipses = signChanges?.eclipses?.filter(e => e.rowKey === row.key) || [];
         if (rowEclipses.length > 0) {
-          const eclipseRects = drawEclipseMarkers(ctx, rowEclipses, plotW, rowH, rowTop, startDate, endDate, baselineY, signChangeRects);
+          const eclipseRects = drawEclipseMarkers(ctx, rowEclipses, plotW, rowH, rowTop, startDate, endDate, baselineY, signChangeRects, T);
           signChangeRects.push(...eclipseRects);
         }
       }
@@ -316,7 +326,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
       } else {
         // Draw peak labels with cluster-aware collision avoidance
         // Pass all reserved rects so aspect labels avoid ingress + station markers
-        const placedInRow = drawPeakLabels(ctx, rowLabels, plotW, rowTop, rowH, allReservedRects);
+        const placedInRow = drawPeakLabels(ctx, rowLabels, plotW, rowTop, rowH, allReservedRects, T);
         allPlacedLabels.push(...placedInRow);
       }
     });
@@ -339,7 +349,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
       ctx.font = '600 10px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillStyle = T.text;
       ctx.fillText('Now', nowX, nowLabelY);
       ctx.restore();
     }
@@ -548,7 +558,7 @@ function computeSignChangeRects(ctx, changes, plotW, baselineY, startDate, endDa
 /**
  * Draw sign change markers on top of curves.
  */
-function drawSignChangeMarkers(ctx, changes, plotW, rowH, rowTop, startDate, endDate, baselineY, isEclipseRow = false) {
+function drawSignChangeMarkers(ctx, changes, plotW, rowH, rowTop, startDate, endDate, baselineY, isEclipseRow = false, T = { text: 'rgba(0,0,0,0.55)', textMuted: 'rgba(0,0,0,0.4)' }) {
   const ox = PADDING.left;
   const SC_GLYPH_FONT = '600 14px "Apple Symbols", "Segoe UI Symbol", Inter, system-ui, sans-serif';
   const SC_DATE_FONT = '600 11px Inter, system-ui, sans-serif';
@@ -588,7 +598,7 @@ function drawSignChangeMarkers(ctx, changes, plotW, rowH, rowTop, startDate, end
     ctx.font = SC_DATE_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+    ctx.fillStyle = T.textMuted;
     ctx.fillText(dateLine, x, labelTop);
 
     // ─── North Node glyph line ───
@@ -601,7 +611,7 @@ function drawSignChangeMarkers(ctx, changes, plotW, rowH, rowTop, startDate, end
     const northStartX = x - northTotalW / 2;
 
     ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.50)';
+    ctx.fillStyle = T.text;
     ctx.fillText(arrowStr, northStartX, labelTop + 13);
     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     ctx.fillText(sc.signSymbol, northStartX + arrowW, labelTop + 13);
@@ -617,7 +627,7 @@ function drawSignChangeMarkers(ctx, changes, plotW, rowH, rowTop, startDate, end
 
       const southLineY = labelTop + 13 + 16;
       ctx.textAlign = 'left';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.50)';
+      ctx.fillStyle = T.text;
       ctx.fillText(southArrowStr, southStartX, southLineY);
       ctx.fillStyle = `rgb(${sr}, ${sg}, ${sb})`;
       ctx.fillText(sc.southSignSymbol, southStartX + southArrowW, southLineY);
@@ -719,7 +729,7 @@ function drawStationMarkers(ctx, stations, plotW, rowH, rowTop, startDate, endDa
     ctx.font = ST_DATE_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+    ctx.fillStyle = T.textMuted;
     ctx.fillText(dateLine, x, labelTop);
 
     // Glyph line (planet symbol + station type) — below date
@@ -739,7 +749,7 @@ function drawStationMarkers(ctx, stations, plotW, rowH, rowTop, startDate, endDa
  * Draw eclipse event markers in the Eclipses row.
  * Returns array of reservation rects for collision avoidance.
  */
-function drawEclipseMarkers(ctx, eclipses, plotW, rowH, rowTop, startDate, endDate, baselineY, existingRects) {
+function drawEclipseMarkers(ctx, eclipses, plotW, rowH, rowTop, startDate, endDate, baselineY, existingRects, T = { text: 'rgba(0,0,0,0.55)', textMuted: 'rgba(0,0,0,0.4)' }) {
   const ox = PADDING.left;
   const EC_TEXT_FONT = '600 11px Inter, system-ui, sans-serif';
   const EC_SIGN_FONT = '600 14px "Apple Symbols", "Segoe UI Symbol", Inter, system-ui, sans-serif';
@@ -771,7 +781,7 @@ function drawEclipseMarkers(ctx, eclipses, plotW, rowH, rowTop, startDate, endDa
     ctx.font = EC_TEXT_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+    ctx.fillStyle = T.textMuted;
     ctx.fillText(dateLine, labelX, dateY);
     ctx.fillText(typeLabel, labelX, typeY);
 
@@ -1479,7 +1489,7 @@ function isRowOvercrowded(labels) {
 
 // ─── Draw peak labels with cluster-aware collision avoidance ───
 
-function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
+function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { textRGB: '0, 0, 0', textMutedRGB: '0, 0, 0' }) {
   if (!labels || labels.length === 0) return [];
 
   // Font hierarchy
@@ -1645,7 +1655,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
 
     // Date line — top, centered.
     ctx.font = DATE_FONT;
-    ctx.fillStyle = `rgba(0,0,0,${dateAlpha})`;
+    ctx.fillStyle = `rgba(${T.textRGB}, ${dateAlpha})`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText(lbl.dateLine, finalX, baseY - 15);
@@ -1664,7 +1674,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
     ctx.restore();
 
     ctx.font = DATE_FONT;
-    ctx.fillStyle = `rgba(0,0,0,${(0.62 * labelOpacity).toFixed(2)})`;
+    ctx.fillStyle = `rgba(${T.textRGB}, ${(0.62 * labelOpacity).toFixed(2)})`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
     const textX = lineStartX + ECLIPSE_GLYPH_R * 2 + 4;
@@ -1716,7 +1726,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
 
     // Date line — top
     ctx.font = DATE_FONT;
-    ctx.fillStyle = `rgba(0,0,0,${dateAlpha})`;
+    ctx.fillStyle = `rgba(${T.textRGB}, ${dateAlpha})`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText(lbl.dateLine, finalX, baseY - 15);
@@ -1730,7 +1740,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
         const [r, g, b] = seg.rgb;
         ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
       } else {
-        ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+        ctx.fillStyle = `rgba(${T.textRGB}, ${alpha})`;
       }
       ctx.textAlign = 'left';
       ctx.textBaseline = seg.baseline;
@@ -1938,7 +1948,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects) {
       if (hiddenCount > 0) {
         const moreY = columnTop + showCount * BLOCK_H + (showCount - 1) * COMPACT_GAP + 12;
         ctx.font = MORE_FONT;
-        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx.fillStyle = `rgba(${T.textRGB}, 0.45)`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(`+${hiddenCount} more`, finalCX, moreY);
