@@ -49,6 +49,18 @@ function getFirstDayOfWeek(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
+// Pixels of horizontal pointer movement that map to one day when scrubbing
+// the date input. ~3px/day means a 100px drag covers about a month — a
+// reasonable default for the typical multi-week chart window.
+const SCRUB_PX_PER_DAY = 3;
+const SCRUB_DRAG_THRESHOLD_PX = 4;
+
+function addDays(d, days) {
+  const next = new Date(d);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
 export default function CalendarPicker({ label, value, onChange, min, max }) {
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(value.getFullYear());
@@ -60,6 +72,17 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  // Drag-to-scrub state. Kept in a ref so we don't re-render on every move.
+  const scrubRef = useRef({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startValue: null,
+    moved: false,
+    lastAppliedDayDelta: 0,
+    target: null,
+  });
 
   // Compute dropdown position when it opens
   useEffect(() => {
@@ -143,6 +166,62 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
     if (inputValue !== formatDisplay(value)) {
       handleInputCommit();
     }
+  }
+
+  // ─── Drag-to-scrub on the date input ───
+  // Pointerdown records the starting position; on pointermove we detect drag
+  // intent (>= threshold) and start moving the date by deltaX / pixelsPerDay.
+  // A click without drag falls through to the input's normal focus behavior.
+  function handleInputPointerDown(e) {
+    if (e.pointerType !== 'mouse' && e.pointerType !== 'pen' && e.pointerType !== 'touch') return;
+    scrubRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startValue: new Date(value),
+      moved: false,
+      lastAppliedDayDelta: 0,
+      target: e.currentTarget,
+    };
+  }
+
+  function handleInputPointerMove(e) {
+    const s = scrubRef.current;
+    if (!s.active || s.pointerId !== e.pointerId) return;
+    const dx = e.clientX - s.startX;
+    if (!s.moved && Math.abs(dx) < SCRUB_DRAG_THRESHOLD_PX) return;
+    if (!s.moved) {
+      // Crossed the threshold — commit to scrubbing. Blur the input so the
+      // user doesn't see a typing caret + capture the pointer for smooth
+      // tracking even if they drag outside the field.
+      s.moved = true;
+      try { s.target?.setPointerCapture?.(e.pointerId); } catch {}
+      try { inputRef.current?.blur(); } catch {}
+    }
+    e.preventDefault();
+    const days = Math.round(dx / SCRUB_PX_PER_DAY);
+    if (days === s.lastAppliedDayDelta) return;
+    s.lastAppliedDayDelta = days;
+    let next = addDays(s.startValue, days);
+    if (min && next < min) next = min;
+    if (max && next > max) next = max;
+    onChange(next);
+  }
+
+  function handleInputPointerUp(e) {
+    const s = scrubRef.current;
+    if (!s.active || s.pointerId !== e.pointerId) return;
+    try { s.target?.releasePointerCapture?.(e.pointerId); } catch {}
+    s.active = false;
+    s.target = null;
+    // No drag → user clicked. Allow the input's natural focus to take over.
+  }
+
+  function handleInputPointerCancel(e) {
+    const s = scrubRef.current;
+    if (!s.active || s.pointerId !== e.pointerId) return;
+    s.active = false;
+    s.target = null;
   }
 
   // ─── Month navigation ───
@@ -248,6 +327,10 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
           onKeyDown={handleInputKeyDown}
           onBlur={handleInputBlur}
           onFocus={(e) => e.target.select()}
+          onPointerDown={handleInputPointerDown}
+          onPointerMove={handleInputPointerMove}
+          onPointerUp={handleInputPointerUp}
+          onPointerCancel={handleInputPointerCancel}
           spellCheck={false}
           autoComplete="off"
         />

@@ -54,6 +54,12 @@
   padding: 4px 0;
   min-width: 0;
   width: 100%;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.dateInput:focus {
+  cursor: text;
 }
 
 .dateInput::selection {
