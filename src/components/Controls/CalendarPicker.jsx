@@ -50,9 +50,9 @@ function getFirstDayOfWeek(year, month) {
 }
 
 // Pixels of horizontal pointer movement that map to one unit when scrubbing
-// the date input. Uniform across day/month/year — modifier keys swap units:
-//   no modifier → days, Shift → months, Alt/Option → years.
-const SCRUB_PX_PER_UNIT = 3;
+// a date segment. Uniform across day/month/year — the unit is determined
+// by which segment (MM, DD, YYYY) the user grabs.
+const SCRUB_PX_PER_UNIT = 4;
 const SCRUB_DRAG_THRESHOLD_PX = 4;
 
 function addDays(d, days) {
@@ -73,12 +73,6 @@ function addYears(d, years) {
   return next;
 }
 
-function scrubUnitFromEvent(e) {
-  if (e.altKey) return 'year';
-  if (e.shiftKey) return 'month';
-  return 'day';
-}
-
 export default function CalendarPicker({ label, value, onChange, min, max }) {
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(value.getFullYear());
@@ -86,6 +80,7 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
   const [viewMode, setViewMode] = useState('days'); // 'days' | 'months' | 'years'
   const [inputValue, setInputValue] = useState(formatDisplay(value));
   const [inputError, setInputError] = useState(false);
+  const [editingText, setEditingText] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
@@ -98,7 +93,7 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
     startX: 0,
     startValue: null,
     moved: false,
-    lastUnit: 'day',
+    unit: 'day',
     lastDelta: 0,
     target: null,
   });
@@ -172,11 +167,13 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
       e.preventDefault();
       handleInputCommit();
       inputRef.current?.blur();
+      setEditingText(false);
     }
     if (e.key === 'Escape') {
       setInputValue(formatDisplay(value));
       setInputError(false);
       inputRef.current?.blur();
+      setEditingText(false);
     }
   }
 
@@ -185,75 +182,77 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
     if (inputValue !== formatDisplay(value)) {
       handleInputCommit();
     }
+    setEditingText(false);
   }
 
-  // ─── Drag-to-scrub on the date input ───
-  // Pointerdown records the starting position; on pointermove we detect drag
-  // intent (>= threshold) and start moving the date by deltaX / pixelsPerDay.
-  // A click without drag falls through to the input's normal focus behavior.
-  function handleInputPointerDown(e) {
+  // ─── Drag-to-scrub on a date segment ───
+  // Each MM/DD/YYYY segment has its own handlers; the unit is fixed by which
+  // segment the user grabs. A click without drag drops into the type-the-date
+  // text input.
+  function handleSegmentPointerDown(e, unit) {
     if (e.pointerType !== 'mouse' && e.pointerType !== 'pen' && e.pointerType !== 'touch') return;
+    e.preventDefault();
+    const target = e.currentTarget;
+    try { target.setPointerCapture(e.pointerId); } catch {}
     scrubRef.current = {
       active: true,
       pointerId: e.pointerId,
       startX: e.clientX,
       startValue: new Date(value),
       moved: false,
-      lastUnit: scrubUnitFromEvent(e),
+      unit,
       lastDelta: 0,
-      target: e.currentTarget,
+      target,
     };
   }
 
-  function handleInputPointerMove(e) {
+  function handleSegmentPointerMove(e) {
     const s = scrubRef.current;
     if (!s.active || s.pointerId !== e.pointerId) return;
     const dx = e.clientX - s.startX;
     if (!s.moved && Math.abs(dx) < SCRUB_DRAG_THRESHOLD_PX) return;
-    if (!s.moved) {
-      s.moved = true;
-      try { s.target?.setPointerCapture?.(e.pointerId); } catch {}
-      try { inputRef.current?.blur(); } catch {}
-    }
+    if (!s.moved) s.moved = true;
     e.preventDefault();
-    // Re-read the unit on every move so the user can switch by holding /
-    // releasing modifier keys mid-drag. Whenever the unit changes we rebase
-    // the start anchor to the current value so the new-unit deltas are
-    // counted from "here", not from the original click.
-    const unit = scrubUnitFromEvent(e);
-    if (unit !== s.lastUnit) {
-      s.lastUnit = unit;
-      s.startX = e.clientX;
-      s.startValue = new Date(value);
-      s.lastDelta = 0;
-      return;
-    }
     const delta = Math.round(dx / SCRUB_PX_PER_UNIT);
     if (delta === s.lastDelta) return;
     s.lastDelta = delta;
     let next;
-    if (unit === 'year') next = addYears(s.startValue, delta);
-    else if (unit === 'month') next = addMonths(s.startValue, delta);
+    if (s.unit === 'year') next = addYears(s.startValue, delta);
+    else if (s.unit === 'month') next = addMonths(s.startValue, delta);
     else next = addDays(s.startValue, delta);
     if (min && next < min) next = min;
     if (max && next > max) next = max;
     onChange(next);
   }
 
-  function handleInputPointerUp(e) {
+  function handleSegmentPointerUp(e) {
     const s = scrubRef.current;
     if (!s.active || s.pointerId !== e.pointerId) return;
     try { s.target?.releasePointerCapture?.(e.pointerId); } catch {}
+    const wasDrag = s.moved;
     s.active = false;
     s.target = null;
-    // No drag → user clicked. Allow the input's natural focus to take over.
+    // Click without drag → drop into typing mode for the whole date.
+    if (!wasDrag) setEditingText(true);
   }
 
-  function handleInputPointerCancel(e) {
+  function handleSegmentPointerCancel(e) {
     const s = scrubRef.current;
     if (!s.active || s.pointerId !== e.pointerId) return;
     s.active = false;
     s.target = null;
+  }
+
+  // Auto-focus + select the text input when the user clicks a segment.
+  useEffect(() => {
+    if (editingText && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingText]);
+
+  function exitEditingText() {
+    setEditingText(false);
   }
 
   // ─── Month navigation ───
@@ -350,23 +349,55 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
 
       {/* Editable date input + calendar icon toggle */}
       <div className={`${styles.trigger} ${inputError ? styles.triggerError : ''}`}>
-        <input
-          ref={inputRef}
-          type="text"
-          className={styles.dateInput}
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleInputKeyDown}
-          onBlur={handleInputBlur}
-          onFocus={(e) => e.target.select()}
-          onPointerDown={handleInputPointerDown}
-          onPointerMove={handleInputPointerMove}
-          onPointerUp={handleInputPointerUp}
-          onPointerCancel={handleInputPointerCancel}
-          title="Drag to scrub by day · Shift = month · Alt = year · Click to type"
-          spellCheck={false}
-          autoComplete="off"
-        />
+        {editingText ? (
+          <input
+            ref={inputRef}
+            type="text"
+            className={styles.dateInput}
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
+            onBlur={handleInputBlur}
+            onFocus={(e) => e.target.select()}
+            spellCheck={false}
+            autoComplete="off"
+          />
+        ) : (
+          <span className={styles.dateSegments}>
+            <span
+              className={styles.dateSegment}
+              onPointerDown={(e) => handleSegmentPointerDown(e, 'month')}
+              onPointerMove={handleSegmentPointerMove}
+              onPointerUp={handleSegmentPointerUp}
+              onPointerCancel={handleSegmentPointerCancel}
+              title="Drag to scrub the month, click to type"
+            >
+              {String(value.getMonth() + 1).padStart(2, '0')}
+            </span>
+            <span className={styles.dateSegmentSep}>/</span>
+            <span
+              className={styles.dateSegment}
+              onPointerDown={(e) => handleSegmentPointerDown(e, 'day')}
+              onPointerMove={handleSegmentPointerMove}
+              onPointerUp={handleSegmentPointerUp}
+              onPointerCancel={handleSegmentPointerCancel}
+              title="Drag to scrub the day, click to type"
+            >
+              {String(value.getDate()).padStart(2, '0')}
+            </span>
+            <span className={styles.dateSegmentSep}>/</span>
+            <span
+              className={styles.dateSegment}
+              onPointerDown={(e) => handleSegmentPointerDown(e, 'year')}
+              onPointerMove={handleSegmentPointerMove}
+              onPointerUp={handleSegmentPointerUp}
+              onPointerCancel={handleSegmentPointerCancel}
+              title="Drag to scrub the year, click to type"
+            >
+              {value.getFullYear()}
+            </span>
+          </span>
+        )}
         <button
           type="button"
           className={styles.calIconBtn}
