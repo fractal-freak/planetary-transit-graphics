@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PLANETS, NATAL_ANGLES } from '../../data/planets';
-import { formatDegree } from '../../data/natalChart';
+import { formatDegree, formatNatalPosition } from '../../data/natalChart';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   saveChart,
@@ -325,6 +325,32 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
 
 // ── Chart Summary sub-component ──
 
+const SHORT_MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+// Format YYYY-MM-DD → "Mar 17, 1919".
+function formatBirthDate(iso) {
+  if (!iso) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return iso;
+  const month = SHORT_MONTHS[parseInt(m[2], 10) - 1] || '';
+  return `${month} ${parseInt(m[3], 10)}, ${m[1]}`;
+}
+
+// Format HH:MM (24h) → "9:00 AM".
+function formatBirthTime(t) {
+  if (!t) return '';
+  const m = /^(\d{2}):(\d{2})/.exec(t);
+  if (!m) return t;
+  let h = parseInt(m[1], 10);
+  const am = h < 12;
+  if (h === 0) h = 12;
+  else if (h > 12) h -= 12;
+  return `${h}:${m[2]} ${am ? 'AM' : 'PM'}`;
+}
+
 function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -372,40 +398,52 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
       {/* Expandable detail */}
       <div className={`${styles.summaryBody} ${expanded ? styles.summaryBodyOpen : ''}`}>
         <div className={styles.summaryBodyInner}>
-          {savedChart && (
-            <div className={styles.natalSummaryDate} style={{ marginTop: 2 }}>
-              {natalChart.birthDate} {'\u00B7'} {natalChart.birthTime || '12:00'}
-            </div>
-          )}
+          {/* Birth data \u2014 one piece per line, plenty of breathing room */}
+          <div className={styles.natalBirthData}>
+            <div className={styles.natalBirthLine}>{formatBirthDate(natalChart.birthDate)}</div>
+            {natalChart.birthTime && (
+              <div className={styles.natalBirthLineMuted}>{formatBirthTime(natalChart.birthTime)}</div>
+            )}
+            {natalChart.locationName && (
+              <div className={styles.natalBirthLineMuted}>{natalChart.locationName}</div>
+            )}
+          </div>
 
-          {natalChart.locationName && (
-            <div className={styles.natalSummaryLocation}>
-              {natalChart.locationName}
-            </div>
-          )}
-
-          <div className={styles.natalGrid}>
+          {/* Placements \u2014 single column, one row per body */}
+          <div className={styles.natalPlacements}>
             {PLANETS.map(p => {
               const lon = natalChart.positions[p.id];
               if (lon == null) return null;
+              const pos = formatNatalPosition(lon);
               return (
-                <div key={p.id} className={styles.natalGridItem}>
-                  <span className={styles.natalGridSymbol}>{p.symbol}</span>
-                  <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
+                <div key={p.id} className={styles.natalPlacementRow}>
+                  <span className={styles.natalPlacementGlyph}>{p.symbol}</span>
+                  <span className={styles.natalPlacementName}>{p.name}</span>
+                  <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
+                  <span className={styles.natalPlacementDeg}>
+                    {pos.deg}\u00B0<span className={styles.natalPlacementMin}>{pos.min}'</span>
+                  </span>
                 </div>
               );
             })}
           </div>
 
           {natalChart.angles && (
-            <div className={styles.natalGrid} style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+            <div className={`${styles.natalPlacements} ${styles.natalAngles}`}>
               {NATAL_ANGLES.map(a => {
                 const lon = natalChart.angles[a.id];
                 if (lon == null) return null;
+                const pos = formatNatalPosition(lon);
                 return (
-                  <div key={a.id} className={styles.natalGridItem}>
-                    <span className={styles.natalGridSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>{a.symbol}</span>
-                    <span className={styles.natalGridDeg}>{formatDegree(lon)}</span>
+                  <div key={a.id} className={styles.natalPlacementRow}>
+                    <span className={`${styles.natalPlacementGlyph} ${styles.natalPlacementGlyphAngle}`}>
+                      {a.symbol}
+                    </span>
+                    <span className={styles.natalPlacementName}>{a.name}</span>
+                    <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
+                    <span className={styles.natalPlacementDeg}>
+                      {pos.deg}\u00B0<span className={styles.natalPlacementMin}>{pos.min}'</span>
+                    </span>
                   </div>
                 );
               })}

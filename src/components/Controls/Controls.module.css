@@ -1577,7 +1577,7 @@
 }
 
 .summaryBodyOpen {
-  max-height: 320px;
+  max-height: 720px;
 }
 
 .summaryBodyInner {
@@ -1615,6 +1615,105 @@
 
 .natalClearBtn:hover {
   color: rgba(200, 50, 50, 0.6);
+}
+
+/* Birth data — one piece per line, plenty of breathing room */
+.natalBirthData {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 2px 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.natalBirthLine {
+  font-size: 12px;
+  color: var(--fg-strong);
+  letter-spacing: 0.01em;
+}
+
+.natalBirthLineMuted {
+  font-size: 11px;
+  color: var(--fg-muted);
+  letter-spacing: 0.01em;
+}
+
+/* Placements — one row per body, single column. Columns:
+   [glyph] [name fill] [sign symbol] [deg°min'] [3-letter abbr]      */
+.natalPlacements {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 0 2px;
+  border-top: 1px solid var(--border-soft);
+  font-variant-emoji: text;
+}
+
+.natalAngles {
+  margin-top: 4px;
+}
+
+.natalPlacementRow {
+  display: grid;
+  grid-template-columns: 16px 1fr auto auto;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 4px;
+  font-size: 11px;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  border-radius: 3px;
+}
+
+.natalPlacementGlyph {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--fg-muted);
+  text-align: center;
+  text-rendering: optimizeLegibility;
+}
+
+.natalPlacementGlyphAngle {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.natalPlacementName {
+  color: var(--fg);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.natalPlacementSign {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--fg-muted);
+  text-rendering: optimizeLegibility;
+}
+
+.natalPlacementDeg {
+  color: var(--fg-strong);
+  font-weight: 500;
+}
+
+.natalPlacementMin {
+  font-size: 9px;
+  color: var(--fg-muted);
+  margin-left: 1px;
+}
+
+.natalPlacementAbbr {
+  font-size: 10px;
+  color: var(--fg-muted);
+  letter-spacing: 0.04em;
+  width: 22px;
+  text-align: right;
 }
 
 .natalGrid {

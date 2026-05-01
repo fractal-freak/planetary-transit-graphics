@@ -113,11 +113,35 @@ function tzOffsetAt(utcMs, timeZone) {
 // emoji fonts that cover those codepoints.
 const TEXT_VS = '︎';
 
+const SIGN_ABBR = [
+  'Ari', 'Tau', 'Gem', 'Can', 'Leo', 'Vir',
+  'Lib', 'Sco', 'Sag', 'Cap', 'Aqu', 'Pis',
+];
+
 export function formatDegree(longitude) {
   const normalized = ((longitude % 360) + 360) % 360;
   const signIdx = getSignIndex(normalized);
   const degInSign = Math.floor(normalized % 30);
   return `${degInSign}°${ZODIAC_SIGNS[signIdx].symbol}${TEXT_VS}`;
+}
+
+/**
+ * Decompose a longitude into structured parts for rendering as a row.
+ * Returns degree, padded minutes, sign symbol (with text VS), and 3-letter abbr.
+ */
+export function formatNatalPosition(longitude) {
+  const normalized = ((longitude % 360) + 360) % 360;
+  const signIdx = getSignIndex(normalized);
+  const degInSign = normalized % 30;
+  const deg = Math.floor(degInSign);
+  const min = Math.floor((degInSign - deg) * 60);
+  return {
+    deg,
+    min: String(min).padStart(2, '0'),
+    signSymbol: ZODIAC_SIGNS[signIdx].symbol + TEXT_VS,
+    signAbbr: SIGN_ABBR[signIdx],
+    signIndex: signIdx,
+  };
 }
 
 /**
