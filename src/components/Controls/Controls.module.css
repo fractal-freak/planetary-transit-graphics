@@ -712,6 +712,78 @@
   margin-top: 16px;
 }
 
+/* ─── Age UI (natal mode only) ─── */
+
+.ageSummary {
+  width: 100%;
+  font-size: 10px;
+  color: var(--fg-muted);
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: 4px 0;
+  margin-bottom: -2px;
+}
+
+.ageSummary strong {
+  color: var(--fg-strong);
+  font-weight: 600;
+}
+
+.ageRow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  margin-top: -2px;
+  padding-left: 4px;
+  font-size: 10px;
+  color: var(--fg-subtle);
+  letter-spacing: 0.04em;
+}
+
+.ageRowLabel {
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.ageValueBtn {
+  background: none;
+  border: none;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.12s, color 0.12s;
+}
+
+.ageValueBtn:hover {
+  color: var(--fg-strong);
+  background: var(--bg-subtle-2);
+}
+
+.ageInput {
+  width: 42px;
+  padding: 1px 4px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--fg-strong);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ageInput:focus {
+  outline: none;
+  border-color: var(--fg-subtle);
+}
+
 /* ─── Transit Job List ─── */
 
 .jobList {

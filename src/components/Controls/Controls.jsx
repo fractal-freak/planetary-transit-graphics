@@ -163,6 +163,7 @@ export default function Controls({
                 endDate={endDate}
                 onStartChange={onStartChange}
                 onEndChange={onEndChange}
+                natalBirthDate={mode === 'natal' ? natalChart?.birthDate : null}
               />
             </CollapsibleSection>
           )}
