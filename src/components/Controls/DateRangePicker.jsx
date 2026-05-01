@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import CalendarPicker from './CalendarPicker';
 import styles from './Controls.module.css';
 
@@ -64,10 +64,6 @@ export default function DateRangePicker({
   const [fromAgeEditing, setFromAgeEditing] = useState(false);
   const [toAgeEditing, setToAgeEditing] = useState(false);
 
-  // Keep the previous startDate so we can compute the span shift
-  const prevStartRef = useRef(startDate);
-  useEffect(() => { prevStartRef.current = startDate; }, [startDate]);
-
   // Drag state for the scrub interaction. We keep it in a ref so we can
   // mutate without re-rendering on every move.
   const dragRef = useRef({
@@ -91,12 +87,13 @@ export default function DateRangePicker({
   }
 
   // Snap-to-span: when From moves, slide To by the same delta to preserve span.
-  // Also enforces MAX_RANGE_DAYS — span is capped so it can't balloon past the
-  // safe compute window even if a stale span value sneaks through.
+  // Read the span off the `startDate` prop (NOT a useEffect-updated ref) so
+  // it stays consistent with the `endDate` prop within the same render —
+  // otherwise fast scrubbing produces stale spans that go negative
+  // (→ 1-day bug) or balloon past the cap (→ 10-year bug).
   function handleStartChange(newStart) {
-    const oldStart = prevStartRef.current;
-    if (oldStart && endDate) {
-      const rawSpan = diffDays(oldStart, endDate);
+    if (startDate && endDate) {
+      const rawSpan = diffDays(startDate, endDate);
       const span = Math.max(1, Math.min(rawSpan, MAX_RANGE_DAYS));
       const newEnd = addDays(newStart, span);
       onStartChange(newStart);
