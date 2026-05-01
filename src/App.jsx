@@ -83,6 +83,9 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
     readStoredJSON('ptg_sidebarCollapsed', false)
   );
+  const [dateRangeLocked, setDateRangeLocked] = useState(() =>
+    readStoredJSON('ptg_dateRangeLocked', false)
+  );
   const [zoom, setZoom] = useState(1);
   const [orbSettings, setOrbSettings] = useState(() =>
     readStoredJSON('ptg_orbSettings', null) || getDefaultOrbSettings()
@@ -171,6 +174,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ptg_sidebarCollapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('ptg_dateRangeLocked', JSON.stringify(dateRangeLocked));
+  }, [dateRangeLocked]);
 
   // ── Session restore from Firestore on sign-in ──
   // Firestore is the source of truth for signed-in users. localStorage is
@@ -519,13 +526,17 @@ export default function App() {
     }
     // Resolve dates: prefer today-relative range if present (default presets),
     // otherwise use stored explicit dates (user-saved presets).
-    if (preset.relativeRange) {
-      const { startDate: s, endDate: e } = resolveRelativeDates(preset.relativeRange);
-      setStartDate(new Date(s));
-      setEndDate(new Date(e));
-    } else {
-      if (preset.startDate) setStartDate(new Date(preset.startDate));
-      if (preset.endDate) setEndDate(new Date(preset.endDate));
+    // When the user has pinned the Date Range section, skip date assignment
+    // so they can hop between planet configs without losing their window.
+    if (!dateRangeLocked) {
+      if (preset.relativeRange) {
+        const { startDate: s, endDate: e } = resolveRelativeDates(preset.relativeRange);
+        setStartDate(new Date(s));
+        setEndDate(new Date(e));
+      } else {
+        if (preset.startDate) setStartDate(new Date(preset.startDate));
+        if (preset.endDate) setEndDate(new Date(preset.endDate));
+      }
     }
     // Re-assign fresh IDs to avoid conflicts
     const prefix = preset.mode === 'natal' ? 'natal-job' : 'job';
@@ -657,6 +668,8 @@ export default function App() {
           onToggleOpen={() => setControlsOpen(o => !o)}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebarCollapsed={() => setSidebarCollapsed(c => !c)}
+          dateRangeLocked={dateRangeLocked}
+          onToggleDateRangeLocked={() => setDateRangeLocked(l => !l)}
           natalChart={natalChart}
           onNatalChartChange={chart => setNatalChart(refreshAngles(chart))}
           natalJobs={natalJobs}

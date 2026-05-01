@@ -23,6 +23,8 @@ import {
   IconGlobe,
   IconSparkles,
   IconPalette,
+  IconLock,
+  IconLockOpen,
 } from './sectionIcons';
 import styles from './Controls.module.css';
 
@@ -47,6 +49,8 @@ export default function Controls({
   onToggleOpen,
   sidebarCollapsed,
   onToggleSidebarCollapsed,
+  dateRangeLocked,
+  onToggleDateRangeLocked,
   natalChart,
   onNatalChartChange,
   natalJobs,
@@ -157,7 +161,25 @@ export default function Controls({
           {/* Date Range — Graph page only; the Calendar page has its own
               header with Month/Year, prev/next, and Today buttons. */}
           {page !== 'calendar' && (
-            <CollapsibleSection id="dateRange" title="Date Range" icon={<IconCalendar />}>
+            <CollapsibleSection
+              id="dateRange"
+              title="Date Range"
+              icon={<IconCalendar />}
+              headerExtra={
+                <button
+                  type="button"
+                  className={`${styles.dateRangeLockBtn} ${dateRangeLocked ? styles.dateRangeLockBtnActive : ''}`}
+                  onClick={onToggleDateRangeLocked}
+                  title={dateRangeLocked
+                    ? 'Date range is locked — presets will only swap planets'
+                    : 'Lock date range — presets will only swap planets'}
+                  aria-label={dateRangeLocked ? 'Unlock date range' : 'Lock date range'}
+                  aria-pressed={dateRangeLocked}
+                >
+                  {dateRangeLocked ? <IconLock /> : <IconLockOpen />}
+                </button>
+              }
+            >
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}

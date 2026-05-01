@@ -137,6 +137,20 @@ export const IconPalette = () => (
   </svg>
 );
 
+export const IconLock = () => (
+  <svg {...baseProps}>
+    <rect x="5" y="11" width="14" height="10" rx="1.5" />
+    <path d="M8 11V7.5a4 4 0 0 1 8 0V11" />
+  </svg>
+);
+
+export const IconLockOpen = () => (
+  <svg {...baseProps}>
+    <rect x="5" y="11" width="14" height="10" rx="1.5" />
+    <path d="M8 11V7.5a4 4 0 0 1 7.5-2" />
+  </svg>
+);
+
 export const IconMoon = () => (
   <svg {...baseProps}>
     <path d="M21 12.8A9 9 0 0 1 11.2 3a7 7 0 1 0 9.8 9.8z" />

@@ -46,6 +46,10 @@ function addDays(d, days) {
 const SCRUB_PX_PER_YEAR = 6;
 // Movement threshold (px) that distinguishes a click from a drag.
 const DRAG_THRESHOLD_PX = 4;
+// Hard cap on the visible date range. Beyond this the ephemeris compute
+// gets prohibitively slow and the canvas can lock the main thread, so we
+// clamp any change that would exceed it.
+const MAX_RANGE_DAYS = 365 * 10;
 
 export default function DateRangePicker({
   startDate,
@@ -87,16 +91,28 @@ export default function DateRangePicker({
   }
 
   // Snap-to-span: when From moves, slide To by the same delta to preserve span.
+  // Also enforces MAX_RANGE_DAYS — span is capped so it can't balloon past the
+  // safe compute window even if a stale span value sneaks through.
   function handleStartChange(newStart) {
     const oldStart = prevStartRef.current;
     if (oldStart && endDate) {
-      const span = diffDays(oldStart, endDate);
-      const newEnd = addDays(newStart, Math.max(span, 1));
+      const rawSpan = diffDays(oldStart, endDate);
+      const span = Math.max(1, Math.min(rawSpan, MAX_RANGE_DAYS));
+      const newEnd = addDays(newStart, span);
       onStartChange(newStart);
       onEndChange(newEnd);
     } else {
       onStartChange(newStart);
     }
+  }
+
+  // Clamp End to startDate + MAX_RANGE_DAYS. Snap-to-span already prevents
+  // From-driven explosions; this catches direct End edits (typed dates,
+  // scrubbed end segment, etc.).
+  function handleEndChange(newEnd) {
+    const cap = addDays(startDate, MAX_RANGE_DAYS);
+    const clamped = newEnd > cap ? cap : newEnd;
+    onEndChange(clamped);
   }
 
   function commitFromAge(raw) {
@@ -112,7 +128,7 @@ export default function DateRangePicker({
     if (!birth) return;
     const n = parseInt((raw || '').trim(), 10);
     if (isNaN(n)) return;
-    onEndChange(dateAtAge(birth, n));
+    handleEndChange(dateAtAge(birth, n));
   }
 
   // ─── Drag-to-scrub on the age value ───
@@ -145,7 +161,7 @@ export default function DateRangePicker({
     drag.lastAppliedAge = newAge;
     const next = dateAtAge(birth, newAge);
     if (drag.isFrom) handleStartChange(next);
-    else onEndChange(next);
+    else handleEndChange(next);
   }
 
   function handleAgePointerUp(e) {
@@ -238,8 +254,9 @@ export default function DateRangePicker({
       <CalendarPicker
         label="To"
         value={endDate}
-        onChange={onEndChange}
+        onChange={handleEndChange}
         min={new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1)}
+        max={addDays(startDate, MAX_RANGE_DAYS)}
       />
       {showAges && renderAgeRow({
         isFrom: false,

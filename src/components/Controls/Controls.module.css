@@ -132,11 +132,25 @@
   margin-bottom: 12px;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sectionHeaderExtra {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 6px;
+  flex-shrink: 0;
+}
+
 .sectionTitleToggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 6px 8px;
   margin: 0;
   background: transparent;
@@ -200,6 +214,33 @@
 
 .sectionBody {
   padding: 6px 4px 0 28px;
+}
+
+/* Date Range header — lock toggle */
+.dateRangeLockBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--fg-subtle);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.dateRangeLockBtn:hover {
+  color: var(--fg-strong);
+  background: var(--bg-subtle-2);
+}
+
+.dateRangeLockBtnActive,
+.dateRangeLockBtnActive:hover {
+  color: var(--fg-strong);
+  background: var(--bg-subtle-2);
 }
 
 /* ─── Colors section ─── */
