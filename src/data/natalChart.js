@@ -1,5 +1,5 @@
 import tzLookup from 'tz-lookup';
-import { getLongitude, getHouseCusps } from '../api/ephemeris';
+import { getLongitude, getLongitudeAndSpeed, getHouseCusps } from '../api/ephemeris';
 import { PLANETS } from './planets';
 import { ZODIAC_SIGNS, getSignIndex } from './zodiac';
 
@@ -15,6 +15,19 @@ export function computeNatalPositions(birthDateTime) {
     positions[planet.id] = getLongitude(planet.id, birthDateTime);
   }
   return positions;
+}
+
+/**
+ * Compute longitudinal speeds (deg/day) for all planets at a given moment.
+ * Negative = retrograde. Used to flag "R" in the natal placements list.
+ */
+export function computeNatalSpeeds(birthDateTime) {
+  const speeds = {};
+  for (const planet of PLANETS) {
+    const { speed } = getLongitudeAndSpeed(planet.id, birthDateTime);
+    speeds[planet.id] = speed;
+  }
+  return speeds;
 }
 
 /**

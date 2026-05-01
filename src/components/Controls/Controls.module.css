@@ -1655,7 +1655,7 @@
 
 .natalPlacementRow {
   display: grid;
-  grid-template-columns: 16px 1fr auto auto;
+  grid-template-columns: 16px 1fr auto auto 10px;
   align-items: baseline;
   gap: 6px;
   padding: 2px 4px;
@@ -1714,6 +1714,14 @@
   letter-spacing: 0.04em;
   width: 22px;
   text-align: right;
+}
+
+.natalPlacementR {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgb(220, 60, 60);
+  text-align: right;
+  letter-spacing: 0.04em;
 }
 
 .natalGrid {

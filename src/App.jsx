@@ -5,7 +5,7 @@ import { useTransits } from './hooks/useTransits';
 import { useNatalTransits } from './hooks/useNatalTransits';
 import { useMundaneTransits } from './hooks/useMundaneTransits';
 import { useAuth } from './contexts/AuthContext';
-import { computeNatalAngles, computeNatalPositions, combineDateAndTime } from './data/natalChart';
+import { computeNatalAngles, computeNatalPositions, computeNatalSpeeds, combineDateAndTime } from './data/natalChart';
 import { initSwissEph, isSweReady } from './api/swisseph';
 import { loadSession, saveSession } from './firebase/firestore';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
@@ -35,8 +35,9 @@ function refreshAngles(chart) {
   const hasLoc = chart.lat != null && chart.lng != null;
   const dt = combineDateAndTime(chart.birthDate, chart.birthTime, chart.lat, chart.lng);
   const positions = computeNatalPositions(dt);
+  const speeds = computeNatalSpeeds(dt);
   const angles = hasLoc ? computeNatalAngles(dt, chart.lat, chart.lng) : null;
-  return { ...chart, positions, angles };
+  return { ...chart, positions, speeds, angles };
 }
 
 /** Default first-time range: today through one week ahead. */

@@ -36,6 +36,20 @@ export function getLongitude(bodyName, date) {
 }
 
 /**
+ * Returns both the ecliptic longitude and longitudinal speed (deg/day).
+ * Negative speed = retrograde.
+ */
+export function getLongitudeAndSpeed(bodyName, date) {
+  const seBody = SE_BODY_MAP[bodyName];
+  if (seBody === undefined) throw new Error(`Unknown body: ${bodyName}`);
+
+  const swe = getSwe();
+  const jd = dateToJd(date);
+  const result = swe.calc_ut(jd, seBody, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
+  return { longitude: result[0], speed: result[3] };
+}
+
+/**
  * Computes ecliptic longitudes for a single body over a date range.
  * Returns array of { date: Date, longitude: number }.
  *

@@ -415,6 +415,12 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
               const lon = natalChart.positions[p.id];
               if (lon == null) return null;
               const pos = formatNatalPosition(lon);
+              const speed = natalChart.speeds?.[p.id];
+              // Sun and Moon never go retrograde; the True Node moves
+              // backward most of the time but it's conventional to flag
+              // R only when it's actually moving retrograde at this
+              // moment, which the speed handles correctly.
+              const isRetrograde = speed != null && speed < 0 && p.id !== 'Sun' && p.id !== 'Moon';
               return (
                 <div key={p.id} className={styles.natalPlacementRow}>
                   <span className={styles.natalPlacementGlyph}>{p.symbol}</span>
@@ -422,6 +428,9 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
                   <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
                   <span className={styles.natalPlacementDeg}>
                     {pos.deg}{'\u00B0'}<span className={styles.natalPlacementMin}>{pos.min}'</span>
+                  </span>
+                  <span className={styles.natalPlacementR}>
+                    {isRetrograde ? 'R' : ''}
                   </span>
                 </div>
               );
@@ -444,6 +453,7 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
                     <span className={styles.natalPlacementDeg}>
                       {pos.deg}{'\u00B0'}<span className={styles.natalPlacementMin}>{pos.min}'</span>
                     </span>
+                    <span className={styles.natalPlacementR}></span>
                   </div>
                 );
               })}
