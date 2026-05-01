@@ -421,7 +421,7 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
                   <span className={styles.natalPlacementName}>{p.name}</span>
                   <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
                   <span className={styles.natalPlacementDeg}>
-                    {pos.deg}\u00B0<span className={styles.natalPlacementMin}>{pos.min}'</span>
+                    {pos.deg}{'\u00B0'}<span className={styles.natalPlacementMin}>{pos.min}'</span>
                   </span>
                 </div>
               );
@@ -442,7 +442,7 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
                     <span className={styles.natalPlacementName}>{a.name}</span>
                     <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
                     <span className={styles.natalPlacementDeg}>
-                      {pos.deg}\u00B0<span className={styles.natalPlacementMin}>{pos.min}'</span>
+                      {pos.deg}{'\u00B0'}<span className={styles.natalPlacementMin}>{pos.min}'</span>
                     </span>
                   </div>
                 );
