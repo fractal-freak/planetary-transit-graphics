@@ -239,8 +239,8 @@
 
 .dateRangeLockBtnActive,
 .dateRangeLockBtnActive:hover {
-  color: var(--fg-strong);
-  background: var(--bg-subtle-2);
+  color: rgb(220, 60, 60);
+  background: rgba(220, 60, 60, 0.12);
 }
 
 /* ─── Colors section ─── */
