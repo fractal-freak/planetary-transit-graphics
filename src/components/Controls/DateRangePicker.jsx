@@ -187,50 +187,78 @@ export default function DateRangePicker({
   const beforeBirthFrom = fromAge !== null && fromAge < 0;
   const beforeBirthTo = toAge !== null && toAge < 0;
 
-  function renderAgeRow({ isFrom, age, beforeBirth, editing, setEditing, commit }) {
+  // Detect whether the current range matches one of the quick-range presets:
+  // startDate is "today at midnight" AND span === preset days.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startIsToday = startDate.getFullYear() === today.getFullYear()
+    && startDate.getMonth() === today.getMonth()
+    && startDate.getDate() === today.getDate();
+  const spanDays = diffDays(startDate, endDate);
+  const QUICK_RANGES = [
+    { label: '7 Days', days: 7 },
+    { label: '30 Days', days: 30 },
+    { label: '3 Months', days: 90 },
+    { label: '6 Months', days: 182 },
+    { label: '12 Months', days: 365 },
+    { label: '3 Years', days: 1095 },
+  ];
+  const activeQuickIdx = startIsToday
+    ? QUICK_RANGES.findIndex(r => r.days === spanDays)
+    : -1;
+  const hasActive = activeQuickIdx >= 0;
+
+  // Renders the age value button (drag-to-scrub, click-to-type)
+  function renderAgeValue({ isFrom, age, beforeBirth, editing, setEditing, commit }) {
+    if (editing) {
+      return (
+        <input
+          autoFocus
+          type="text"
+          inputMode="numeric"
+          className={styles.ageInput}
+          defaultValue={age ?? ''}
+          onBlur={(e) => commit(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(e.target.value); }
+            if (e.key === 'Escape') { setEditing(false); }
+          }}
+          maxLength={4}
+        />
+      );
+    }
     return (
-      <div className={styles.ageRow}>
-        <span className={styles.ageRowLabel}>age</span>
-        {editing ? (
-          <input
-            autoFocus
-            type="text"
-            inputMode="numeric"
-            className={styles.ageInput}
-            defaultValue={age ?? ''}
-            onBlur={(e) => commit(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.preventDefault(); commit(e.target.value); }
-              if (e.key === 'Escape') { setEditing(false); }
-            }}
-            maxLength={4}
-          />
-        ) : (
-          <button
-            type="button"
-            className={styles.ageValueBtn}
-            onPointerDown={(e) => handleAgePointerDown(e, isFrom, age ?? 0)}
-            onPointerMove={handleAgePointerMove}
-            onPointerUp={handleAgePointerUp}
-            onPointerCancel={handleAgePointerCancel}
-            title="Drag to scrub, click to type"
-          >
-            {beforeBirth ? 'before birth' : (age ?? '—')}
-          </button>
-        )}
-      </div>
+      <button
+        type="button"
+        className={styles.ageValueBtn}
+        onPointerDown={(e) => handleAgePointerDown(e, isFrom, age ?? 0)}
+        onPointerMove={handleAgePointerMove}
+        onPointerUp={handleAgePointerUp}
+        onPointerCancel={handleAgePointerCancel}
+        title="Drag to scrub, click to type"
+      >
+        {beforeBirth ? 'before birth' : (age ?? '—')}
+      </button>
     );
   }
 
   return (
     <div className={styles.dateRange}>
       <div className={styles.quickRange}>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(7)}>7 Days</button>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(30)}>30 Days</button>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(90)}>3 Months</button>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(182)}>6 Months</button>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(365)}>12 Months</button>
-        <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(1095)}>3 Years</button>
+        {QUICK_RANGES.map((r, i) => (
+          <button
+            key={r.label}
+            type="button"
+            className={`${styles.quickRangeBtn} ${
+              hasActive
+                ? (i === activeQuickIdx ? styles.quickRangeBtnActive : styles.quickRangeBtnDimmed)
+                : ''
+            }`}
+            onClick={() => setQuickRange(r.days)}
+          >
+            {r.label}
+          </button>
+        ))}
       </div>
 
       <CalendarPicker
@@ -239,14 +267,6 @@ export default function DateRangePicker({
         onChange={handleStartChange}
         max={new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 1)}
       />
-      {showAges && renderAgeRow({
-        isFrom: true,
-        age: fromAge,
-        beforeBirth: beforeBirthFrom,
-        editing: fromAgeEditing,
-        setEditing: setFromAgeEditing,
-        commit: commitFromAge,
-      })}
 
       <CalendarPicker
         label="To"
@@ -255,14 +275,35 @@ export default function DateRangePicker({
         min={new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1)}
         max={addDays(startDate, MAX_RANGE_DAYS)}
       />
-      {showAges && renderAgeRow({
-        isFrom: false,
-        age: toAge,
-        beforeBirth: beforeBirthTo,
-        editing: toAgeEditing,
-        setEditing: setToAgeEditing,
-        commit: commitToAge,
-      })}
+
+      <div className={styles.dateInfoLine}>
+        <span className={styles.dateInfoSpan}>{spanDays} day{spanDays === 1 ? '' : 's'}</span>
+        {showAges && (beforeBirthFrom || beforeBirthTo || (fromAge !== null && toAge !== null)) && (
+          <>
+            <span className={styles.dateInfoSep}>·</span>
+            <span className={styles.dateInfoAges}>
+              ages&nbsp;
+              {renderAgeValue({
+                isFrom: true,
+                age: fromAge,
+                beforeBirth: beforeBirthFrom,
+                editing: fromAgeEditing,
+                setEditing: setFromAgeEditing,
+                commit: commitFromAge,
+              })}
+              <span className={styles.dateInfoArrow}>→</span>
+              {renderAgeValue({
+                isFrom: false,
+                age: toAge,
+                beforeBirth: beforeBirthTo,
+                editing: toAgeEditing,
+                setEditing: setToAgeEditing,
+                commit: commitToAge,
+              })}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 }

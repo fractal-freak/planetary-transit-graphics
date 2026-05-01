@@ -2,25 +2,31 @@
 
 .wrapper {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   position: relative;
   flex: 1;
-  min-width: 100px;
+  min-width: 0;
+  width: 100%;
 }
 
 .label {
   font-size: 10px;
-  font-weight: 400;
-  color: var(--fg-muted);
-  letter-spacing: 0;
-  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  width: 30px;
+  flex-shrink: 0;
 }
 
 .trigger {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex: 1;
+  min-width: 0;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: 6px;
