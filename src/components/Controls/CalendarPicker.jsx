@@ -49,16 +49,34 @@ function getFirstDayOfWeek(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
-// Pixels of horizontal pointer movement that map to one day when scrubbing
-// the date input. ~3px/day means a 100px drag covers about a month — a
-// reasonable default for the typical multi-week chart window.
-const SCRUB_PX_PER_DAY = 3;
+// Pixels of horizontal pointer movement that map to one unit when scrubbing
+// the date input. Uniform across day/month/year — modifier keys swap units:
+//   no modifier → days, Shift → months, Alt/Option → years.
+const SCRUB_PX_PER_UNIT = 3;
 const SCRUB_DRAG_THRESHOLD_PX = 4;
 
 function addDays(d, days) {
   const next = new Date(d);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function addMonths(d, months) {
+  const next = new Date(d);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function addYears(d, years) {
+  const next = new Date(d);
+  next.setFullYear(next.getFullYear() + years);
+  return next;
+}
+
+function scrubUnitFromEvent(e) {
+  if (e.altKey) return 'year';
+  if (e.shiftKey) return 'month';
+  return 'day';
 }
 
 export default function CalendarPicker({ label, value, onChange, min, max }) {
@@ -80,7 +98,8 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
     startX: 0,
     startValue: null,
     moved: false,
-    lastAppliedDayDelta: 0,
+    lastUnit: 'day',
+    lastDelta: 0,
     target: null,
   });
 
@@ -180,7 +199,8 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
       startX: e.clientX,
       startValue: new Date(value),
       moved: false,
-      lastAppliedDayDelta: 0,
+      lastUnit: scrubUnitFromEvent(e),
+      lastDelta: 0,
       target: e.currentTarget,
     };
   }
@@ -191,18 +211,30 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
     const dx = e.clientX - s.startX;
     if (!s.moved && Math.abs(dx) < SCRUB_DRAG_THRESHOLD_PX) return;
     if (!s.moved) {
-      // Crossed the threshold — commit to scrubbing. Blur the input so the
-      // user doesn't see a typing caret + capture the pointer for smooth
-      // tracking even if they drag outside the field.
       s.moved = true;
       try { s.target?.setPointerCapture?.(e.pointerId); } catch {}
       try { inputRef.current?.blur(); } catch {}
     }
     e.preventDefault();
-    const days = Math.round(dx / SCRUB_PX_PER_DAY);
-    if (days === s.lastAppliedDayDelta) return;
-    s.lastAppliedDayDelta = days;
-    let next = addDays(s.startValue, days);
+    // Re-read the unit on every move so the user can switch by holding /
+    // releasing modifier keys mid-drag. Whenever the unit changes we rebase
+    // the start anchor to the current value so the new-unit deltas are
+    // counted from "here", not from the original click.
+    const unit = scrubUnitFromEvent(e);
+    if (unit !== s.lastUnit) {
+      s.lastUnit = unit;
+      s.startX = e.clientX;
+      s.startValue = new Date(value);
+      s.lastDelta = 0;
+      return;
+    }
+    const delta = Math.round(dx / SCRUB_PX_PER_UNIT);
+    if (delta === s.lastDelta) return;
+    s.lastDelta = delta;
+    let next;
+    if (unit === 'year') next = addYears(s.startValue, delta);
+    else if (unit === 'month') next = addMonths(s.startValue, delta);
+    else next = addDays(s.startValue, delta);
     if (min && next < min) next = min;
     if (max && next > max) next = max;
     onChange(next);
@@ -331,6 +363,7 @@ export default function CalendarPicker({ label, value, onChange, min, max }) {
           onPointerMove={handleInputPointerMove}
           onPointerUp={handleInputPointerUp}
           onPointerCancel={handleInputPointerCancel}
+          title="Drag to scrub by day · Shift = month · Alt = year · Click to type"
           spellCheck={false}
           autoComplete="off"
         />
