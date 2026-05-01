@@ -341,15 +341,26 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
           onClick={() => setExpanded(prev => !prev)}
           aria-expanded={expanded}
         >
-          <span className={styles.summaryChevron}>
-            {expanded ? '\u25BE' : '\u25B8'}
-          </span>
           <span className={styles.chartNameText}>
             {displayName}
             {savedChart?.id === defaultChartId && (
               <span className={styles.savedChartDefault}> {'\u2605'}</span>
             )}
           </span>
+          <svg
+            className={`${styles.summaryChevron} ${expanded ? styles.summaryChevronOpen : ''}`}
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
         </button>
         {onClear && (
           <button className={styles.natalClearBtn} onClick={onClear}>

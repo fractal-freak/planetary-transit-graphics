@@ -158,6 +158,17 @@ export default function Controls({
             </CollapsibleSection>
           )}
 
+          {/* Chart — pinned to the top in natal mode so the active chart
+              is the first thing the user sees / can swap. */}
+          {mode === 'natal' && (
+            <CollapsibleSection id="chart" title="Chart" icon={<IconUser />}>
+              <ChartSection
+                natalChart={natalChart}
+                onNatalChartChange={onNatalChartChange}
+              />
+            </CollapsibleSection>
+          )}
+
           {/* Date Range — Graph page only; the Calendar page has its own
               header with Month/Year, prev/next, and Today buttons. */}
           {page !== 'calendar' && (
@@ -239,13 +250,6 @@ export default function Controls({
           {/* ── Natal Mode Content ── */}
           {mode === 'natal' && (
             <>
-              <CollapsibleSection id="chart" title="Chart" icon={<IconUser />}>
-                <ChartSection
-                  natalChart={natalChart}
-                  onNatalChartChange={onNatalChartChange}
-                />
-              </CollapsibleSection>
-
               <CollapsibleSection id="natalTransits" title="Natal Transits" icon={<IconSaturn />}>
                 {!natalChart ? (
                   <div style={{

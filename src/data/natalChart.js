@@ -107,11 +107,17 @@ function tzOffsetAt(utcMs, timeZone) {
  * Format a longitude as compact degree + sign symbol.
  * e.g. 44.5 → "14°♉"
  */
+// U+FE0E text variation selector — forces the preceding glyph to render
+// as monochrome text instead of a color emoji. Without it, browsers
+// render zodiac codepoints (♈♉…) as colored emojis on platforms with
+// emoji fonts that cover those codepoints.
+const TEXT_VS = '︎';
+
 export function formatDegree(longitude) {
   const normalized = ((longitude % 360) + 360) % 360;
   const signIdx = getSignIndex(normalized);
   const degInSign = Math.floor(normalized % 30);
-  return `${degInSign}°${ZODIAC_SIGNS[signIdx].symbol}`;
+  return `${degInSign}°${ZODIAC_SIGNS[signIdx].symbol}${TEXT_VS}`;
 }
 
 /**
