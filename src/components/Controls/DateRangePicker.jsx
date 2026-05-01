@@ -42,6 +42,11 @@ function addDays(d, days) {
   return next;
 }
 
+// Pixels of horizontal pointer movement that map to 1 year of age.
+const SCRUB_PX_PER_YEAR = 6;
+// Movement threshold (px) that distinguishes a click from a drag.
+const DRAG_THRESHOLD_PX = 4;
+
 export default function DateRangePicker({
   startDate,
   endDate,
@@ -52,15 +57,25 @@ export default function DateRangePicker({
   const birth = parseBirthDate(natalBirthDate);
   const showAges = !!birth;
 
-  // Track "from age" / "to age" as edit-buffers for the inline inputs
-  const [fromAgeBuffer, setFromAgeBuffer] = useState('');
-  const [toAgeBuffer, setToAgeBuffer] = useState('');
   const [fromAgeEditing, setFromAgeEditing] = useState(false);
   const [toAgeEditing, setToAgeEditing] = useState(false);
 
   // Keep the previous startDate so we can compute the span shift
   const prevStartRef = useRef(startDate);
   useEffect(() => { prevStartRef.current = startDate; }, [startDate]);
+
+  // Drag state for the scrub interaction. We keep it in a ref so we can
+  // mutate without re-rendering on every move.
+  const dragRef = useRef({
+    active: false,
+    isFrom: false,
+    pointerId: null,
+    startX: 0,
+    startAge: 0,
+    moved: false,
+    lastAppliedAge: 0,
+    target: null,
+  });
 
   function setQuickRange(days) {
     const today = new Date();
@@ -72,8 +87,6 @@ export default function DateRangePicker({
   }
 
   // Snap-to-span: when From moves, slide To by the same delta to preserve span.
-  // This prevents the "I picked 1943 then the chart froze" scenario because
-  // span never balloons.
   function handleStartChange(newStart) {
     const oldStart = prevStartRef.current;
     if (oldStart && endDate) {
@@ -91,8 +104,7 @@ export default function DateRangePicker({
     if (!birth) return;
     const n = parseInt((raw || '').trim(), 10);
     if (isNaN(n)) return;
-    const next = dateAtAge(birth, n);
-    handleStartChange(next);
+    handleStartChange(dateAtAge(birth, n));
   }
 
   function commitToAge(raw) {
@@ -100,14 +112,102 @@ export default function DateRangePicker({
     if (!birth) return;
     const n = parseInt((raw || '').trim(), 10);
     if (isNaN(n)) return;
-    const next = dateAtAge(birth, n);
-    onEndChange(next);
+    onEndChange(dateAtAge(birth, n));
+  }
+
+  // ─── Drag-to-scrub on the age value ───
+  function handleAgePointerDown(e, isFrom, currentAge) {
+    if (!birth) return;
+    e.preventDefault();
+    const target = e.currentTarget;
+    try { target.setPointerCapture(e.pointerId); } catch {}
+    dragRef.current = {
+      active: true,
+      isFrom,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startAge: currentAge,
+      moved: false,
+      lastAppliedAge: currentAge,
+      target,
+    };
+  }
+
+  function handleAgePointerMove(e) {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    if (Math.abs(dx) >= DRAG_THRESHOLD_PX) drag.moved = true;
+    if (!drag.moved) return;
+    const deltaYears = Math.round(dx / SCRUB_PX_PER_YEAR);
+    const newAge = drag.startAge + deltaYears;
+    if (newAge === drag.lastAppliedAge) return;
+    drag.lastAppliedAge = newAge;
+    const next = dateAtAge(birth, newAge);
+    if (drag.isFrom) handleStartChange(next);
+    else onEndChange(next);
+  }
+
+  function handleAgePointerUp(e) {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    try { drag.target?.releasePointerCapture?.(e.pointerId); } catch {}
+    const wasDrag = drag.moved;
+    drag.active = false;
+    drag.target = null;
+    // Click without drag → enter type-the-age edit mode.
+    if (!wasDrag) {
+      if (drag.isFrom) setFromAgeEditing(true);
+      else setToAgeEditing(true);
+    }
+  }
+
+  function handleAgePointerCancel(e) {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    drag.active = false;
+    drag.target = null;
   }
 
   const fromAge = showAges ? ageAt(birth, startDate) : null;
   const toAge = showAges ? ageAt(birth, endDate) : null;
   const beforeBirthFrom = fromAge !== null && fromAge < 0;
   const beforeBirthTo = toAge !== null && toAge < 0;
+
+  function renderAgeRow({ isFrom, age, beforeBirth, editing, setEditing, commit }) {
+    return (
+      <div className={styles.ageRow}>
+        <span className={styles.ageRowLabel}>age</span>
+        {editing ? (
+          <input
+            autoFocus
+            type="text"
+            inputMode="numeric"
+            className={styles.ageInput}
+            defaultValue={age ?? ''}
+            onBlur={(e) => commit(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); commit(e.target.value); }
+              if (e.key === 'Escape') { setEditing(false); }
+            }}
+            maxLength={4}
+          />
+        ) : (
+          <button
+            type="button"
+            className={styles.ageValueBtn}
+            onPointerDown={(e) => handleAgePointerDown(e, isFrom, age ?? 0)}
+            onPointerMove={handleAgePointerMove}
+            onPointerUp={handleAgePointerUp}
+            onPointerCancel={handleAgePointerCancel}
+            title="Drag to scrub, click to type"
+          >
+            {beforeBirth ? 'before birth' : (age ?? '—')}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dateRange}>
@@ -120,47 +220,20 @@ export default function DateRangePicker({
         <button type="button" className={styles.quickRangeBtn} onClick={() => setQuickRange(1095)}>3 Years</button>
       </div>
 
-      {showAges && fromAge !== null && toAge !== null && !beforeBirthFrom && !beforeBirthTo && (
-        <div className={styles.ageSummary}>
-          Showing ages <strong>{fromAge}</strong> → <strong>{toAge}</strong>
-        </div>
-      )}
-
       <CalendarPicker
         label="From"
         value={startDate}
         onChange={handleStartChange}
         max={new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 1)}
       />
-      {showAges && (
-        <div className={styles.ageRow}>
-          <span className={styles.ageRowLabel}>age</span>
-          {fromAgeEditing ? (
-            <input
-              autoFocus
-              type="text"
-              inputMode="numeric"
-              className={styles.ageInput}
-              defaultValue={fromAge ?? ''}
-              onBlur={(e) => commitFromAge(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') { e.preventDefault(); commitFromAge(e.target.value); }
-                if (e.key === 'Escape') { setFromAgeEditing(false); }
-              }}
-              maxLength={4}
-            />
-          ) : (
-            <button
-              type="button"
-              className={styles.ageValueBtn}
-              onClick={() => setFromAgeEditing(true)}
-              title="Click to type age"
-            >
-              {beforeBirthFrom ? 'before birth' : (fromAge ?? '—')}
-            </button>
-          )}
-        </div>
-      )}
+      {showAges && renderAgeRow({
+        isFrom: true,
+        age: fromAge,
+        beforeBirth: beforeBirthFrom,
+        editing: fromAgeEditing,
+        setEditing: setFromAgeEditing,
+        commit: commitFromAge,
+      })}
 
       <CalendarPicker
         label="To"
@@ -168,35 +241,14 @@ export default function DateRangePicker({
         onChange={onEndChange}
         min={new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1)}
       />
-      {showAges && (
-        <div className={styles.ageRow}>
-          <span className={styles.ageRowLabel}>age</span>
-          {toAgeEditing ? (
-            <input
-              autoFocus
-              type="text"
-              inputMode="numeric"
-              className={styles.ageInput}
-              defaultValue={toAge ?? ''}
-              onBlur={(e) => commitToAge(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') { e.preventDefault(); commitToAge(e.target.value); }
-                if (e.key === 'Escape') { setToAgeEditing(false); }
-              }}
-              maxLength={4}
-            />
-          ) : (
-            <button
-              type="button"
-              className={styles.ageValueBtn}
-              onClick={() => setToAgeEditing(true)}
-              title="Click to type age"
-            >
-              {beforeBirthTo ? 'before birth' : (toAge ?? '—')}
-            </button>
-          )}
-        </div>
-      )}
+      {showAges && renderAgeRow({
+        isFrom: false,
+        age: toAge,
+        beforeBirth: beforeBirthTo,
+        editing: toAgeEditing,
+        setEditing: setToAgeEditing,
+        commit: commitToAge,
+      })}
     </div>
   );
 }
