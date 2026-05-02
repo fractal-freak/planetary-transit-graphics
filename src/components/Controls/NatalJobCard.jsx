@@ -62,25 +62,52 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
 
       {expanded && (
         <div className={styles.jobCardBody}>
-          {!transitP.conjunctionOnly && (
-            <>
-              <div className={styles.jobSection}>
-                <span className={styles.jobSectionLabel}>Natal Targets</span>
-                <div className={styles.targetList}>
-                  {allOthers.map(id => {
-                    const p = PLANET_MAP[id];
-                    const lon = positions[id];
+          {/* Natal targets — shown for every body, including conjunction-only
+              ones (Nodes). Without this list, a job pre-seeded with targets
+              would render aspects on the canvas with no way to edit/clear them. */}
+          <div className={styles.jobSection}>
+            <span className={styles.jobSectionLabel}>Natal Targets</span>
+            <div className={styles.targetList}>
+              {allOthers.map(id => {
+                const p = PLANET_MAP[id];
+                const lon = positions[id];
+                return (
+                  <label key={id} className={styles.targetItem}>
+                    <input
+                      type="checkbox"
+                      checked={job.natalTargets.includes(id)}
+                      onChange={() => handleToggleTarget(id)}
+                      className={styles.targetCheckbox}
+                    />
+                    <span className={styles.targetSymbol}>{p.symbol}</span>
+                    <span className={styles.targetName}>
+                      {p.name}
+                      {lon != null && (
+                        <span className={styles.natalDegInline}> {formatDegree(lon)}</span>
+                      )}
+                    </span>
+                  </label>
+                );
+              })}
+
+              {angles && (
+                <>
+                  <div style={{ fontSize: '9px', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '6px 0 2px', borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 4 }}>
+                    Chart Angles
+                  </div>
+                  {NATAL_ANGLES.map(a => {
+                    const lon = angles[a.id];
                     return (
-                      <label key={id} className={styles.targetItem}>
+                      <label key={a.id} className={styles.targetItem}>
                         <input
                           type="checkbox"
-                          checked={job.natalTargets.includes(id)}
-                          onChange={() => handleToggleTarget(id)}
+                          checked={job.natalTargets.includes(a.id)}
+                          onChange={() => handleToggleTarget(a.id)}
                           className={styles.targetCheckbox}
                         />
-                        <span className={styles.targetSymbol}>{p.symbol}</span>
+                        <span className={styles.targetSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>{a.symbol}</span>
                         <span className={styles.targetName}>
-                          {p.name}
+                          {a.name}
                           {lon != null && (
                             <span className={styles.natalDegInline}> {formatDegree(lon)}</span>
                           )}
@@ -88,56 +115,33 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
                       </label>
                     );
                   })}
+                </>
+              )}
+            </div>
+          </div>
 
-                  {angles && (
-                    <>
-                      <div style={{ fontSize: '9px', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '6px 0 2px', borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 4 }}>
-                        Chart Angles
-                      </div>
-                      {NATAL_ANGLES.map(a => {
-                        const lon = angles[a.id];
-                        return (
-                          <label key={a.id} className={styles.targetItem}>
-                            <input
-                              type="checkbox"
-                              checked={job.natalTargets.includes(a.id)}
-                              onChange={() => handleToggleTarget(a.id)}
-                              className={styles.targetCheckbox}
-                            />
-                            <span className={styles.targetSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>{a.symbol}</span>
-                            <span className={styles.targetName}>
-                              {a.name}
-                              {lon != null && (
-                                <span className={styles.natalDegInline}> {formatDegree(lon)}</span>
-                              )}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </>
-                  )}
-                </div>
+          {/* Aspects picker — only meaningful when the body uses more than
+              just Conjunction. Nodes are conjunction-only by convention so
+              the picker is hidden (engine still computes Conjunction for them). */}
+          {!transitP.conjunctionOnly && (
+            <div className={styles.jobSection}>
+              <span className={styles.jobSectionLabel}>Aspects</span>
+              <div className={styles.targetList}>
+                {ASPECTS.map(aspect => (
+                  <label key={aspect.name} className={styles.targetItem}>
+                    <input
+                      type="checkbox"
+                      checked={job.aspects.includes(aspect.name)}
+                      onChange={() => handleToggleAspect(aspect.name)}
+                      className={styles.targetCheckbox}
+                    />
+                    <span className={styles.targetSymbol}>{aspect.symbol}</span>
+                    <span className={styles.targetName}>{aspect.name}</span>
+                    <span className={styles.aspectAngle}>{aspect.angle}°</span>
+                  </label>
+                ))}
               </div>
-
-              <div className={styles.jobSection}>
-                <span className={styles.jobSectionLabel}>Aspects</span>
-                <div className={styles.targetList}>
-                  {ASPECTS.map(aspect => (
-                    <label key={aspect.name} className={styles.targetItem}>
-                      <input
-                        type="checkbox"
-                        checked={job.aspects.includes(aspect.name)}
-                        onChange={() => handleToggleAspect(aspect.name)}
-                        className={styles.targetCheckbox}
-                      />
-                      <span className={styles.targetSymbol}>{aspect.symbol}</span>
-                      <span className={styles.targetName}>{aspect.name}</span>
-                      <span className={styles.aspectAngle}>{aspect.angle}°</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </>
+            </div>
           )}
 
           <div className={styles.jobSection}>
