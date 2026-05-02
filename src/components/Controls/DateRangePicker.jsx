@@ -102,12 +102,21 @@ export default function DateRangePicker({
     }
   }
 
-  // Clamp End to startDate + MAX_RANGE_DAYS. Snap-to-span already prevents
-  // From-driven explosions; this catches direct End edits (typed dates,
-  // scrubbed end segment, etc.).
+  // Clamp End to startDate + MAX_RANGE_DAYS, and if the user moves End
+  // before the current Start (e.g. typing a date earlier than From),
+  // slide From back by the current span so the range moves together
+  // instead of becoming malformed. Symmetric with handleStartChange.
   function handleEndChange(newEnd) {
     const cap = addDays(startDate, MAX_RANGE_DAYS);
-    const clamped = newEnd > cap ? cap : newEnd;
+    let clamped = newEnd > cap ? cap : newEnd;
+    if (startDate && diffDays(startDate, clamped) <= 0) {
+      const rawSpan = diffDays(startDate, endDate);
+      const span = Math.max(1, Math.min(rawSpan, MAX_RANGE_DAYS));
+      const newStart = addDays(clamped, -span);
+      onStartChange(newStart);
+      onEndChange(clamped);
+      return;
+    }
     onEndChange(clamped);
   }
 
@@ -258,15 +267,12 @@ export default function DateRangePicker({
         label="From"
         value={startDate}
         onChange={handleStartChange}
-        max={new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 1)}
       />
 
       <CalendarPicker
         label="To"
         value={endDate}
         onChange={handleEndChange}
-        min={new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1)}
-        max={addDays(startDate, MAX_RANGE_DAYS)}
       />
 
       <div className={styles.dateInfoLine}>
