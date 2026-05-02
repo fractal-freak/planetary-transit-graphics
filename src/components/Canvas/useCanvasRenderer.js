@@ -1457,7 +1457,6 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
       rowLabels.push({
         x: px, y: py, dateLine, ratio, dimmed, highlighted,
         tSym, tRetro, aspectSym, targetSym, targetRetro, nearMiss,
-        isNatal: curve.isNatal || false,
         pairKey: `${curve.transitPlanet}-${curve.target}`,
         lunation, eclipse: eclipseHit,
       });
@@ -1503,8 +1502,6 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
   const BUMP_H = BLOCK_H + 4;
   const LEADER_OFFSET_X = 55;
   const RETRO_OFFSET_Y = 3;
-  const NATAL_FONT = '600 8px Inter, system-ui, sans-serif';
-  const NATAL_OFFSET_Y = 3;
   const VISUAL_GAP = 2;
   const RETRO_VISUAL_GAP = 1;
   const MAX_CLUSTER_SHOW = 5;
@@ -1604,12 +1601,6 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     } else {
       cursor += targM.advance;
     }
-    // Natal subscript "ₙ" after target glyph for natal transit curves
-    if (lbl.isNatal) {
-      const nM = glyphMetrics('ₙ', NATAL_FONT);
-      segments.push({ text: 'ₙ', font: NATAL_FONT, alphaKey: 'natal', x: cursor, baseline: 'bottom', yOff: NATAL_OFFSET_Y });
-      cursor += nM.advance;
-    }
     if (lbl.nearMiss) {
       cursor += VISUAL_GAP + 1;
       const nmM = glyphMetrics(lbl.nearMiss, NEARMISS_FONT);
@@ -1619,7 +1610,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     return { segments, totalW: cursor };
   }
 
-  const ALPHA_MAP = { glyph: 0.60, retro: 0.45, nearMiss: 0.55, natal: 0.35 };
+  const ALPHA_MAP = { glyph: 0.60, retro: 0.45, nearMiss: 0.55 };
 
   // ── Collision helpers ──
 
