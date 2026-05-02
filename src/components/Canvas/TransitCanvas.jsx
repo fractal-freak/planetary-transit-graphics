@@ -7,7 +7,7 @@ import styles from './Canvas.module.css';
 export { PADDING };
 
 const TransitCanvas = forwardRef(function TransitCanvas(
-  { curves, signChanges, transitJobs, startDate, endDate, zoom = 1, onOverlayUpdate },
+  { curves, signChanges, transitJobs, startDate, endDate, zoom = 1, onOverlayUpdate, natalPositions },
   ref
 ) {
   const canvasRef = useRef(null);
@@ -22,6 +22,13 @@ const TransitCanvas = forwardRef(function TransitCanvas(
 
   // Track highlight for cursor style only (cheap — doesn't redraw canvas)
   const [hasCursor, setHasCursor] = useState(false);
+
+  // Tooltip state — shows planet positions at the hovered (or pinned) peak.
+  // We mirror the state in a ref so the canvas event handlers can read the
+  // latest value without being re-registered on every state change.
+  const [tooltip, setTooltip] = useState(null); // { peakInfo, x, y, pinned }
+  const tooltipRef = useRef(null);
+  useEffect(() => { tooltipRef.current = tooltip; }, [tooltip]);
 
   // (overlay data is passed to parent via onOverlayUpdate callback)
 
@@ -56,6 +63,7 @@ const TransitCanvas = forwardRef(function TransitCanvas(
   const repaint = useCanvasRenderer(canvasRef, {
     curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom,
     highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, theme,
+    natalPositions,
   });
 
   // Repaint when the user picks a new color palette — kept as its own effect
@@ -63,6 +71,12 @@ const TransitCanvas = forwardRef(function TransitCanvas(
   useEffect(() => {
     repaint();
   }, [colorsVersion, repaint]);
+
+  // Repaint when natal positions change (mode switch, chart swap) — same
+  // pattern as colorsVersion to avoid changing the renderer's deps-array size.
+  useEffect(() => {
+    repaint();
+  }, [natalPositions, repaint]);
 
   // Sync overlay data after each paint — notify parent for DOM overlays
   useEffect(() => {
@@ -81,13 +95,14 @@ const TransitCanvas = forwardRef(function TransitCanvas(
     toDataURL: (type = 'image/png') => canvasRef.current?.toDataURL(type),
   }));
 
-  // Helper: hit-test label areas at canvas-space coordinates
+  // Helper: hit-test label areas at canvas-space coordinates. Returns the
+  // matched hit area (with pairKey + peakInfo), or null.
   const hitTestLabels = useCallback((mx, my) => {
     const hitAreas = labelHitAreasRef.current;
     if (!hitAreas) return null;
     for (const area of hitAreas) {
       if (mx >= area.left && mx <= area.right && my >= area.top && my <= area.bottom) {
-        return area.pairKey;
+        return area;
       }
     }
     return null;
@@ -101,63 +116,98 @@ const TransitCanvas = forwardRef(function TransitCanvas(
     return [(e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY];
   }, [canvasW, canvasH]);
 
-  // Throttled mousemove + click-to-stick highlight
+  // Throttled mousemove + click-to-stick highlight + tooltip
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const wrapper = wrapperRef.current;
 
     let rafPending = null;
 
+    function tooltipCoordsFromEvent(e) {
+      // Tooltip lives inside the wrapper (which contains the canvas).
+      // Convert clientX/Y → wrapper-relative pixels.
+      const rect = wrapper.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
     const onMouseMove = (e) => {
-      // If a curve is sticky-locked, don't update highlight on hover
-      if (stickyPairRef.current != null) return;
       if (rafPending) return;
 
       rafPending = requestAnimationFrame(() => {
         rafPending = null;
-        // Re-check sticky inside rAF in case click happened between queue and execution
-        if (stickyPairRef.current != null) return;
-
         const [mx, my] = toCanvasCoords(e, canvas);
-        const found = hitTestLabels(mx, my);
+        const area = hitTestLabels(mx, my);
 
-        const prev = highlightPairRef.current;
-        if (prev !== found) {
-          highlightPairRef.current = found;
-          repaint();
-          setHasCursor(found != null);
+        // Highlight: skip if sticky locked.
+        if (stickyPairRef.current == null) {
+          const foundKey = area?.pairKey ?? null;
+          const prev = highlightPairRef.current;
+          if (prev !== foundKey) {
+            highlightPairRef.current = foundKey;
+            repaint();
+            setHasCursor(foundKey != null);
+          }
+        }
+
+        // Tooltip: skip if pinned. Read latest tooltip via ref so this
+        // handler can stay registered across renders.
+        const tt = tooltipRef.current;
+        if (!tt?.pinned) {
+          if (area?.peakInfo) {
+            const { x, y } = tooltipCoordsFromEvent(e);
+            setTooltip({ peakInfo: area.peakInfo, x, y, pinned: false });
+          } else if (tt) {
+            setTooltip(null);
+          }
         }
       });
     };
 
     const onClick = (e) => {
       const [mx, my] = toCanvasCoords(e, canvas);
-      const found = hitTestLabels(mx, my);
+      const area = hitTestLabels(mx, my);
+      const foundKey = area?.pairKey ?? null;
+      const tt = tooltipRef.current;
 
       if (stickyPairRef.current != null) {
-        // Already sticky — click anywhere clears it
+        // Already sticky — click anywhere clears it AND any pinned tooltip
         stickyPairRef.current = null;
-        highlightPairRef.current = found;  // show hover under cursor (or null)
+        highlightPairRef.current = foundKey;
         repaint();
-        setHasCursor(found != null);
-      } else if (found != null) {
-        // Click on a label — lock it
-        stickyPairRef.current = found;
-        highlightPairRef.current = found;
+        setHasCursor(foundKey != null);
+        if (tt?.pinned) {
+          if (area?.peakInfo) {
+            const { x, y } = tooltipCoordsFromEvent(e);
+            setTooltip({ peakInfo: area.peakInfo, x, y, pinned: false });
+          } else {
+            setTooltip(null);
+          }
+        }
+      } else if (foundKey != null) {
+        // Click on a label — lock highlight + pin the tooltip
+        stickyPairRef.current = foundKey;
+        highlightPairRef.current = foundKey;
         repaint();
         setHasCursor(true);
+        if (area?.peakInfo) {
+          const { x, y } = tooltipCoordsFromEvent(e);
+          setTooltip({ peakInfo: area.peakInfo, x, y, pinned: true });
+        }
       }
     };
 
     const onMouseLeave = () => {
       if (rafPending) { cancelAnimationFrame(rafPending); rafPending = null; }
-      // Don't clear highlight if sticky-locked
+      // Don't clear highlight or tooltip if pinned
       if (stickyPairRef.current != null) return;
       if (highlightPairRef.current != null) {
         highlightPairRef.current = null;
         repaint();
         setHasCursor(false);
       }
+      const tt = tooltipRef.current;
+      if (tt && !tt.pinned) setTooltip(null);
     };
 
     canvas.addEventListener('mousemove', onMouseMove);
@@ -172,7 +222,7 @@ const TransitCanvas = forwardRef(function TransitCanvas(
   }, [canvasW, canvasH, repaint, toCanvasCoords, hitTestLabels]);
 
   return (
-    <div ref={wrapperRef} style={{ width: '100%', height: '100%' }}>
+    <div ref={wrapperRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
       <canvas
         ref={canvasRef}
         className={styles.canvas}
@@ -182,8 +232,82 @@ const TransitCanvas = forwardRef(function TransitCanvas(
           cursor: hasCursor ? 'pointer' : 'default',
         }}
       />
+      {tooltip && <PeakTooltip tooltip={tooltip} wrapperRef={wrapperRef} />}
     </div>
   );
 });
+
+// ─── Peak tooltip ───
+// Shows the peak's date + each body's degree°min' Sign at the perfection.
+// Positioned near the cursor, flipped if it would overflow the wrapper.
+const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function formatTooltipDate(d) {
+  return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function PositionLine({ name, position, retrograde }) {
+  return (
+    <div className={styles.tooltipRow}>
+      <span className={styles.tooltipPlanet}>{name}</span>
+      <span className={styles.tooltipPos}>
+        {position.deg}°<span className={styles.tooltipMin}>{position.min}'</span>
+      </span>
+      <span className={styles.tooltipSign}>{position.signSymbol}</span>
+      <span className={styles.tooltipAbbr}>{position.signAbbr}</span>
+      {retrograde && <span className={styles.tooltipR}>R</span>}
+    </div>
+  );
+}
+
+function PeakTooltip({ tooltip, wrapperRef }) {
+  const { peakInfo, x, y, pinned } = tooltip;
+  const ttRef = useRef(null);
+  const [pos, setPos] = useState({ left: x, top: y });
+
+  // After render, measure tooltip and clamp inside wrapper.
+  useEffect(() => {
+    const tt = ttRef.current;
+    const wrap = wrapperRef.current;
+    if (!tt || !wrap) return;
+    const wrapW = wrap.clientWidth;
+    const wrapH = wrap.clientHeight;
+    const ttW = tt.offsetWidth;
+    const ttH = tt.offsetHeight;
+    let left = x + 14;
+    let top = y + 14;
+    if (left + ttW > wrapW - 8) left = Math.max(8, x - ttW - 14);
+    if (top + ttH > wrapH - 8) top = Math.max(8, y - ttH - 14);
+    setPos({ left, top });
+  }, [x, y, peakInfo, wrapperRef]);
+
+  return (
+    <div
+      ref={ttRef}
+      className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
+      style={{ left: pos.left, top: pos.top }}
+    >
+      <div className={styles.tooltipDate}>
+        {formatTooltipDate(peakInfo.date)}
+      </div>
+      <PositionLine
+        name={peakInfo.transitName}
+        position={peakInfo.transitPosition}
+        retrograde={peakInfo.transitRetro}
+      />
+      <div className={styles.tooltipAspect}>
+        {peakInfo.aspectSymbol} {peakInfo.aspectName}
+      </div>
+      <PositionLine
+        name={peakInfo.isNatal ? `natal ${peakInfo.targetName}` : peakInfo.targetName}
+        position={peakInfo.targetPosition}
+        retrograde={peakInfo.targetRetro}
+      />
+      {pinned && (
+        <div className={styles.tooltipPinHint}>click again to unpin</div>
+      )}
+    </div>
+  );
+}
 
 export default TransitCanvas;

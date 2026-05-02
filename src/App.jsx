@@ -788,6 +788,7 @@ export default function App() {
                 endDate={endDate}
                 zoom={zoom}
                 onOverlayUpdate={handleOverlayUpdate}
+                natalPositions={mode === 'natal' ? natalChart?.positions : null}
               />
             </div>
 

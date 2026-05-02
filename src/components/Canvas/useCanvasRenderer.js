@@ -3,6 +3,7 @@ import { PLANET_MAP, SPEED_ORDER } from '../../data/planets';
 import { getElementColor, getElementRGB, getSignIndex, ZODIAC_SIGNS } from '../../data/zodiac';
 import { getLongitude } from '../../api/ephemeris';
 import { isSweReady } from '../../api/swisseph';
+import { formatNatalPosition } from '../../data/natalChart';
 
 export const PADDING = { top: 40, right: 30, bottom: 50, left: 55 };
 const SIGN_CHANGE_EXTRA_BOTTOM = 30; // extra bottom padding when sign change labels are shown
@@ -20,17 +21,17 @@ const CLUSTER_THRESHOLD_X = 40;       // px — peaks within this distance form 
 const COMPACT_GAP = 2;                // px between labels in a cluster column
 const MAX_DISPLACEMENT_RATIO = 0.70;  // max label displacement as fraction of row height
 
-export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, theme }) {
+export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPairRef, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, theme, natalPositions }) {
   // Store latest props in a ref so repaint() always sees current values
   const propsRef = useRef();
-  propsRef.current = { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom };
+  propsRef.current = { curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, natalPositions };
 
   // Expose a stable repaint function that reads current state from refs
   const repaint = useCallback(() => {
     const canvas = canvasRef.current;
-    const { curves: c, signChanges: sc, transitJobs: tj, startDate: sd, endDate: ed, canvasW: cw, canvasH: ch, zoom: z } = propsRef.current;
+    const { curves: c, signChanges: sc, transitJobs: tj, startDate: sd, endDate: ed, canvasW: cw, canvasH: ch, zoom: z, natalPositions: np } = propsRef.current;
     if (!canvas || !sd || !ed) return;
-    renderCanvas(canvas, c, sc, tj, sd, ed, cw, ch, z, highlightPairRef?.current ?? null, labelHitAreasRef, crowdedRowsRef, rowLayoutRef);
+    renderCanvas(canvas, c, sc, tj, sd, ed, cw, ch, z, highlightPairRef?.current ?? null, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, np);
   }, []); // stable — reads everything from refs
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs,
 
     // Coalesce rapid updates (e.g. zoom slider) into a single paint per frame
     const rafId = requestAnimationFrame(() => {
-      renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPairRef?.current ?? null, labelHitAreasRef, crowdedRowsRef, rowLayoutRef);
+      renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPairRef?.current ?? null, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, natalPositions);
     });
     return () => cancelAnimationFrame(rafId);
 
@@ -48,7 +49,7 @@ export function useCanvasRenderer(canvasRef, { curves, signChanges, transitJobs,
   return repaint;
 }
 
-function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPair, labelHitAreasRef, crowdedRowsRef, rowLayoutRef) {
+function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDate, canvasW, canvasH, zoom, highlightPair, labelHitAreasRef, crowdedRowsRef, rowLayoutRef, natalPositions) {
     // Use explicit dimensions from parent (accounts for zoom) or fall back to element size
     const displayW = canvasW || canvas.offsetWidth;
     const displayH = canvasH || canvas.offsetHeight;
@@ -250,7 +251,7 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
         const pairKey = `${curve.transitPlanet}-${curve.target}`;
         const dimmed = highlightPair != null && pairKey !== highlightPair;
         const highlighted = highlightPair != null && pairKey === highlightPair;
-        drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed, highlighted, signSegments, baselineY, signChanges?.eclipses);
+        drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed, highlighted, signSegments, baselineY, signChanges?.eclipses, natalPositions);
       }
 
       // Redraw baseline with dashed pattern for retrograde periods ON TOP of curves.
@@ -1301,7 +1302,7 @@ function getTimeTicks(startDate, endDate, plotW) {
 
 // ─── Aspect curve (confined to a row) ───
 
-function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed = false, highlighted = false, signSegments = null, baselineY, eclipses = null) {
+function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, rowLabels, dimmed = false, highlighted = false, signSegments = null, baselineY, eclipses = null, natalPositions = null) {
   const { points, peaks } = curve;
   if (!points || points.length < 2) return;
 
@@ -1454,11 +1455,43 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
         }
       }
 
+      // Capture peak detail for the hover/click tooltip — what degree of
+      // what sign each body sits at on the perfection date.
+      let peakInfo = null;
+      if (isSweReady()) {
+        try {
+          const transitLon = getLongitude(curve.transitPlanet, d);
+          let targetLon;
+          if (curve.isNatal && natalPositions && natalPositions[curve.target] != null) {
+            targetLon = natalPositions[curve.target];
+          } else {
+            targetLon = getLongitude(curve.target, d);
+          }
+          peakInfo = {
+            date: d,
+            aspectName: curve.aspect.name,
+            aspectSymbol: curve.aspect.symbol,
+            isNatal: !!curve.isNatal,
+            transitPlanet: curve.transitPlanet,
+            transitName: PLANET_MAP[curve.transitPlanet]?.name || curve.transitPlanet,
+            transitSymbol: PLANET_MAP[curve.transitPlanet]?.symbol || '',
+            transitPosition: formatNatalPosition(transitLon),
+            transitRetro: tRetro,
+            targetPlanet: curve.target,
+            targetName: PLANET_MAP[curve.target]?.name || curve.target,
+            targetSymbol: PLANET_MAP[curve.target]?.symbol || '',
+            targetPosition: formatNatalPosition(targetLon),
+            targetRetro,
+          };
+        } catch {}
+      }
+
       rowLabels.push({
         x: px, y: py, dateLine, ratio, dimmed, highlighted,
         tSym, tRetro, aspectSym, targetSym, targetRetro, nearMiss,
         pairKey: `${curve.transitPlanet}-${curve.target}`,
         lunation, eclipse: eclipseHit,
+        peakInfo,
       });
     });
   }
@@ -1695,6 +1728,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
       top: baseY - BLOCK_H,
       bottom: baseY,
       pairKey: lbl.pairKey,
+      peakInfo: lbl.peakInfo,
     });
   }
 
@@ -1760,6 +1794,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
       top: baseY - BLOCK_H,
       bottom: baseY,
       pairKey: lbl.pairKey,
+      peakInfo: lbl.peakInfo,
     });
   }
 

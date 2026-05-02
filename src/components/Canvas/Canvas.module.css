@@ -4,3 +4,110 @@
   display: block;
   touch-action: none;
 }
+
+/* ─── Peak tooltip ─── */
+
+.peakTooltip {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  min-width: 170px;
+  padding: 8px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: var(--fg-strong);
+  font-variant-numeric: tabular-nums;
+  font-variant-emoji: text;
+}
+
+.peakTooltipPinned {
+  pointer-events: auto;
+  border-color: var(--fg-faint);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
+}
+
+.tooltipDate {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.tooltipRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  align-items: baseline;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.tooltipPlanet {
+  color: var(--fg-strong);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tooltipPos {
+  color: var(--fg-strong);
+  font-weight: 500;
+}
+
+.tooltipMin {
+  font-size: 9px;
+  color: var(--fg-muted);
+  margin-left: 1px;
+}
+
+.tooltipSign {
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--fg-muted);
+}
+
+.tooltipAbbr {
+  font-size: 10px;
+  color: var(--fg-muted);
+  letter-spacing: 0.04em;
+  width: 22px;
+  text-align: right;
+}
+
+.tooltipR {
+  font-size: 9px;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.tooltipAspect {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  margin: 2px 0;
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 10px;
+  color: var(--fg-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tooltipPinHint {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 9px;
+  color: var(--fg-subtle);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
