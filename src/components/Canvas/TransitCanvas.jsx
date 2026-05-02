@@ -246,17 +246,17 @@ function formatTooltipDate(d) {
   return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
-function PositionLine({ glyph, position, retrograde, isNatal }) {
+function Body({ glyph, position, retrograde, prefix }) {
   return (
-    <div className={styles.tooltipRow}>
+    <span className={styles.tooltipBody}>
+      {prefix && <span className={styles.tooltipNatalTag}>{prefix}</span>}
       <span className={styles.tooltipGlyph}>{glyph}</span>
       <span className={styles.tooltipPos}>
         {position.deg}°<span className={styles.tooltipMin}>{position.min}'</span>
       </span>
       <span className={styles.tooltipSign}>{position.signSymbol}</span>
-      <span className={styles.tooltipR}>{retrograde ? 'R' : ''}</span>
-      {isNatal && <span className={styles.tooltipNatalTag}>natal</span>}
-    </div>
+      {retrograde && <span className={styles.tooltipR}>R</span>}
+    </span>
   );
 }
 
@@ -281,7 +281,7 @@ function PeakTooltip({ tooltip, wrapperRef }) {
     setPos({ left, top });
   }, [x, y, peakInfo, wrapperRef]);
 
-  // Station tooltip — single body, just position + stationing direction.
+  // Station tooltip — single body + "stations rx/D".
   if (peakInfo.kind === 'station') {
     return (
       <div
@@ -289,44 +289,38 @@ function PeakTooltip({ tooltip, wrapperRef }) {
         className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
         style={{ left: pos.left, top: pos.top }}
       >
-        <div className={styles.tooltipDate}>
-          {formatTooltipDate(peakInfo.date)}
-        </div>
-        <PositionLine
+        <Body
           glyph={peakInfo.transitSymbol}
           position={peakInfo.transitPosition}
           retrograde={false}
         />
-        <div className={styles.tooltipStationLabel}>
+        <span className={styles.tooltipStationLabel}>
           stations {peakInfo.stationDirection}
-        </div>
+        </span>
       </div>
     );
   }
 
-  // Aspect/peak tooltip — two bodies + the aspect glyph centered between.
+  // Aspect tooltip — single line: body · aspect glyph · body.
   return (
     <div
       ref={ttRef}
       className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
       style={{ left: pos.left, top: pos.top }}
     >
-      <div className={styles.tooltipDate}>
-        {formatTooltipDate(peakInfo.date)}
-      </div>
-      <PositionLine
+      <Body
         glyph={peakInfo.transitSymbol}
         position={peakInfo.transitPosition}
         retrograde={peakInfo.transitRetro}
       />
-      <div className={styles.tooltipAspectGlyph}>
+      <span className={styles.tooltipAspectGlyph}>
         {peakInfo.aspectSymbol}
-      </div>
-      <PositionLine
+      </span>
+      <Body
         glyph={peakInfo.targetSymbol}
         position={peakInfo.targetPosition}
         retrograde={peakInfo.targetRetro}
-        isNatal={peakInfo.isNatal}
+        prefix={peakInfo.isNatal ? 'natal' : null}
       />
     </div>
   );

@@ -5,61 +5,50 @@
   touch-action: none;
 }
 
-/* ─── Peak tooltip ─── */
+/* ─── Peak tooltip — single-line, compact ─── */
 
 .peakTooltip {
   position: absolute;
   z-index: 20;
   pointer-events: none;
-  min-width: 170px;
-  padding: 8px 10px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 8px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-radius: 5px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   font-size: 11px;
   color: var(--fg-strong);
   font-variant-numeric: tabular-nums;
   font-variant-emoji: text;
+  white-space: nowrap;
 }
 
 .peakTooltipPinned {
   pointer-events: auto;
   border-color: var(--fg-faint);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
-.tooltipDate {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--fg-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.tooltipRow {
-  display: grid;
-  grid-template-columns: 18px auto auto 12px auto;
+.tooltipBody {
+  display: inline-flex;
   align-items: baseline;
-  gap: 6px;
-  padding: 2px 0;
-  font-variant-emoji: text;
+  gap: 3px;
 }
 
 .tooltipGlyph {
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
   color: var(--fg-strong);
   text-rendering: optimizeLegibility;
-  text-align: center;
 }
 
 .tooltipPos {
   color: var(--fg-strong);
   font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 .tooltipMin {
@@ -70,7 +59,7 @@
 
 .tooltipSign {
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   color: var(--fg-muted);
   font-variant-emoji: text;
@@ -81,8 +70,6 @@
   font-style: italic;
   font-weight: 600;
   color: var(--fg-muted);
-  text-align: center;
-  min-width: 8px;
 }
 
 .tooltipNatalTag {
@@ -94,34 +81,16 @@
 }
 
 .tooltipAspectGlyph {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 0;
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", serif;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
   color: var(--fg-muted);
   font-variant-emoji: text;
 }
 
 .tooltipStationLabel {
-  margin-top: 4px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border-soft);
   font-size: 10px;
   color: var(--fg-muted);
   font-style: italic;
-  text-align: center;
   letter-spacing: 0.02em;
-}
-
-.tooltipPinHint {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-soft);
-  font-size: 9px;
-  color: var(--fg-subtle);
-  letter-spacing: 0.04em;
-  text-align: center;
 }
