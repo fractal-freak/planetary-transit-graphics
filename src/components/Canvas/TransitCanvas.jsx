@@ -246,16 +246,16 @@ function formatTooltipDate(d) {
   return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
-function PositionLine({ name, position, retrograde }) {
+function PositionLine({ glyph, position, retrograde, isNatal }) {
   return (
     <div className={styles.tooltipRow}>
-      <span className={styles.tooltipPlanet}>{name}</span>
+      <span className={styles.tooltipGlyph}>{glyph}</span>
       <span className={styles.tooltipPos}>
         {position.deg}°<span className={styles.tooltipMin}>{position.min}'</span>
       </span>
       <span className={styles.tooltipSign}>{position.signSymbol}</span>
-      <span className={styles.tooltipAbbr}>{position.signAbbr}</span>
-      {retrograde && <span className={styles.tooltipR}>R</span>}
+      <span className={styles.tooltipR}>{retrograde ? 'R' : ''}</span>
+      {isNatal && <span className={styles.tooltipNatalTag}>natal</span>}
     </div>
   );
 }
@@ -281,6 +281,30 @@ function PeakTooltip({ tooltip, wrapperRef }) {
     setPos({ left, top });
   }, [x, y, peakInfo, wrapperRef]);
 
+  // Station tooltip — single body, just position + stationing direction.
+  if (peakInfo.kind === 'station') {
+    return (
+      <div
+        ref={ttRef}
+        className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
+        style={{ left: pos.left, top: pos.top }}
+      >
+        <div className={styles.tooltipDate}>
+          {formatTooltipDate(peakInfo.date)}
+        </div>
+        <PositionLine
+          glyph={peakInfo.transitSymbol}
+          position={peakInfo.transitPosition}
+          retrograde={false}
+        />
+        <div className={styles.tooltipStationLabel}>
+          stations {peakInfo.stationDirection}
+        </div>
+      </div>
+    );
+  }
+
+  // Aspect/peak tooltip — two bodies + the aspect glyph centered between.
   return (
     <div
       ref={ttRef}
@@ -291,21 +315,19 @@ function PeakTooltip({ tooltip, wrapperRef }) {
         {formatTooltipDate(peakInfo.date)}
       </div>
       <PositionLine
-        name={peakInfo.transitName}
+        glyph={peakInfo.transitSymbol}
         position={peakInfo.transitPosition}
         retrograde={peakInfo.transitRetro}
       />
-      <div className={styles.tooltipAspect}>
-        {peakInfo.aspectSymbol} {peakInfo.aspectName}
+      <div className={styles.tooltipAspectGlyph}>
+        {peakInfo.aspectSymbol}
       </div>
       <PositionLine
-        name={peakInfo.isNatal ? `natal ${peakInfo.targetName}` : peakInfo.targetName}
+        glyph={peakInfo.targetSymbol}
         position={peakInfo.targetPosition}
         retrograde={peakInfo.targetRetro}
+        isNatal={peakInfo.isNatal}
       />
-      {pinned && (
-        <div className={styles.tooltipPinHint}>click again to unpin</div>
-      )}
     </div>
   );
 }

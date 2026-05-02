@@ -304,6 +304,10 @@ function renderCanvas(canvas, curves, signChanges, transitJobs, startDate, endDa
       if (rowStations.length > 0) {
         stationRects = computeStationRects(ctx, rowStations, plotW, baselineY, startDate, endDate);
         drawStationMarkers(ctx, rowStations, plotW, rowH, rowTop, startDate, endDate, baselineY, T);
+        // Surface station hit areas to the tooltip pipeline.
+        for (const r of stationRects) {
+          if (r.peakInfo) allPlacedLabels.push(r);
+        }
       }
 
       // Draw eclipse markers for the Eclipses row
@@ -670,11 +674,30 @@ function computeStationRects(ctx, stations, plotW, baselineY, startDate, endDate
     const labelTop = baselineY + 10; // same offset as sign change labels
     const bottomEdge = labelTop + 13 + 16; // date line + glyph line
 
+    // Compute the station's position for the hover tooltip.
+    let peakInfo = null;
+    if (isSweReady()) {
+      try {
+        const lon = getLongitude(st.planet, st.date);
+        peakInfo = {
+          kind: 'station',
+          date: st.date,
+          transitPlanet: st.planet,
+          transitName: PLANET_MAP[st.planet]?.name || st.planet,
+          transitSymbol: PLANET_MAP[st.planet]?.symbol || '',
+          transitPosition: formatNatalPosition(lon),
+          stationDirection: st.type === 'retrograde' ? 'retrograde' : 'direct',
+        };
+      } catch {}
+    }
+
     reservedRects.push({
       left: x - halfW,
       right: x + halfW,
       top: baselineY - MARKER_R - SC_PAD,
       bottom: bottomEdge + SC_PAD,
+      pairKey: `station-${st.planet}-${d.getTime()}`,
+      peakInfo,
     });
   }
 
