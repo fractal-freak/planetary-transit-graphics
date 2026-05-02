@@ -878,11 +878,24 @@ export default function App() {
               className={styles.nowButton}
               onClick={() => {
                 const el = scrollRef.current;
+                const now = new Date();
+                // If today is outside the visible range, jump the range to
+                // today (preserving span). Otherwise, scroll the viewport
+                // to center on today within the existing range.
+                if (now < startDate || now > endDate) {
+                  const todayMidnight = new Date();
+                  todayMidnight.setHours(0, 0, 0, 0);
+                  const spanMs = endDate.getTime() - startDate.getTime();
+                  const newStart = todayMidnight;
+                  const newEnd = new Date(newStart.getTime() + spanMs);
+                  setStartDate(newStart);
+                  setEndDate(newEnd);
+                  return;
+                }
                 if (!el) return;
                 const canvasW = el.scrollWidth;
                 const plotW = canvasW - PADDING.left - PADDING.right;
                 const totalMs = endDate - startDate;
-                const now = new Date();
                 const nowX = PADDING.left + ((now - startDate) / totalMs) * plotW;
                 el.scrollLeft = Math.max(0, nowX - el.clientWidth / 2);
               }}

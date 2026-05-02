@@ -77,13 +77,12 @@ export default function DateRangePicker({
     target: null,
   });
 
+  // Quick-range buttons adjust the span anchored on the *current* From,
+  // so they shrink/grow the window in place instead of snapping back to
+  // today. The "Now" button (next to the chart's zoom slider) is the
+  // canonical way to jump back to today.
   function setQuickRange(days) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const end = new Date(today);
-    end.setDate(end.getDate() + days);
-    onStartChange(today);
-    onEndChange(end);
+    handleEndChange(addDays(startDate, days));
   }
 
   // Snap-to-span: when From moves, slide To by the same delta to preserve span.
@@ -187,13 +186,9 @@ export default function DateRangePicker({
   const beforeBirthFrom = fromAge !== null && fromAge < 0;
   const beforeBirthTo = toAge !== null && toAge < 0;
 
-  // Detect whether the current range matches one of the quick-range presets:
-  // startDate is "today at midnight" AND span === preset days.
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startIsToday = startDate.getFullYear() === today.getFullYear()
-    && startDate.getMonth() === today.getMonth()
-    && startDate.getDate() === today.getDate();
+  // Detect whether the current span matches one of the quick-range presets.
+  // We match by span only (regardless of where From sits) since the buttons
+  // now adjust span in place rather than snapping to today.
   const spanDays = diffDays(startDate, endDate);
   const QUICK_RANGES = [
     { label: '7 Days', days: 7 },
@@ -203,9 +198,7 @@ export default function DateRangePicker({
     { label: '12 Months', days: 365 },
     { label: '3 Years', days: 1095 },
   ];
-  const activeQuickIdx = startIsToday
-    ? QUICK_RANGES.findIndex(r => r.days === spanDays)
-    : -1;
+  const activeQuickIdx = QUICK_RANGES.findIndex(r => r.days === spanDays);
   const hasActive = activeQuickIdx >= 0;
 
   // Renders the age value button (drag-to-scrub, click-to-type)
