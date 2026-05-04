@@ -1106,6 +1106,12 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       ctx.font = '600 10px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
 
+      // Once we're zoomed to ~daily detail (hour grid visible), there's
+      // room to drop a tiny weekday letter (M T W T F S S) under each day
+      // number for at-a-glance week navigation.
+      const showWeekday = pixelsPerDay >= 80;
+      const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
       // When the window doesn't start on the 1st, the very first day label
       // would be a bare number right at the left edge (half-clipped).
       // Instead, show the month abbreviation (e.g. "Feb") — the exact day
@@ -1138,6 +1144,13 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
             continue;
           }
           ctx.fillText(String(dom), cx, gridBottom + 12);
+          if (showWeekday) {
+            ctx.save();
+            ctx.font = '500 8px Inter, system-ui, sans-serif';
+            ctx.fillStyle = T.textMuted;
+            ctx.fillText(WEEKDAY_LETTERS[labelCursor.getDay()], cx, gridBottom + 22);
+            ctx.restore();
+          }
         }
         labelCursor.setDate(labelCursor.getDate() + 1);
       }
