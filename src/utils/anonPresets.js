@@ -110,3 +110,60 @@ export function toggleAnonPresetFavorite(presetId, isFavorite) {
   all[idx] = { ...all[idx], isFavorite, updatedAt: new Date().toISOString() };
   writeAll(all);
 }
+
+/**
+ * Reorder presets to match the given list of ids (presets not in the list
+ * keep their relative order at the end). The "top" of the list becomes the
+ * default preset that auto-loads on a fresh session.
+ */
+export function reorderAnonPresets(orderedIds) {
+  const all = readAll();
+  const byId = new Map(all.map(p => [p.id, p]));
+  const reordered = [];
+  for (const id of orderedIds) {
+    if (byId.has(id)) {
+      reordered.push(byId.get(id));
+      byId.delete(id);
+    }
+  }
+  // Append any presets the caller didn't include in the order list.
+  for (const remaining of byId.values()) reordered.push(remaining);
+  writeAll(reordered);
+}
+
+/**
+ * Move a preset up one slot (toward index 0). No-op if already at the top.
+ */
+export function moveAnonPresetUp(presetId) {
+  const all = readAll();
+  const idx = all.findIndex(p => p.id === presetId);
+  if (idx <= 0) return;
+  const next = all.slice();
+  [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+  writeAll(next);
+}
+
+/**
+ * Re-seed the built-in default presets. Idempotent on name — defaults that
+ * still exist by name are skipped, so this only re-adds the ones the user
+ * deleted. Resets the seed flag so they survive a future page reload too.
+ */
+export function restoreAnonDefaults() {
+  const all = readAll();
+  const existingNames = new Set(all.map(p => p.name));
+  const now = new Date().toISOString();
+  const toAdd = DEFAULT_PRESETS
+    .filter(p => !existingNames.has(p.name))
+    .map(p => ({
+      id: genId(),
+      ...p,
+      startDate: null,
+      endDate: null,
+      createdAt: now,
+      updatedAt: now,
+    }));
+  if (toAdd.length === 0) return 0;
+  writeAll([...all, ...toAdd]);
+  localStorage.setItem(SEED_FLAG_KEY, now);
+  return toAdd.length;
+}

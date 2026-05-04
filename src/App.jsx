@@ -8,6 +8,7 @@ import { useAuth } from './contexts/AuthContext';
 import { computeNatalAngles, computeNatalPositions, computeNatalSpeeds, combineDateAndTime } from './data/natalChart';
 import { initSwissEph, isSweReady } from './api/swisseph';
 import { loadSession, saveSession } from './firebase/firestore';
+import { moveAnonPresetUp, loadAnonPresets } from './utils/anonPresets';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
 import Controls from './components/Controls/Controls';
 import StripView from './components/StripView/StripView';
@@ -101,7 +102,7 @@ export default function App() {
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
-  const { user, savedCharts, savedPresets, defaultChartId } = useAuth();
+  const { user, savedCharts, savedPresets, setSavedPresets, defaultChartId } = useAuth();
   // 'loading' until Firestore session fetch resolves; then 'restored' (had a
   // saved session) or 'empty' (no session — eligible to auto-apply preset).
   // For signed-out users, stays 'loading' so we never write back to Firestore.
@@ -220,16 +221,40 @@ export default function App() {
   }, [user?.uid]);
 
   // Auto-apply the user's favorite preset when starting a fresh session.
-  // Fires once after sessionStatus becomes 'empty' AND presets have loaded.
+  //
+  // Signed-in users: fires after sessionStatus becomes 'empty' (Firestore
+  // session check resolved with no saved session).
+  //
+  // Anonymous users: fires on first load if there's no `ptg_transitJobs`
+  // in localStorage (true first-time visitor) OR if jobs are empty. The top
+  // favorite preset (first favorite in the user's list) is the "default" —
+  // users can move favorites up to change which one auto-loads.
   useEffect(() => {
-    if (!user || sessionStatus !== 'empty' || autoAppliedPresetRef.current) return;
+    if (autoAppliedPresetRef.current) return;
     if (!savedPresets || savedPresets.length === 0) return;
-    const fav = savedPresets.find(p => p.isFavorite) || savedPresets[0];
+
+    const isFreshSession = user
+      ? sessionStatus === 'empty'
+      : (readStoredJSON('ptg_transitJobs', null) === null && transitJobs.length === DEFAULT_JOBS.length);
+    if (!isFreshSession) return;
+
+    // Top favorite for the current mode wins; falls back to top favorite
+    // overall, then any preset, then leaves DEFAULT_JOBS in place.
+    const modeFavs = savedPresets.filter(p => p.isFavorite && (p.mode || 'world') === mode);
+    const allFavs = savedPresets.filter(p => p.isFavorite);
+    const fav = modeFavs[0] || allFavs[0] || savedPresets[0];
     if (!fav) return;
+
     autoAppliedPresetRef.current = true;
     if (fav.mode && fav.mode !== mode) setMode(fav.mode);
-    if (fav.startDate) setStartDate(new Date(fav.startDate));
-    if (fav.endDate) setEndDate(new Date(fav.endDate));
+    if (fav.relativeRange) {
+      const { startDate: s, endDate: e } = resolveRelativeDates(fav.relativeRange);
+      setStartDate(new Date(s));
+      setEndDate(new Date(e));
+    } else {
+      if (fav.startDate) setStartDate(new Date(fav.startDate));
+      if (fav.endDate) setEndDate(new Date(fav.endDate));
+    }
     const prefix = fav.mode === 'natal' ? 'natal-job' : 'job';
     const freshJobs = (fav.jobs || []).map((job, i) => ({
       ...job,
@@ -552,6 +577,25 @@ export default function App() {
     }
   }
 
+  // Move a preset up one slot in the sidebar favorites list. The top-most
+  // preset is the "default" that auto-loads on a fresh session.
+  function handleMovePresetUp(presetId) {
+    if (user) {
+      // Signed-in: in-memory reorder for this session. Firestore order
+      // persistence is a follow-up (would require an `order` field).
+      setSavedPresets(prev => {
+        const idx = prev.findIndex(p => p.id === presetId);
+        if (idx <= 0) return prev;
+        const next = prev.slice();
+        [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+        return next;
+      });
+    } else {
+      moveAnonPresetUp(presetId);
+      setSavedPresets(loadAnonPresets());
+    }
+  }
+
   // Choose active data based on mode
   const activeCurves = mode === 'world' ? curves : mode === 'natal' ? natalCurves : mundaneCurves;
   const activeSignChanges = mode === 'world' ? signChanges : mode === 'natal' ? natalSignChanges : mundaneSignChanges;
@@ -681,6 +725,7 @@ export default function App() {
           onRemoveNatalJob={handleRemoveNatalJob}
           onUpdateNatalJob={handleUpdateNatalJob}
           onLoadPreset={handleLoadPreset}
+          onMovePresetUp={handleMovePresetUp}
           stackCharts={stackCharts}
           onAddStackChart={handleAddStackChart}
           onRemoveStackChart={handleRemoveStackChart}

@@ -339,6 +339,26 @@
   cursor: not-allowed;
 }
 
+.footerSecondaryBtn {
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 10px;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.footerSecondaryBtn:hover {
+  color: var(--fg-strong);
+  border-color: var(--fg-subtle);
+  background: var(--bg-subtle);
+}
+
 .presetCount {
   font-size: 10px;
   color: var(--fg-subtle);

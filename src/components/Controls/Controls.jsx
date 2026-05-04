@@ -61,6 +61,7 @@ export default function Controls({
   onRemoveNatalJob,
   onUpdateNatalJob,
   onLoadPreset,
+  onMovePresetUp,
   // Mundane mode props
   stackCharts,
   onAddStackChart,
@@ -207,16 +208,31 @@ export default function Controls({
               <div className={styles.presetsBar}>
                 {favorites.length > 0 && (
                   <div className={styles.presetFavorites}>
-                    {favorites.map(preset => (
-                      <button
-                        key={preset.id}
-                        className={styles.presetFavBtn}
-                        onClick={() => onLoadPreset(preset)}
-                        title={`Load "${preset.name}" (${preset.mode})`}
-                      >
-                        <span className={styles.presetFavStar}>{'★'}</span>
-                        <span className={styles.presetFavName}>{preset.name}</span>
-                      </button>
+                    {favorites.map((preset, idx) => (
+                      <div key={preset.id} className={styles.presetFavRow}>
+                        <button
+                          className={styles.presetFavBtn}
+                          onClick={() => onLoadPreset(preset)}
+                          title={`Load "${preset.name}" (${preset.mode})`}
+                        >
+                          <span className={styles.presetFavStar}>{'★'}</span>
+                          <span className={styles.presetFavName}>{preset.name}</span>
+                          {idx === 0 && (
+                            <span className={styles.presetFavDefault}>default</span>
+                          )}
+                        </button>
+                        {idx > 0 && onMovePresetUp && (
+                          <button
+                            type="button"
+                            className={styles.presetFavMoveUp}
+                            onClick={(e) => { e.stopPropagation(); onMovePresetUp(preset.id); }}
+                            title="Move up"
+                            aria-label="Move preset up"
+                          >
+                            ↑
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}

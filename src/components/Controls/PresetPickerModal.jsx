@@ -15,6 +15,7 @@ import {
   deleteAnonPreset,
   toggleAnonPresetFavorite,
   updateAnonPresetJobs,
+  restoreAnonDefaults,
 } from '../../utils/anonPresets';
 import styles from './PresetPickerModal.module.css';
 
@@ -138,6 +139,19 @@ export default function PresetPickerModal({
       setConfirmDeleteId(null);
     } catch (err) {
       console.error('Delete failed:', err);
+    }
+  }
+
+  async function handleRestoreDefaults() {
+    if (user) {
+      // Signed-in path: would need a Firestore equivalent. Skip for now.
+      alert('Sign-out to anonymous mode to restore defaults — Firestore restore is coming soon.');
+      return;
+    }
+    const added = restoreAnonDefaults();
+    await refreshPresets();
+    if (added === 0) {
+      // Optional: silent no-op when nothing to restore.
     }
   }
 
@@ -377,16 +391,27 @@ export default function PresetPickerModal({
               </button>
             </div>
           ) : (
-            <button
-              className={styles.footerBtn}
-              onClick={() => setIsSaving(true)}
-              disabled={!hasJobs || atCap}
-              title={atCap ? `Max ${MAX_PRESETS} presets` : !hasJobs ? 'Add transits first' : 'Save current transit setup'}
-            >
-              {modePresets.length > 0
-                ? `Save Current Setup (${modePresets.length})`
-                : 'Save Current Setup'}
-            </button>
+            <>
+              <button
+                className={styles.footerBtn}
+                onClick={() => setIsSaving(true)}
+                disabled={!hasJobs || atCap}
+                title={atCap ? `Max ${MAX_PRESETS} presets` : !hasJobs ? 'Add transits first' : 'Save current transit setup'}
+              >
+                {modePresets.length > 0
+                  ? `Save Current Setup (${modePresets.length})`
+                  : 'Save Current Setup'}
+              </button>
+              {!user && (
+                <button
+                  className={styles.footerSecondaryBtn}
+                  onClick={handleRestoreDefaults}
+                  title="Re-add the built-in default presets if you've deleted any"
+                >
+                  Restore defaults
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
