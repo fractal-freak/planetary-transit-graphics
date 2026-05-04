@@ -1106,11 +1106,13 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       ctx.font = '600 10px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
 
-      // Once we're zoomed to ~daily detail (hour grid visible), there's
-      // room to drop a tiny weekday letter (M T W T F S S) under each day
-      // number for at-a-glance week navigation.
-      const showWeekday = pixelsPerDay >= 80;
-      const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      // Once we're zoomed enough that hour labels are showing (times of
+      // day visible on the timeline), drop a tiny 2-letter weekday
+      // abbreviation under each day number for at-a-glance week
+      // navigation. Held back until that zoom level so the chart isn't
+      // cluttered at month-scale views.
+      const showWeekday = pixelsPerDay >= 150;
+      const WEEKDAY_LETTERS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
       // When the window doesn't start on the 1st, the very first day label
       // would be a bare number right at the left edge (half-clipped).

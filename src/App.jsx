@@ -915,7 +915,7 @@ export default function App() {
                   }}
                 >
                   <span className={styles.crowdedNoteText}>
-                    Hey! It's getting crowded, try a shorter timescale or less targets to view details.
+                    Hey! It's getting crowded, try a shorter date range or less targets to view details.
                   </span>
                 </div>
               ))}
