@@ -1096,8 +1096,15 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       }
       dayCursor.setDate(dayCursor.getDate() + 1);
     }
-    ctx.strokeStyle = T.grid;
-    ctx.lineWidth = 0.5;
+    // When hour lines also render (pixelsPerDay >= 80), daily lines need
+    // to stand out from them so the user can see day boundaries even when
+    // looking at top rows far from the day labels at the bottom. Use a
+    // darker stroke + slightly thicker line in that case.
+    const dayLinesAccented = pixelsPerDay >= 80;
+    ctx.strokeStyle = dayLinesAccented
+      ? `rgba(${T.textRGB}, 0.22)`
+      : T.grid;
+    ctx.lineWidth = dayLinesAccented ? 1 : 0.5;
     ctx.stroke();
 
     // Day-of-month labels (only when zoomed in far enough)
@@ -1106,12 +1113,12 @@ function drawTimeGrid(ctx, W, H, plotW, plotH, startDate, endDate, rowAreaTop, r
       ctx.font = '600 10px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
 
-      // Once we're zoomed enough that hour labels are showing (times of
-      // day visible on the timeline), drop a tiny 2-letter weekday
-      // abbreviation under each day number for at-a-glance week
-      // navigation. Held back until that zoom level so the chart isn't
-      // cluttered at month-scale views.
-      const showWeekday = pixelsPerDay >= 150;
+      // Once hour grid lines start to render (pixelsPerDay >= 80), drop
+      // a 2-letter weekday abbreviation under each day number — this
+      // matches the moment the chart visually shifts from "month rhythm"
+      // to "day rhythm", so the labels are useful right when the user
+      // needs them.
+      const showWeekday = pixelsPerDay >= 80;
       const WEEKDAY_LETTERS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
       // When the window doesn't start on the 1st, the very first day label
