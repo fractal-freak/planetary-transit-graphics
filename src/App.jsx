@@ -8,7 +8,7 @@ import { useAuth } from './contexts/AuthContext';
 import { computeNatalAngles, computeNatalPositions, computeNatalSpeeds, combineDateAndTime } from './data/natalChart';
 import { initSwissEph, isSweReady } from './api/swisseph';
 import { loadSession, saveSession } from './firebase/firestore';
-import { moveAnonPresetUp, loadAnonPresets } from './utils/anonPresets';
+import { reorderAnonPresets, loadAnonPresets } from './utils/anonPresets';
 import TransitCanvas, { PADDING } from './components/Canvas/TransitCanvas';
 import Controls from './components/Controls/Controls';
 import StripView from './components/StripView/StripView';
@@ -39,6 +39,22 @@ function refreshAngles(chart) {
   const speeds = computeNatalSpeeds(dt);
   const angles = hasLoc ? computeNatalAngles(dt, chart.lat, chart.lng) : null;
   return { ...chart, positions, speeds, angles };
+}
+
+/**
+ * Splice a reordered subset of preset ids back into the full savedPresets
+ * list. Useful when the sidebar shows favorites filtered out of the full
+ * list — drag-reordering the favorites needs to update the underlying
+ * order without disturbing non-favorites.
+ */
+function mergeReorderedFavorites(allPresets, orderedFavoriteIds) {
+  const idSet = new Set(orderedFavoriteIds);
+  const byId = new Map(allPresets.map(p => [p.id, p]));
+  const reorderedFavorites = orderedFavoriteIds
+    .map(id => byId.get(id))
+    .filter(Boolean);
+  let favIdx = 0;
+  return allPresets.map(p => (idSet.has(p.id) ? reorderedFavorites[favIdx++] : p));
 }
 
 /** Default first-time range: today through one week ahead. */
@@ -577,21 +593,20 @@ export default function App() {
     }
   }
 
-  // Move a preset up one slot in the sidebar favorites list. The top-most
-  // preset is the "default" that auto-loads on a fresh session.
-  function handleMovePresetUp(presetId) {
+  // Reorder favorites in the sidebar. The top-most preset is the
+  // "default" that auto-loads on a fresh session.
+  //
+  // The list passed in is the new order of the favorites group; we splice
+  // it back into the full savedPresets list so non-favorite ordering stays
+  // intact (favorites are filtered + drag-reordered as their own group).
+  function handleReorderPresets(orderedFavoriteIds) {
     if (user) {
       // Signed-in: in-memory reorder for this session. Firestore order
       // persistence is a follow-up (would require an `order` field).
-      setSavedPresets(prev => {
-        const idx = prev.findIndex(p => p.id === presetId);
-        if (idx <= 0) return prev;
-        const next = prev.slice();
-        [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-        return next;
-      });
+      setSavedPresets(prev => mergeReorderedFavorites(prev, orderedFavoriteIds));
     } else {
-      moveAnonPresetUp(presetId);
+      const next = mergeReorderedFavorites(savedPresets, orderedFavoriteIds);
+      reorderAnonPresets(next.map(p => p.id));
       setSavedPresets(loadAnonPresets());
     }
   }
@@ -725,7 +740,7 @@ export default function App() {
           onRemoveNatalJob={handleRemoveNatalJob}
           onUpdateNatalJob={handleUpdateNatalJob}
           onLoadPreset={handleLoadPreset}
-          onMovePresetUp={handleMovePresetUp}
+          onReorderPresets={handleReorderPresets}
           stackCharts={stackCharts}
           onAddStackChart={handleAddStackChart}
           onRemoveStackChart={handleRemoveStackChart}

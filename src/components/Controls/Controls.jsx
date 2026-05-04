@@ -61,7 +61,7 @@ export default function Controls({
   onRemoveNatalJob,
   onUpdateNatalJob,
   onLoadPreset,
-  onMovePresetUp,
+  onReorderPresets,
   // Mundane mode props
   stackCharts,
   onAddStackChart,
@@ -207,34 +207,11 @@ export default function Controls({
             <CollapsibleSection id="presets" title="Presets" icon={<IconStar />}>
               <div className={styles.presetsBar}>
                 {favorites.length > 0 && (
-                  <div className={styles.presetFavorites}>
-                    {favorites.map((preset, idx) => (
-                      <div key={preset.id} className={styles.presetFavRow}>
-                        <button
-                          className={styles.presetFavBtn}
-                          onClick={() => onLoadPreset(preset)}
-                          title={`Load "${preset.name}" (${preset.mode})`}
-                        >
-                          <span className={styles.presetFavStar}>{'★'}</span>
-                          <span className={styles.presetFavName}>{preset.name}</span>
-                          {idx === 0 && (
-                            <span className={styles.presetFavDefault}>default</span>
-                          )}
-                        </button>
-                        {idx > 0 && onMovePresetUp && (
-                          <button
-                            type="button"
-                            className={styles.presetFavMoveUp}
-                            onClick={(e) => { e.stopPropagation(); onMovePresetUp(preset.id); }}
-                            title="Move up"
-                            aria-label="Move preset up"
-                          >
-                            ↑
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <PresetFavoritesList
+                    favorites={favorites}
+                    onLoadPreset={onLoadPreset}
+                    onReorderPresets={onReorderPresets}
+                  />
                 )}
                 <button
                   className={styles.presetsOpenBtn}
@@ -404,4 +381,96 @@ function mergeStackAngles(charts) {
     }
   }
   return merged;
+}
+
+// ─── Drag-and-drop favorites list ───
+//
+// Each row is HTML5-draggable. Drop a row onto another row and the
+// reorder fires via onReorderPresets(orderedIds). Top row is the default
+// preset (auto-loads on a fresh session) and shows the "default" badge.
+function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets }) {
+  const [draggedId, setDraggedId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+
+  function handleDragStart(e, id) {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', id); } catch {}
+  }
+
+  function handleDragOver(e, id) {
+    if (!draggedId || draggedId === id) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverId !== id) setDragOverId(id);
+  }
+
+  function handleDragLeave(id) {
+    if (dragOverId === id) setDragOverId(null);
+  }
+
+  function handleDrop(e, dropTargetId) {
+    e.preventDefault();
+    if (!draggedId || draggedId === dropTargetId) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+    if (onReorderPresets) {
+      const ids = favorites.map(p => p.id);
+      const fromIdx = ids.indexOf(draggedId);
+      const toIdx = ids.indexOf(dropTargetId);
+      if (fromIdx >= 0 && toIdx >= 0) {
+        const next = ids.slice();
+        next.splice(fromIdx, 1);
+        next.splice(toIdx, 0, draggedId);
+        onReorderPresets(next);
+      }
+    }
+    setDraggedId(null);
+    setDragOverId(null);
+  }
+
+  function handleDragEnd() {
+    setDraggedId(null);
+    setDragOverId(null);
+  }
+
+  return (
+    <div className={styles.presetFavorites}>
+      {favorites.map((preset, idx) => {
+        const isDragging = draggedId === preset.id;
+        const isDragOver = dragOverId === preset.id;
+        const cls = [
+          styles.presetFavRow,
+          isDragging ? styles.presetFavRowDragging : '',
+          isDragOver ? styles.presetFavRowDragOver : '',
+        ].filter(Boolean).join(' ');
+        return (
+          <div
+            key={preset.id}
+            className={cls}
+            draggable={!!onReorderPresets}
+            onDragStart={(e) => handleDragStart(e, preset.id)}
+            onDragOver={(e) => handleDragOver(e, preset.id)}
+            onDragLeave={() => handleDragLeave(preset.id)}
+            onDrop={(e) => handleDrop(e, preset.id)}
+            onDragEnd={handleDragEnd}
+          >
+            <button
+              className={styles.presetFavBtn}
+              onClick={() => onLoadPreset(preset)}
+              title={`Load "${preset.name}" (${preset.mode}) — drag to reorder`}
+            >
+              <span className={styles.presetFavStar}>{'★'}</span>
+              <span className={styles.presetFavName}>{preset.name}</span>
+              {idx === 0 && (
+                <span className={styles.presetFavDefault}>default</span>
+              )}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

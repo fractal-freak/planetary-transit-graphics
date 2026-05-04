@@ -20,7 +20,7 @@ export const DEFAULT_PRESETS = [
       { transitPlanet: 'Mars', targets: ['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
       { transitPlanet: 'Saturn', targets: ['Uranus', 'Neptune', 'Pluto'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
       { transitPlanet: 'Sun', targets: ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'], aspects: ['Conjunction', 'Opposition', 'Square', 'Trine', 'Sextile'], showRetrogrades: false, showSignChanges: true },
-      { transitPlanet: 'Moon', targets: ['Mercury', 'Venus', 'Sun', 'Mars', 'Jupiter', 'Saturn'], aspects: ['Conjunction', 'Opposition', 'Square'], showRetrogrades: false, showSignChanges: true },
+      { transitPlanet: 'Moon', targets: ['Mercury', 'Venus', 'Sun', 'Mars', 'Jupiter', 'Saturn'], aspects: ['Conjunction', 'Opposition', 'Square', 'Trine', 'Sextile'], showRetrogrades: false, showSignChanges: true },
       { transitPlanet: 'Jupiter', targets: ['Saturn', 'Uranus', 'Neptune', 'Pluto'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
     ],
   },
