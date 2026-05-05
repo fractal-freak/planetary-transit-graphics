@@ -263,9 +263,8 @@ function SolarEclipseGlyph({ size = 16 }) {
           <circle cx={sunCx} cy={cy} r={r} />
         </clipPath>
       </defs>
-      <circle cx={sunCx} cy={cy} r={r} fill="#dc3545" />
-      <circle cx={moonCx} cy={cy} r={r} fill="#1a1a2e" />
-      <circle cx={moonCx} cy={cy} r={r} fill="none" stroke="white" strokeWidth={0.75} clipPath="url(#eclipse-sun-clip)" />
+      <circle cx={sunCx} cy={cy} r={r} fill="currentColor" opacity={0.35} />
+      <circle cx={moonCx} cy={cy} r={r} fill="currentColor" />
     </svg>
   );
 }
