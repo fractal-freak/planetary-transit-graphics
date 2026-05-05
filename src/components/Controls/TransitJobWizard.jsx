@@ -123,7 +123,7 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
               onClick={() => { onToggleLunations(); reset(); }}
               type="button"
             >
-              <span className={styles.planetBtnSymbol} style={{ letterSpacing: '-2px', fontSize: 14 }}>🌑🌕</span>
+              <span className={styles.planetBtnSymbol}>◉</span>
               <span className={styles.planetBtnName}>Lunations</span>
             </button>
           )}
