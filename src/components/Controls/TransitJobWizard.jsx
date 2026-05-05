@@ -5,7 +5,7 @@ import styles from './Controls.module.css';
 
 const ALL_ASPECT_NAMES = ASPECTS.map(a => a.name);
 
-export default function TransitJobWizard({ onAddJob }) {
+export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLunations }) {
   const [step, setStep] = useState(0); // 0 = closed, 1 = pick planet, 2 = pick targets
   const [transitPlanet, setTransitPlanet] = useState(null);
   const [targets, setTargets] = useState([]);
@@ -117,6 +117,16 @@ export default function TransitJobWizard({ onAddJob }) {
               </button>
             );
           })}
+          {onToggleLunations && (
+            <button
+              className={`${styles.planetBtn} ${lunationsActive ? styles.planetBtnActive : ''}`}
+              onClick={() => { onToggleLunations(); reset(); }}
+              type="button"
+            >
+              <span className={styles.planetBtnSymbol} style={{ letterSpacing: '-2px', fontSize: 14 }}>🌑🌕</span>
+              <span className={styles.planetBtnName}>Lunations</span>
+            </button>
+          )}
         </div>
       </div>
     );

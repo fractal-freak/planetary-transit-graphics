@@ -1001,6 +1001,15 @@
   border-color: var(--fg-faint);
 }
 
+.planetBtnActive {
+  background: var(--bg-hover, var(--border-soft));
+  border-color: var(--fg-muted);
+}
+
+.planetBtnActive:hover {
+  border-color: var(--fg);
+}
+
 .planetBtnSymbol {
   font-size: 16px;
   line-height: 1;
@@ -1166,47 +1175,6 @@
   background: var(--bg-subtle);
 }
 
-.lunationsToggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px dashed var(--border-soft);
-  background: transparent;
-  color: var(--fg-subtle);
-  font-size: 11px;
-  font-family: inherit;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  margin-top: 4px;
-  transition: all 0.15s;
-}
-
-.lunationsToggle:hover {
-  border-color: var(--fg-subtle);
-  color: var(--fg);
-  background: var(--bg-subtle);
-}
-
-.lunationsToggleActive {
-  border-style: solid;
-  border-color: var(--fg-muted);
-  background: var(--bg-subtle);
-  color: var(--fg);
-}
-
-.lunationsToggleActive:hover {
-  border-color: var(--fg);
-  background: var(--bg-hover);
-}
-
-.lunationsToggleGlyph {
-  font-size: 12px;
-  line-height: 1;
-  letter-spacing: -1px;
-}
 
 /* ─── Clear all transits ─── */
 

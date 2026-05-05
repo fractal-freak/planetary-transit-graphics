@@ -54,8 +54,12 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
           />
         );
       })}
-      <TransitJobWizard onAddJob={onAddJob} existingJobs={transitJobs} />
-      <LunationsToggle active={!!lunationJob} onToggle={handleToggleLunations} />
+      <TransitJobWizard
+        onAddJob={onAddJob}
+        existingJobs={transitJobs}
+        lunationsActive={!!lunationJob}
+        onToggleLunations={handleToggleLunations}
+      />
       {transitJobs.length >= 2 && onClearAll && (
         <ClearAllButton onClearAll={onClearAll} />
       )}
@@ -63,18 +67,6 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
   );
 }
 
-function LunationsToggle({ active, onToggle }) {
-  return (
-    <button
-      type="button"
-      className={`${styles.lunationsToggle} ${active ? styles.lunationsToggleActive : ''}`}
-      onClick={onToggle}
-    >
-      <span className={styles.lunationsToggleGlyph}>🌑🌕</span>
-      <span>Lunations</span>
-    </button>
-  );
-}
 
 export function ClearAllButton({ onClearAll }) {
   const [confirming, setConfirming] = useState(false);
