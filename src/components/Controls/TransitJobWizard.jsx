@@ -246,39 +246,39 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
 // Replicates the canvas drawSolarEclipseGlyph: red sun peeking left,
 // dark navy moon in front, white separator at the overlap.
 function SolarEclipseGlyph({ size = 16 }) {
-  // Vector-only approach: crescent drawn as a single <path> using two arcs.
-  // No mask, no overlapping strokes — just pure geometry, which renders cleanly
-  // at any size.
-  const r = size * 0.5;
-  const peek = r * 0.55;
-  const peekHalf = peek / 2;
-  const sunCx = r;
-  const moonCx = r + peek;
-  const cy = r;
-  const xInt = sunCx + peekHalf;            // x of the two circle intersections
-  const yOff = Math.sqrt(r * r - peekHalf * peekHalf); // ± y offset of intersections
-  const w = moonCx + r;
-  const h = r * 2;
-  const sw = 1.1;
+  // Classic eclipse glyph: a sun circle with a moon crescent inside it.
+  // - Sun: stroked circle, line-drawn like ☉/♂/♀ etc.
+  // - Crescent: a single filled <path> built from two arcs.
+  const cx = size / 2;
+  const cy = size / 2;
+  const R = size * 0.42;          // Sun outer radius (with margin for stroke)
+  const rMoon = R * 0.68;         // Crescent's circle radius
+  const offset = rMoon * 0.55;    // Distance between the two crescent circles → controls thickness
+  const sw = 1;
 
-  // Crescent = (sun arc going large/CCW around the left) + (moon arc going small/CCW back)
+  // Position so the crescent's bounding box is centered horizontally in the sun.
+  const c1 = cx + rMoon / 2 - offset / 4;
+  const c2 = c1 + offset;
+  const xInt = (c1 + c2) / 2;
+  const yOff = Math.sqrt(rMoon * rMoon - (offset * offset) / 4);
+
   const crescentPath = [
     `M${xInt} ${cy - yOff}`,
-    `A${r} ${r} 0 1 0 ${xInt} ${cy + yOff}`,
-    `A${r} ${r} 0 0 0 ${xInt} ${cy - yOff}`,
+    `A${rMoon} ${rMoon} 0 1 0 ${xInt} ${cy + yOff}`,
+    `A${rMoon} ${rMoon} 0 0 0 ${xInt} ${cy - yOff}`,
     `Z`,
   ].join(' ');
 
   return (
     <svg
-      viewBox={`0 0 ${w} ${h}`}
-      width={w}
-      height={h}
+      viewBox={`0 0 ${size} ${size}`}
+      width={size}
+      height={size}
       shapeRendering="geometricPrecision"
       style={{ display: 'block', flexShrink: 0 }}
     >
+      <circle cx={cx} cy={cy} r={R} fill="none" stroke="currentColor" strokeWidth={sw} />
       <path d={crescentPath} fill="currentColor" />
-      <circle cx={moonCx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth={sw} />
     </svg>
   );
 }
