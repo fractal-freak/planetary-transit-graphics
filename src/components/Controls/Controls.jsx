@@ -42,6 +42,9 @@ export default function Controls({
   curvesLoading,
   onAddJob,
   onRemoveJob,
+  onClearAllJobs,
+  onClearAllNatalJobs,
+  onClearAllMundaneJobs,
   onUpdateJob,
   orbSettings,
   onOrbChange,
@@ -236,6 +239,7 @@ export default function Controls({
                 onAddJob={onAddJob}
                 onRemoveJob={onRemoveJob}
                 onUpdateJob={onUpdateJob}
+                onClearAll={onClearAllJobs}
               />
             </CollapsibleSection>
           )}
@@ -264,6 +268,7 @@ export default function Controls({
                     onAddJob={onAddNatalJob}
                     onRemoveJob={onRemoveNatalJob}
                     onUpdateJob={onUpdateNatalJob}
+                    onClearAll={onClearAllNatalJobs}
                   />
                 )}
               </CollapsibleSection>
@@ -318,6 +323,7 @@ export default function Controls({
                     onAddJob={onAddMundaneJob}
                     onRemoveJob={onRemoveMundaneJob}
                     onUpdateJob={onUpdateMundaneJob}
+                    onClearAll={onClearAllMundaneJobs}
                   />
                 )}
               </CollapsibleSection>

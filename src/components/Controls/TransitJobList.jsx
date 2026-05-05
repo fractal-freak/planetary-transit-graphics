@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { SPEED_ORDER } from '../../data/planets';
 import TransitJobCard from './TransitJobCard';
 import TransitJobWizard from './TransitJobWizard';
 import styles from './Controls.module.css';
 
-export default function TransitJobList({ transitJobs, curves, signChanges, loading, onAddJob, onRemoveJob, onUpdateJob }) {
+export default function TransitJobList({ transitJobs, curves, signChanges, loading, onAddJob, onRemoveJob, onUpdateJob, onClearAll }) {
   // Sort cards by planet speed: slowest (Pluto) first, fastest (Moon) last
   const sorted = [...transitJobs].sort(
     (a, b) => SPEED_ORDER.indexOf(b.transitPlanet) - SPEED_ORDER.indexOf(a.transitPlanet)
@@ -36,6 +37,43 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
         );
       })}
       <TransitJobWizard onAddJob={onAddJob} />
+      {transitJobs.length >= 2 && onClearAll && (
+        <ClearAllButton onClearAll={onClearAll} />
+      )}
     </div>
+  );
+}
+
+export function ClearAllButton({ onClearAll }) {
+  const [confirming, setConfirming] = useState(false);
+  if (confirming) {
+    return (
+      <div className={styles.clearAllConfirm}>
+        <span className={styles.clearAllConfirmText}>Clear all transits?</span>
+        <button
+          type="button"
+          className={styles.clearAllConfirmYes}
+          onClick={() => { onClearAll(); setConfirming(false); }}
+        >
+          Clear
+        </button>
+        <button
+          type="button"
+          className={styles.clearAllConfirmNo}
+          onClick={() => setConfirming(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className={styles.clearAllBtn}
+      onClick={() => setConfirming(true)}
+    >
+      Clear all
+    </button>
   );
 }

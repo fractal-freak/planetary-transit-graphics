@@ -1166,6 +1166,76 @@
   background: var(--bg-subtle);
 }
 
+/* ─── Clear all transits ─── */
+
+.clearAllBtn {
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--fg-subtle);
+  font-size: 10px;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.12s;
+  margin-top: 2px;
+}
+
+.clearAllBtn:hover {
+  color: rgba(200, 60, 60, 0.85);
+}
+
+.clearAllConfirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.clearAllConfirmText {
+  flex: 1;
+  color: var(--fg);
+}
+
+.clearAllConfirmYes,
+.clearAllConfirmNo {
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.clearAllConfirmYes {
+  color: rgba(200, 60, 60, 0.9);
+  border-color: rgba(200, 60, 60, 0.4);
+}
+
+.clearAllConfirmYes:hover {
+  background: rgba(200, 60, 60, 0.1);
+  border-color: rgba(200, 60, 60, 0.7);
+}
+
+.clearAllConfirmNo {
+  color: var(--fg-muted);
+}
+
+.clearAllConfirmNo:hover {
+  color: var(--fg-strong);
+  background: var(--bg-subtle-2);
+}
+
 /* ─── Aspect Toggles ─── */
 
 .aspectGrid {

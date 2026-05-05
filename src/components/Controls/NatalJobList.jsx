@@ -1,9 +1,10 @@
 import { SPEED_ORDER } from '../../data/planets';
 import NatalJobCard from './NatalJobCard';
 import NatalJobWizard from './NatalJobWizard';
+import { ClearAllButton } from './TransitJobList';
 import styles from './Controls.module.css';
 
-export default function NatalJobList({ natalChart, natalJobs, natalCurves, natalSignChanges, natalLoading, onAddJob, onRemoveJob, onUpdateJob }) {
+export default function NatalJobList({ natalChart, natalJobs, natalCurves, natalSignChanges, natalLoading, onAddJob, onRemoveJob, onUpdateJob, onClearAll }) {
   // Sort cards by planet speed: slowest (Pluto) first, fastest (Moon) last
   const sorted = [...natalJobs].sort(
     (a, b) => SPEED_ORDER.indexOf(b.transitPlanet) - SPEED_ORDER.indexOf(a.transitPlanet)
@@ -37,6 +38,9 @@ export default function NatalJobList({ natalChart, natalJobs, natalCurves, natal
         );
       })}
       <NatalJobWizard natalChart={natalChart} onAddJob={onAddJob} />
+      {natalJobs.length >= 2 && onClearAll && (
+        <ClearAllButton onClearAll={onClearAll} />
+      )}
     </div>
   );
 }

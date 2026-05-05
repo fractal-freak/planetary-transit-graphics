@@ -521,6 +521,9 @@ export default function App() {
       prev.map(j => (j.id === jobId ? { ...j, ...updates } : j))
     );
   }
+  function handleClearAllJobs() {
+    setTransitJobs([]);
+  }
 
   // ── Natal job handlers ──
   function handleAddNatalJob(job) {
@@ -534,6 +537,9 @@ export default function App() {
       prev.map(j => (j.id === jobId ? { ...j, ...updates } : j))
     );
   }
+  function handleClearAllNatalJobs() {
+    setNatalJobs([]);
+  }
 
   // ── Mundane job handlers ──
   function handleAddMundaneJob(job) {
@@ -541,6 +547,9 @@ export default function App() {
   }
   function handleRemoveMundaneJob(jobId) {
     setMundaneJobs(prev => prev.filter(j => j.id !== jobId));
+  }
+  function handleClearAllMundaneJobs() {
+    setMundaneJobs([]);
   }
   function handleUpdateMundaneJob(jobId, updates) {
     setMundaneJobs(prev =>
@@ -722,6 +731,7 @@ export default function App() {
           onAddJob={handleAddJob}
           onRemoveJob={handleRemoveJob}
           onUpdateJob={handleUpdateJob}
+          onClearAllJobs={handleClearAllJobs}
           orbSettings={orbSettings}
           onOrbChange={handleOrbChange}
           isOpen={controlsOpen}
@@ -739,6 +749,7 @@ export default function App() {
           onAddNatalJob={handleAddNatalJob}
           onRemoveNatalJob={handleRemoveNatalJob}
           onUpdateNatalJob={handleUpdateNatalJob}
+          onClearAllNatalJobs={handleClearAllNatalJobs}
           onLoadPreset={handleLoadPreset}
           onReorderPresets={handleReorderPresets}
           stackCharts={stackCharts}
@@ -749,6 +760,7 @@ export default function App() {
           onAddMundaneJob={handleAddMundaneJob}
           onRemoveMundaneJob={handleRemoveMundaneJob}
           onUpdateMundaneJob={handleUpdateMundaneJob}
+          onClearAllMundaneJobs={handleClearAllMundaneJobs}
           activeProject={activeProject}
           onOpenProjectModal={() => setShowProjectModal(true)}
         />
