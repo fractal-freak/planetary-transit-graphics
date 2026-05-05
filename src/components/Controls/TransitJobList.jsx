@@ -4,11 +4,31 @@ import TransitJobCard from './TransitJobCard';
 import TransitJobWizard from './TransitJobWizard';
 import styles from './Controls.module.css';
 
+const LUNATION_JOB_DEFAULTS = {
+  transitPlanet: 'Moon',
+  targets: ['Sun'],
+  aspects: ['Conjunction', 'Opposition'],
+  isLunation: true,
+  showSignChanges: false,
+  showRetrogrades: false,
+};
+
 export default function TransitJobList({ transitJobs, curves, signChanges, loading, onAddJob, onRemoveJob, onUpdateJob, onClearAll }) {
-  // Sort cards by planet speed: slowest (Pluto) first, fastest (Moon) last
-  const sorted = [...transitJobs].sort(
+  const lunationJob = transitJobs.find(j => j.isLunation);
+  const nonLunationJobs = transitJobs.filter(j => !j.isLunation);
+
+  // Sort non-lunation cards by planet speed: slowest (Pluto) first, fastest (Moon) last
+  const sorted = [...nonLunationJobs].sort(
     (a, b) => SPEED_ORDER.indexOf(b.transitPlanet) - SPEED_ORDER.indexOf(a.transitPlanet)
   );
+
+  function handleToggleLunations() {
+    if (lunationJob) {
+      onRemoveJob(lunationJob.id);
+    } else {
+      onAddJob(LUNATION_JOB_DEFAULTS);
+    }
+  }
 
   return (
     <div className={styles.jobList}>
@@ -20,8 +40,6 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
         const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
         const wantsEclipses = planet === 'TrueNode' && (job.showEclipses ?? true);
         const hasEclipse = wantsEclipses && (signChanges?.eclipses?.length ?? 0) > 0;
-        // While curves are still computing, the activity check would be a
-        // false negative — pass null so the card hides the "no transits" line.
         const hasAnyActivity = loading
           ? null
           : (hasAspects || hasSignChange || hasStation || hasRetroPeriod || hasEclipse);
@@ -36,8 +54,8 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
           />
         );
       })}
-      <TransitJobWizard onAddJob={onAddJob} />
-      <AddLunationsButton onAddJob={onAddJob} existingJobs={transitJobs} />
+      <TransitJobWizard onAddJob={onAddJob} existingJobs={transitJobs} />
+      <LunationsToggle active={!!lunationJob} onToggle={handleToggleLunations} />
       {transitJobs.length >= 2 && onClearAll && (
         <ClearAllButton onClearAll={onClearAll} />
       )}
@@ -45,32 +63,15 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
   );
 }
 
-// One-click shortcut: add a Moon→Sun (Conj + Opp) job pre-configured to
-// display as "Lunations". Skipped if the user already has one. The
-// existing canvas automatically renders these as 🌑 New Moon / 🌕 Full
-// Moon labels, with eclipse swap when applicable.
-function AddLunationsButton({ onAddJob, existingJobs }) {
-  const alreadyHas = existingJobs.some(j => j.isLunation);
-  if (alreadyHas) return null;
-  function handleClick() {
-    onAddJob({
-      id: `job-${Date.now()}`,
-      transitPlanet: 'Moon',
-      targets: ['Sun'],
-      aspects: ['Conjunction', 'Opposition'],
-      showSignChanges: false,
-      showRetrogrades: false,
-      isLunation: true,
-    });
-  }
+function LunationsToggle({ active, onToggle }) {
   return (
     <button
       type="button"
-      className={styles.addLunationsBtn}
-      onClick={handleClick}
-      title="One-click Moon → Sun conjunctions + oppositions (New / Full Moons + eclipses)"
+      className={`${styles.lunationsToggle} ${active ? styles.lunationsToggleActive : ''}`}
+      onClick={onToggle}
     >
-      + Lunations
+      <span className={styles.lunationsToggleGlyph}>🌑🌕</span>
+      <span>Lunations</span>
     </button>
   );
 }
