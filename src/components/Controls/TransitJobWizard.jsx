@@ -246,34 +246,38 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
 // Replicates the canvas drawSolarEclipseGlyph: red sun peeking left,
 // dark navy moon in front, white separator at the overlap.
 function SolarEclipseGlyph({ size = 16 }) {
-  // Render at 4x internal resolution for clean anti-aliased curves at small display sizes.
-  const SCALE = 4;
-  const r = size * 0.5 * SCALE;
+  // Vector-only approach: crescent drawn as a single <path> using two arcs.
+  // No mask, no overlapping strokes — just pure geometry, which renders cleanly
+  // at any size.
+  const r = size * 0.5;
   const peek = r * 0.55;
+  const peekHalf = peek / 2;
   const sunCx = r;
   const moonCx = r + peek;
   const cy = r;
+  const xInt = sunCx + peekHalf;            // x of the two circle intersections
+  const yOff = Math.sqrt(r * r - peekHalf * peekHalf); // ± y offset of intersections
   const w = moonCx + r;
   const h = r * 2;
-  const sw = 1.25 * SCALE;
+  const sw = 1.1;
+
+  // Crescent = (sun arc going large/CCW around the left) + (moon arc going small/CCW back)
+  const crescentPath = [
+    `M${xInt} ${cy - yOff}`,
+    `A${r} ${r} 0 1 0 ${xInt} ${cy + yOff}`,
+    `A${r} ${r} 0 0 0 ${xInt} ${cy - yOff}`,
+    `Z`,
+  ].join(' ');
+
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
-      width={w / SCALE}
-      height={h / SCALE}
+      width={w}
+      height={h}
       shapeRendering="geometricPrecision"
       style={{ display: 'block', flexShrink: 0 }}
     >
-      <defs>
-        <mask id="eclipse-sun-mask">
-          <rect x={-r} y={-r} width={w + r * 2} height={h + r * 2} fill="white" />
-          {/* Expand cutout by sw/2 so the mask clips cleanly past the stroke edge */}
-          <circle cx={moonCx} cy={cy} r={r + sw / 2} fill="black" />
-        </mask>
-      </defs>
-      {/* Sun: filled crescent — fill + stroke both clipped by mask */}
-      <circle cx={sunCx} cy={cy} r={r} fill="currentColor" stroke="currentColor" strokeWidth={sw} mask="url(#eclipse-sun-mask)" />
-      {/* Moon: hollow circle on top */}
+      <path d={crescentPath} fill="currentColor" />
       <circle cx={moonCx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth={sw} />
     </svg>
   );
