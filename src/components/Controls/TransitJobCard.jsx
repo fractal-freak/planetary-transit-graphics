@@ -39,7 +39,9 @@ export default function TransitJobCard({ job, hasAspects, hasAnyActivity, onRemo
         className={styles.jobCardHeader}
         onClick={() => setExpanded(e => !e)}
       >
-        <span className={styles.jobPlanet}>{transitP.symbol}</span>
+        <span className={styles.jobPlanet}>
+          {job.isLunation ? <>🌑 Lunations 🌕</> : transitP.symbol}
+        </span>
         <button
           className={styles.jobRemove}
           onClick={e => { e.stopPropagation(); onRemove(); }}

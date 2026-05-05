@@ -37,10 +37,41 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
         );
       })}
       <TransitJobWizard onAddJob={onAddJob} />
+      <AddLunationsButton onAddJob={onAddJob} existingJobs={transitJobs} />
       {transitJobs.length >= 2 && onClearAll && (
         <ClearAllButton onClearAll={onClearAll} />
       )}
     </div>
+  );
+}
+
+// One-click shortcut: add a Moon→Sun (Conj + Opp) job pre-configured to
+// display as "Lunations". Skipped if the user already has one. The
+// existing canvas automatically renders these as 🌑 New Moon / 🌕 Full
+// Moon labels, with eclipse swap when applicable.
+function AddLunationsButton({ onAddJob, existingJobs }) {
+  const alreadyHas = existingJobs.some(j => j.isLunation);
+  if (alreadyHas) return null;
+  function handleClick() {
+    onAddJob({
+      id: `job-${Date.now()}`,
+      transitPlanet: 'Moon',
+      targets: ['Sun'],
+      aspects: ['Conjunction', 'Opposition'],
+      showSignChanges: false,
+      showRetrogrades: false,
+      isLunation: true,
+    });
+  }
+  return (
+    <button
+      type="button"
+      className={styles.addLunationsBtn}
+      onClick={handleClick}
+      title="One-click Moon → Sun conjunctions + oppositions (New / Full Moons + eclipses)"
+    >
+      + Lunations
+    </button>
   );
 }
 
