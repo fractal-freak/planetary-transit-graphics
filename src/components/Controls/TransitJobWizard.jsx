@@ -123,7 +123,7 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
               onClick={() => { onToggleLunations(); reset(); }}
               type="button"
             >
-              <span className={styles.planetBtnSymbol}>◉</span>
+              <SolarEclipseGlyph size={16} />
               <span className={styles.planetBtnName}>Lunations</span>
             </button>
           )}
@@ -239,4 +239,33 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
   }
 
   return null;
+}
+
+// Replicates the canvas drawSolarEclipseGlyph: red sun peeking left,
+// dark navy moon in front, white separator at the overlap.
+function SolarEclipseGlyph({ size = 16 }) {
+  const r = size * 0.5;
+  const peek = r * 0.55;
+  const sunCx = r;
+  const moonCx = r + peek;
+  const cy = r;
+  const w = moonCx + r;
+  const h = r * 2;
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      width={w}
+      height={h}
+      style={{ display: 'block', flexShrink: 0 }}
+    >
+      <defs>
+        <clipPath id="eclipse-sun-clip">
+          <circle cx={sunCx} cy={cy} r={r} />
+        </clipPath>
+      </defs>
+      <circle cx={sunCx} cy={cy} r={r} fill="#dc3545" />
+      <circle cx={moonCx} cy={cy} r={r} fill="#1a1a2e" />
+      <circle cx={moonCx} cy={cy} r={r} fill="none" stroke="white" strokeWidth={0.75} clipPath="url(#eclipse-sun-clip)" />
+    </svg>
+  );
 }
