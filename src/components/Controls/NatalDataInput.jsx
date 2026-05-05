@@ -11,6 +11,7 @@ import styles from './Controls.module.css';
  */
 export default function NatalDataInput({ onNatalChartChange, onCancel }) {
   const [name, setName] = useState('');
+  const [chartType, setChartType] = useState('natal');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00');
   const [location, setLocation] = useState('');
@@ -34,6 +35,7 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
       : null;
     onNatalChartChange({
       name: name.trim(),
+      chartType,
       birthDate,
       birthTime,
       lat: lat || null,
@@ -88,6 +90,22 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
           autoFocus
         />
       </label>
+
+      <div className={styles.natalLabel}>
+        <span className={styles.natalLabelText}>Type</span>
+        <div className={styles.chartTypeSelector}>
+          {['natal', 'event', 'horary'].map(t => (
+            <button
+              key={t}
+              type="button"
+              className={`${styles.chartTypeBtn} ${chartType === t ? styles.chartTypeBtnActive : ''}`}
+              onClick={() => setChartType(t)}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className={styles.natalFormRow}>
         <label className={styles.natalLabel}>

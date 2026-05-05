@@ -245,6 +245,12 @@ export default function ChartStackPanel({
               }}>
                 {savedCharts
                   .filter(c => !stackCharts.some(sc => sc.id === c.id))
+                  .sort((a, b) => {
+                    const ta = (a.chartType || 'natal');
+                    const tb = (b.chartType || 'natal');
+                    if (ta !== tb) return ta.localeCompare(tb);
+                    return (a.name || '').localeCompare(b.name || '');
+                  })
                   .map(chart => {
                     const ct = getChartType(chart.chartType);
                     return (
@@ -255,7 +261,9 @@ export default function ChartStackPanel({
                           setShowAddMenu(false);
                         }}
                         style={{
-                          display: 'block',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
                           width: '100%',
                           padding: '6px 10px',
                           border: 'none',
@@ -266,8 +274,22 @@ export default function ChartStackPanel({
                           borderBottom: '1px solid rgba(0,0,0,0.05)',
                         }}
                       >
-                        <span style={{ color: ct.color, marginRight: '4px' }}>{'\u25CF'}</span>
-                        {chart.name}
+                        <span style={{ color: ct.color }}>{'\u25CF'}</span>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {chart.name}
+                        </span>
+                        <span style={{
+                          fontSize: '9px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          color: ct.color,
+                          background: `${ct.color}1a`,
+                          padding: '1px 5px',
+                          borderRadius: '3px',
+                          flexShrink: 0,
+                        }}>
+                          {ct.label}
+                        </span>
                       </button>
                     );
                   })}

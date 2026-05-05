@@ -226,6 +226,13 @@
   min-width: 0;
 }
 
+.chartNameRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
 .chartName {
   font-size: 12px;
   font-weight: 500;
@@ -233,6 +240,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.chartTypeTag {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--fg-subtle);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 3px;
+  padding: 1px 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .chartDefault {

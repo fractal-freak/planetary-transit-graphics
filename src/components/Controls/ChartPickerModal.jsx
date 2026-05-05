@@ -104,6 +104,8 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
 
   function handleSelectChart(chart) {
     onSelectChart({
+      name: chart.name,
+      chartType: chart.chartType || 'natal',
       birthDate: chart.birthDate,
       birthTime: chart.birthTime,
       lat: chart.lat,
@@ -292,11 +294,14 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
         style={{ position: 'relative' }}
       >
         <button className={styles.chartBtn} onClick={() => handleSelectChart(chart)}>
-          <span className={styles.chartName}>
-            {chart.name}
-            {chart.id === defaultChartId && (
-              <span className={styles.chartDefault}>{'\u2605'}</span>
-            )}
+          <span className={styles.chartNameRow}>
+            <span className={styles.chartName}>
+              {chart.name}
+              {chart.id === defaultChartId && (
+                <span className={styles.chartDefault}>{'\u2605'}</span>
+              )}
+            </span>
+            <span className={styles.chartTypeTag}>{chart.chartType || 'natal'}</span>
           </span>
           <span className={styles.chartMeta}>
             {chart.birthDate}{chart.birthTime && ` \u00B7 ${chart.birthTime}`}

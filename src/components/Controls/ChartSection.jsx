@@ -38,6 +38,8 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
         // Load the first imported chart as the natal chart
         const first = charts[0];
         onNatalChartChange({
+          name: first.name,
+          chartType: first.chartType || 'natal',
           birthDate: first.birthDate,
           birthTime: first.birthTime,
           lat: first.lat,
@@ -354,9 +356,10 @@ function formatBirthTime(t) {
 function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
   const [expanded, setExpanded] = useState(false);
 
-  const displayName = savedChart
-    ? savedChart.name
-    : `${natalChart.birthDate} \u00B7 ${natalChart.birthTime || '12:00'}`;
+  const displayName = natalChart.name
+    || savedChart?.name
+    || 'Untitled chart';
+  const chartType = natalChart.chartType || savedChart?.chartType || 'natal';
 
   return (
     <div className={styles.natalSummary}>
@@ -373,6 +376,9 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
               <span className={styles.savedChartDefault}> {'\u2605'}</span>
             )}
           </span>
+          {chartType !== 'natal' && (
+            <span className={styles.chartTypeBadge}>{chartType}</span>
+          )}
           <svg
             className={`${styles.summaryChevron} ${expanded ? styles.summaryChevronOpen : ''}`}
             width="16"

@@ -14,6 +14,22 @@ export const CHART_TYPES = {
     glowColor: 'rgba(91, 138, 240, 0.4)',
     relevanceDuration: null, // permanent
   },
+  event: {
+    id: 'event',
+    label: 'Event',
+    description: 'Chart cast for a specific moment or event',
+    color: '#5bd2a0',       // teal-green
+    glowColor: 'rgba(91, 210, 160, 0.4)',
+    relevanceDuration: null,
+  },
+  horary: {
+    id: 'horary',
+    label: 'Horary',
+    description: 'Chart cast for the moment a question is asked',
+    color: '#f0945b',       // orange
+    glowColor: 'rgba(240, 148, 91, 0.4)',
+    relevanceDuration: null,
+  },
   great_conjunction: {
     id: 'great_conjunction',
     label: 'Great Conjunction',
