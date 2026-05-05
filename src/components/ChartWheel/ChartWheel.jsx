@@ -44,9 +44,8 @@ function drawWheel(ctx, chart, size) {
   const rOuter = size * 0.48;
   const rZodiacInner = size * 0.41;
   const rGlyph = size * 0.345;
-  const rDegree = size * 0.27;
-  const rAspect = size * 0.215;
-  const rHousesInner = size * 0.10;
+  const rDegree = size * 0.275;
+  const rHousesInner = size * 0.20;
 
   const ascLng = chart.angles?.Asc ?? 0;
   const angleFor = (L) => Math.PI - ((L - ascLng) * Math.PI / 180);
@@ -117,30 +116,40 @@ function drawWheel(ctx, chart, size) {
     ctx.stroke();
   }
 
-  // ── House numbers near the inner ring ──
-  ctx.fillStyle = 'rgba(0,0,0,0.42)';
-  ctx.font = `${Math.round(size * 0.028)}px sans-serif`;
+  // ── House numbers just inside the inner ring (so they sit in each house slice) ──
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.font = `${Math.round(size * 0.024)}px sans-serif`;
   for (let i = 0; i < 12; i++) {
     const midLng = (houseCusps[i] + 15) % 360;
     const phi = angleFor(midLng);
-    const r = rHousesInner + 8;
+    const r = rHousesInner - 9;
     ctx.fillText(String(i + 1), cx + r * Math.cos(phi), cy + r * Math.sin(phi));
   }
 
-  // ── ASC / MC labels just inside the inner ring (so they sit at the cusp ends) ──
+  // ── ASC / MC: short dashed line from inner ring outward + label on it. ──
+  // Whole-sign cusps fall on sign boundaries; the actual ASC/MC longitude is
+  // somewhere inside, so we draw a thin marker line at the exact longitude.
   if (chart.angles) {
-    const drawLabel = (lng, label, color) => {
+    const drawAxis = (lng, label, color) => {
       if (lng == null) return;
       const phi = angleFor(lng);
-      const r = rHousesInner - 10;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.9;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(cx + rHousesInner * Math.cos(phi), cy + rHousesInner * Math.sin(phi));
+      ctx.lineTo(cx + rDegree * Math.cos(phi), cy + rDegree * Math.sin(phi));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const r = (rHousesInner + rDegree) / 2;
       ctx.fillStyle = color;
-      ctx.font = `bold ${Math.round(size * 0.034)}px sans-serif`;
+      ctx.font = `bold ${Math.round(size * 0.026)}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(label, cx + r * Math.cos(phi), cy + r * Math.sin(phi));
     };
-    drawLabel(chart.angles.Asc, 'AC', 'rgba(200,60,60,0.95)');
-    drawLabel(chart.angles.MC, 'MC', 'rgba(180,140,40,1)');
+    drawAxis(chart.angles.Asc, 'AC', 'rgba(200,60,60,0.95)');
+    drawAxis(chart.angles.MC, 'MC', 'rgba(180,140,40,1)');
   }
 
   // ── Collect placements ──
@@ -173,12 +182,14 @@ function drawWheel(ctx, chart, size) {
     for (const { a, b, aspect, intensity } of lines) {
       const phiA = angleFor(a.originalLng);
       const phiB = angleFor(b.originalLng);
-      const xA = cx + rAspect * Math.cos(phiA);
-      const yA = cy + rAspect * Math.sin(phiA);
-      const xB = cx + rAspect * Math.cos(phiB);
-      const yB = cy + rAspect * Math.sin(phiB);
+      // Aspect lines are chords of the inner circle — both endpoints sit on
+      // its edge so all lines stay strictly within the central area.
+      const xA = cx + rHousesInner * Math.cos(phiA);
+      const yA = cy + rHousesInner * Math.sin(phiA);
+      const xB = cx + rHousesInner * Math.cos(phiB);
+      const yB = cy + rHousesInner * Math.sin(phiB);
       ctx.strokeStyle = isHardAspect(aspect.angle) ? ASPECT_COLOR_HARD : ASPECT_COLOR_SOFT;
-      ctx.lineWidth = 0.6 + intensity * 1.6;
+      ctx.lineWidth = 0.5 + intensity * 1.4;
       ctx.beginPath();
       ctx.moveTo(xA, yA);
       ctx.lineTo(xB, yB);
@@ -225,14 +236,14 @@ function drawWheel(ctx, chart, size) {
       ctx.stroke();
     }
 
-    // Big planet glyph
+    // Planet glyph
     ctx.fillStyle = planet.color;
-    ctx.font = `bold ${Math.round(size * 0.065)}px ${GLYPH_FONT}`;
+    ctx.font = `bold ${Math.round(size * 0.054)}px ${GLYPH_FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(planet.symbol, cx + rGlyph * Math.cos(phi), cy + rGlyph * Math.sin(phi));
 
-    // Bold degree° label (red), with minutes underneath in dark gray
+    // Degree° (red, bold) + minute' (gray) stacked, kept compact.
     const signIdx = getSignIndex(originalLng);
     const inSign = originalLng - signIdx * 30;
     const deg = Math.floor(inSign);
@@ -240,10 +251,10 @@ function drawWheel(ctx, chart, size) {
     const labelX = cx + rDegree * Math.cos(phi);
     const labelY = cy + rDegree * Math.sin(phi);
     ctx.fillStyle = 'rgba(190, 50, 50, 0.95)';
-    ctx.font = `bold ${Math.round(size * 0.034)}px sans-serif`;
-    ctx.fillText(`${deg}°`, labelX, labelY - size * 0.012);
+    ctx.font = `bold ${Math.round(size * 0.026)}px sans-serif`;
+    ctx.fillText(`${deg}°`, labelX, labelY - size * 0.009);
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.font = `${Math.round(size * 0.026)}px sans-serif`;
-    ctx.fillText(`${String(min).padStart(2, '0')}'`, labelX, labelY + size * 0.014);
+    ctx.font = `${Math.round(size * 0.020)}px sans-serif`;
+    ctx.fillText(`${String(min).padStart(2, '0')}'`, labelX, labelY + size * 0.011);
   }
 }
