@@ -127,7 +127,7 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
           for (const aspect of pairAspects) {
             const orb = orbSettings?.[job.transitPlanet] || 8;
 
-            const points = computeAspectCurve(
+            let points = computeAspectCurve(
               longitudes[job.transitPlanet],
               fixedSeries,
               aspect.angle,
@@ -144,9 +144,10 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
             // True Node oscillates instead of moving steadily, so a single
             // gradual conjunction with a natal point produces many local-max
             // wobble peaks (each labeled "<1°", "<2°", etc.). Collapse those
-            // into one "span" peak — same curve, one label that names the
-            // whole approach window as a date range.
-            if (isNodePair && peaks.length > 1) {
+            // into one "span" peak with a date-range label, and smooth the
+            // curve itself into a clean asymmetric bell so it visually reads
+            // as one slow event.
+            if (isNodePair && peaks.length > 0) {
               const bestPeak = peaks.reduce(
                 (best, p) => (p.intensity > best.intensity ? p : best),
                 peaks[0],
@@ -154,6 +155,36 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
               const activePoints = points.filter(p => p.intensity > 0);
               const spanStart = activePoints[0]?.date;
               const spanEnd = activePoints[activePoints.length - 1]?.date;
+
+              if (spanStart && spanEnd) {
+                const startT = spanStart.getTime();
+                const endT = spanEnd.getTime();
+                const peakT = bestPeak.date.getTime();
+                const maxIntensity = bestPeak.intensity;
+
+                // Replace the wobbly point series with a smooth quarter-sine
+                // bell. Each side of the peak is scaled independently so an
+                // asymmetric approach (e.g. peak landing closer to the start
+                // of the span than the end) still reads as one continuous
+                // hill rather than two halves of a parabola.
+                points = points.map(p => {
+                  const t = p.date.getTime();
+                  if (t < startT || t > endT) {
+                    return { ...p, intensity: 0 };
+                  }
+                  let progress;
+                  if (t <= peakT) {
+                    const w = peakT - startT;
+                    progress = w === 0 ? 1 : (t - startT) / w;
+                  } else {
+                    const w = endT - peakT;
+                    progress = w === 0 ? 1 : (endT - t) / w;
+                  }
+                  const intensity = maxIntensity * Math.sin(progress * Math.PI / 2);
+                  return { ...p, intensity };
+                });
+              }
+
               peaks = [{
                 ...bestPeak,
                 isSpan: true,
