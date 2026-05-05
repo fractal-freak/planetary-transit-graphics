@@ -126,27 +126,25 @@ function drawWheel(ctx, chart, size) {
     ctx.fillText(String(i + 1), cx + r * Math.cos(phi), cy + r * Math.sin(phi));
   }
 
-  // ── ASC / MC: short dashed line from inner ring outward + label on it. ──
-  // Whole-sign cusps fall on sign boundaries; the actual ASC/MC longitude is
-  // somewhere inside, so we draw a thin marker line at the exact longitude.
+  // ── ASC / MC labels at the planet-glyph radius, on their actual longitude. ──
+  // A small tick on the inner edge of the zodiac ring marks the exact angle.
   if (chart.angles) {
     const drawAxis = (lng, label, color) => {
       if (lng == null) return;
       const phi = angleFor(lng);
+      // Tick on the zodiac ring inner edge
       ctx.strokeStyle = color;
-      ctx.lineWidth = 0.9;
-      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.moveTo(cx + rHousesInner * Math.cos(phi), cy + rHousesInner * Math.sin(phi));
-      ctx.lineTo(cx + rDegree * Math.cos(phi), cy + rDegree * Math.sin(phi));
+      ctx.moveTo(cx + rZodiacInner * Math.cos(phi), cy + rZodiacInner * Math.sin(phi));
+      ctx.lineTo(cx + (rZodiacInner - 7) * Math.cos(phi), cy + (rZodiacInner - 7) * Math.sin(phi));
       ctx.stroke();
-      ctx.setLineDash([]);
-      const r = (rHousesInner + rDegree) / 2;
+      // Label at the planet-glyph radius
       ctx.fillStyle = color;
-      ctx.font = `bold ${Math.round(size * 0.026)}px sans-serif`;
+      ctx.font = `bold ${Math.round(size * 0.030)}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, cx + r * Math.cos(phi), cy + r * Math.sin(phi));
+      ctx.fillText(label, cx + rGlyph * Math.cos(phi), cy + rGlyph * Math.sin(phi));
     };
     drawAxis(chart.angles.Asc, 'AC', 'rgba(200,60,60,0.95)');
     drawAxis(chart.angles.MC, 'MC', 'rgba(180,140,40,1)');
