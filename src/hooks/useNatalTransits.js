@@ -330,6 +330,7 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
           const peaks = findPeaks(points);
 
           const keptPeaks = [];
+          const droppedPeakIndices = [];
           for (const peak of peaks) {
             const moonLonAtPeak = getMoonLon(peak.date);
             const proximity = [];
@@ -352,8 +353,13 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
             }
             // Natal-mode lunations only surface when there's at least one
             // natal target within orb — otherwise they're just world-mode
-            // lunations the user didn't ask for.
-            if (proximity.length === 0) continue;
+            // lunations the user didn't ask for. Track the dropped peak's
+            // index so we can zero out its spike below (curves cover the
+            // whole window; the spike still draws even if the label doesn't).
+            if (proximity.length === 0) {
+              droppedPeakIndices.push(peak.index);
+              continue;
+            }
             proximity.sort((a, b) => a.distanceDeg - b.distanceDeg);
             peak.natalProximity = proximity;
 
@@ -370,6 +376,28 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
           }
 
           if (keptPeaks.length === 0) continue;
+
+          // Suppress dropped peaks visually: walk outward from each dropped
+          // peak's index until intensity hits zero (or we'd cross into a
+          // kept peak's spike), zeroing as we go. Lunation peaks are ~14
+          // days apart and the active window is much narrower than that,
+          // so the walks terminate well before the next peak.
+          if (droppedPeakIndices.length > 0) {
+            const keptIndexSet = new Set(keptPeaks.map(p => p.index));
+            for (const idx of droppedPeakIndices) {
+              points[idx] = { ...points[idx], intensity: 0 };
+              for (let i = idx - 1; i >= 0; i--) {
+                if (points[i].intensity <= 0) break;
+                if (keptIndexSet.has(i)) break;
+                points[i] = { ...points[i], intensity: 0 };
+              }
+              for (let i = idx + 1; i < points.length; i++) {
+                if (points[i].intensity <= 0) break;
+                if (keptIndexSet.has(i)) break;
+                points[i] = { ...points[i], intensity: 0 };
+              }
+            }
+          }
 
           const color = blendColors(moonP.color, sunP.color);
           result.push({

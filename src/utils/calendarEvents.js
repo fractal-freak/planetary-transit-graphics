@@ -56,14 +56,15 @@ export function buildEventMap(curves, signChanges) {
             ) || null;
           }
 
-          // Natal-mode proximity decoration — " · ♀ 3°" per nearby target.
+          // Natal-mode proximity decoration — " ☌ ♀ 3°" per nearby target
+          // (within the lunation orb the Moon conjoins the target).
           const proxTag = peak.natalProximity?.length
             ? ' ' + peak.natalProximity
-                .map(p => `· ${p.symbol} ${Math.round(p.distanceDeg)}°`)
+                .map(p => `☌ ${p.symbol} ${Math.round(p.distanceDeg)}°`)
                 .join(' ')
             : '';
           const proxTitle = peak.natalProximity?.length
-            ? ' near ' + peak.natalProximity
+            ? ' conjunct ' + peak.natalProximity
                 .map(p => `${p.name} (${Math.round(p.distanceDeg)}°)`)
                 .join(', ')
             : '';

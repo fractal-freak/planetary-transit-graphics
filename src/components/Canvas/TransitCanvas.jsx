@@ -281,6 +281,48 @@ function PeakTooltip({ tooltip, wrapperRef }) {
     setPos({ left, top });
   }, [x, y, peakInfo, wrapperRef]);
 
+  // Lunation tooltip — natal-mode New/Full Moon (or eclipse) with the
+  // moon position, then one row per natal target it conjoins, each
+  // showing the conjunction glyph + target glyph + target position +
+  // exact orb in degrees.
+  if (peakInfo.kind === 'lunation') {
+    const lunLabel = peakInfo.eclipse
+      ? (peakInfo.eclipse.type === 'solar' ? 'Solar Eclipse' : 'Lunar Eclipse')
+      : (peakInfo.lunationKind === 'new' ? 'New Moon' : 'Full Moon');
+    return (
+      <div
+        ref={ttRef}
+        className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
+        style={{ left: pos.left, top: pos.top }}
+      >
+        <div className={styles.tooltipLunationHeader}>
+          <span className={styles.tooltipGlyph}>☽</span>
+          <span className={styles.tooltipLunationLabel}>{lunLabel}</span>
+          <span className={styles.tooltipPos}>
+            {peakInfo.moonPosition.deg}°<span className={styles.tooltipMin}>{peakInfo.moonPosition.min}'</span>
+          </span>
+          <span className={styles.tooltipSign}>{peakInfo.moonPosition.signSymbol}</span>
+        </div>
+        {peakInfo.natalProximity.map((p, i) => (
+          <div key={i} className={styles.tooltipLunationRow}>
+            <span className={styles.tooltipAspectGlyph}>☌</span>
+            <span className={styles.tooltipNatalTag}>natal</span>
+            <span className={styles.tooltipGlyph} style={{ color: p.color }}>{p.symbol}</span>
+            {p.position && (
+              <>
+                <span className={styles.tooltipPos}>
+                  {p.position.deg}°<span className={styles.tooltipMin}>{p.position.min}'</span>
+                </span>
+                <span className={styles.tooltipSign}>{p.position.signSymbol}</span>
+              </>
+            )}
+            <span className={styles.tooltipLunationOrb}>{Math.round(p.distanceDeg * 10) / 10}°</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Station tooltip — single body + "stations rx/D".
   if (peakInfo.kind === 'station') {
     return (

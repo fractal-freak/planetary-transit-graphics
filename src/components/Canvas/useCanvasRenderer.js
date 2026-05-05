@@ -1509,29 +1509,50 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
       let peakInfo = null;
       if (isSweReady()) {
         try {
-          const transitLon = getLongitude(curve.transitPlanet, d);
-          let targetLon;
-          if (curve.isNatal && natalPositions && natalPositions[curve.target] != null) {
-            targetLon = natalPositions[curve.target];
+          // Natal-mode lunations get a dedicated tooltip kind so the
+          // hover shows the lunation glyph + each natal target it
+          // conjoins, rather than the meaningless "Moon opposite Sun"
+          // that a Moon→Sun aspect curve would imply.
+          if (peak.natalProximity && peak.natalProximity.length > 0 && (lunationKind || eclipseHit)) {
+            const moonLon = getLongitude('Moon', d);
+            peakInfo = {
+              kind: 'lunation',
+              date: d,
+              lunationKind, // 'new' | 'full'
+              eclipse: eclipseHit, // null when not an eclipse
+              moonPosition: formatNatalPosition(moonLon),
+              natalProximity: peak.natalProximity.map(p => ({
+                ...p,
+                position: natalPositions && natalPositions[p.id] != null
+                  ? formatNatalPosition(natalPositions[p.id])
+                  : null,
+              })),
+            };
           } else {
-            targetLon = getLongitude(curve.target, d);
+            const transitLon = getLongitude(curve.transitPlanet, d);
+            let targetLon;
+            if (curve.isNatal && natalPositions && natalPositions[curve.target] != null) {
+              targetLon = natalPositions[curve.target];
+            } else {
+              targetLon = getLongitude(curve.target, d);
+            }
+            peakInfo = {
+              date: d,
+              aspectName: curve.aspect.name,
+              aspectSymbol: curve.aspect.symbol,
+              isNatal: !!curve.isNatal,
+              transitPlanet: curve.transitPlanet,
+              transitName: PLANET_MAP[curve.transitPlanet]?.name || curve.transitPlanet,
+              transitSymbol: PLANET_MAP[curve.transitPlanet]?.symbol || '',
+              transitPosition: formatNatalPosition(transitLon),
+              transitRetro: tRetro,
+              targetPlanet: curve.target,
+              targetName: PLANET_MAP[curve.target]?.name || curve.target,
+              targetSymbol: PLANET_MAP[curve.target]?.symbol || '',
+              targetPosition: formatNatalPosition(targetLon),
+              targetRetro,
+            };
           }
-          peakInfo = {
-            date: d,
-            aspectName: curve.aspect.name,
-            aspectSymbol: curve.aspect.symbol,
-            isNatal: !!curve.isNatal,
-            transitPlanet: curve.transitPlanet,
-            transitName: PLANET_MAP[curve.transitPlanet]?.name || curve.transitPlanet,
-            transitSymbol: PLANET_MAP[curve.transitPlanet]?.symbol || '',
-            transitPosition: formatNatalPosition(transitLon),
-            transitRetro: tRetro,
-            targetPlanet: curve.target,
-            targetName: PLANET_MAP[curve.target]?.name || curve.target,
-            targetSymbol: PLANET_MAP[curve.target]?.symbol || '',
-            targetPosition: formatNatalPosition(targetLon),
-            targetRetro,
-          };
         } catch {}
       }
 
@@ -1613,15 +1634,14 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
   }
 
-  // Width of " · ♀ 3°" tags appended to lunation/eclipse labels.
+  // Width of " ♀ ☌ 3°" tags appended to lunation/eclipse labels. The
+  // proximity is always a conjunction (Moon within orb of natal target).
   function proximityWidth(natalProximity) {
     if (!natalProximity || natalProximity.length === 0) return 0;
     let w = 0;
     for (const p of natalProximity) {
-      ctx.font = DATE_FONT;
-      w += ctx.measureText(' · ').width;
       ctx.font = GLYPH_FONT;
-      w += ctx.measureText(p.symbol).width;
+      w += ctx.measureText(' ' + p.symbol + '☌').width + 4;
       ctx.font = DATE_FONT;
       w += ctx.measureText(` ${Math.round(p.distanceDeg)}°`).width;
     }
@@ -1671,20 +1691,22 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
         yOff: 0,
       });
       cursor += textW;
-      // Natal-mode proximity tags: " · ♀ 3°" per target within orb.
+      // Natal-mode proximity tags: " ☌ ♀ 3°" per target within orb.
+      // Within the lunation orb the Moon is conjunct the target, so we
+      // render the conjunction glyph as the connector.
       if (lbl.natalProximity && lbl.natalProximity.length > 0) {
         for (const p of lbl.natalProximity) {
-          ctx.font = DATE_FONT;
-          const sepW = ctx.measureText(' · ').width;
+          cursor += 4; // small space before connector
+          const conjM = glyphMetrics('☌', GLYPH_FONT);
           segments.push({
-            text: ' · ',
-            font: DATE_FONT,
+            text: '☌',
+            font: GLYPH_FONT,
             alphaKey: 'glyph',
             x: cursor,
             baseline: 'bottom',
             yOff: 0,
           });
-          cursor += sepW;
+          cursor += conjM.advance + 2;
           const symM = glyphMetrics(p.symbol, GLYPH_FONT);
           segments.push({
             text: p.symbol,
@@ -1821,17 +1843,17 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     ctx.fillStyle = `rgba(${r},${g},${b},${(0.95 * labelOpacity).toFixed(2)})`;
     ctx.fillText(lbl.eclipse.signSymbol, textX + textW + 4, baseY);
 
-    // Natal-mode proximity tags trail after the sign glyph.
+    // Natal-mode proximity tags trail after the sign glyph: " ☌ ♀ 3°".
     if (lbl.natalProximity && lbl.natalProximity.length > 0) {
       let proxX = textX + textW + 4 + signW;
       const proxAlpha = (0.85 * labelOpacity).toFixed(2);
       const dateLineAlpha = (0.62 * labelOpacity).toFixed(2);
       for (const p of lbl.natalProximity) {
-        ctx.font = DATE_FONT;
-        ctx.fillStyle = `rgba(${T.textRGB}, ${dateLineAlpha})`;
-        ctx.fillText(' · ', proxX, baseY);
-        proxX += ctx.measureText(' · ').width;
+        proxX += 4; // small space before connector
         ctx.font = GLYPH_FONT;
+        ctx.fillStyle = `rgba(${T.textRGB}, ${proxAlpha})`;
+        ctx.fillText('☌', proxX, baseY);
+        proxX += ctx.measureText('☌').width + 2;
         const [pr, pg, pb] = hexToRGB(p.color);
         ctx.fillStyle = `rgba(${pr},${pg},${pb},${proxAlpha})`;
         ctx.fillText(p.symbol, proxX, baseY);
@@ -1948,6 +1970,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
   }
   clusters.push(currentCluster);
 
+
   // ── Phase 2: Process each cluster ──
 
   for (const cluster of clusters) {
@@ -1968,9 +1991,16 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
       let needsLeader = Math.abs(finalX - lbl.x) > 10;
       let fits = false;
 
-      // Vertical bumping (capped)
+      // Vertical bumping (capped). Lunation/eclipse labels in natal mode
+      // sit on a row that's typically narrow relative to their label width,
+      // so let them bump above rowTop into the chart's top margin (there's
+      // nothing above except the date axis at the bottom of the chart, not
+      // the top). Without this, 6-up-stacked New/Full Moon labels can't all
+      // fit and the renderer silently drops the trailing ones.
+      const allowAboveRow = !!(lbl.lunation || lbl.eclipse);
+      const minBaseY = allowAboveRow ? BLOCK_H + 4 : rowTop + BLOCK_H;
       for (let i = 0; i <= maxBumps; i++) {
-        if (baseY - BLOCK_H < rowTop) break; // don't go above row
+        if (baseY < minBaseY) break;
         if (!collides(finalX, baseY, halfW)) { fits = true; break; }
         baseY -= BUMP_H;
       }
