@@ -71,6 +71,38 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
     }
   }, [open]);
 
+  // ── Filtering / sorting (must be above early return — hooks order) ──
+
+  const query = searchQuery.toLowerCase().trim();
+
+  const visibleCharts = useMemo(() => {
+    let list = [...savedCharts];
+
+    if (!query) {
+      if (activeFolder === UNCATEGORIZED) {
+        list = list.filter(c => !c.folderId);
+      } else if (activeFolder !== ALL_FOLDERS) {
+        list = list.filter(c => c.folderId === activeFolder);
+      }
+    }
+
+    if (query) {
+      list = list.filter(c =>
+        (c.name || '').toLowerCase().includes(query) ||
+        (c.locationName || '').toLowerCase().includes(query) ||
+        (c.birthDate || '').includes(query) ||
+        (c.chartType || '').toLowerCase().includes(query)
+      );
+    }
+
+    list.sort((a, b) => {
+      if (a.id === defaultChartId) return -1;
+      if (b.id === defaultChartId) return 1;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+    return list;
+  }, [savedCharts, query, activeFolder, defaultChartId]);
+
   if (!open) return null;
 
   // ── Helpers ──
@@ -190,40 +222,6 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
       console.error('Delete folder failed:', err);
     }
   }
-
-  // ── Filtering / sorting ──
-
-  const query = searchQuery.toLowerCase().trim();
-
-  const visibleCharts = useMemo(() => {
-    let list = [...savedCharts];
-
-    // Folder filter (overridden by search)
-    if (!query) {
-      if (activeFolder === UNCATEGORIZED) {
-        list = list.filter(c => !c.folderId);
-      } else if (activeFolder !== ALL_FOLDERS) {
-        list = list.filter(c => c.folderId === activeFolder);
-      }
-    }
-
-    if (query) {
-      list = list.filter(c =>
-        (c.name || '').toLowerCase().includes(query) ||
-        (c.locationName || '').toLowerCase().includes(query) ||
-        (c.birthDate || '').includes(query) ||
-        (c.chartType || '').toLowerCase().includes(query)
-      );
-    }
-
-    // Default chart pinned to top, then alphabetical by name
-    list.sort((a, b) => {
-      if (a.id === defaultChartId) return -1;
-      if (b.id === defaultChartId) return 1;
-      return (a.name || '').localeCompare(b.name || '');
-    });
-    return list;
-  }, [savedCharts, query, activeFolder, defaultChartId]);
 
   const previewChart = previewId
     ? savedCharts.find(c => c.id === previewId) || null
