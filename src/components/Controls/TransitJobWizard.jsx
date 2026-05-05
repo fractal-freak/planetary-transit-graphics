@@ -251,6 +251,7 @@ function SolarEclipseGlyph({ size = 16 }) {
   const cy = r;
   const w = moonCx + r;
   const h = r * 2;
+  const sw = 1.25;
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
@@ -261,11 +262,14 @@ function SolarEclipseGlyph({ size = 16 }) {
       <defs>
         <mask id="eclipse-sun-mask">
           <rect x={-r} y={-r} width={w + r * 2} height={h + r * 2} fill="white" />
-          <circle cx={moonCx} cy={cy} r={r} fill="black" />
+          {/* Expand cutout by sw/2 so the mask clips cleanly past the stroke edge */}
+          <circle cx={moonCx} cy={cy} r={r + sw / 2} fill="black" />
         </mask>
       </defs>
-      <circle cx={sunCx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth={1.25} mask="url(#eclipse-sun-mask)" />
-      <circle cx={moonCx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth={1.25} />
+      {/* Sun: filled crescent — fill + stroke both clipped by mask */}
+      <circle cx={sunCx} cy={cy} r={r} fill="currentColor" stroke="currentColor" strokeWidth={sw} mask="url(#eclipse-sun-mask)" />
+      {/* Moon: hollow circle on top */}
+      <circle cx={moonCx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth={sw} />
     </svg>
   );
 }
