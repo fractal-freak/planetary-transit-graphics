@@ -293,51 +293,24 @@
   color: rgba(180, 150, 50, 0.8);
 }
 
-.rowActions {
-  display: flex;
-  gap: 1px;
-  flex-shrink: 0;
-  margin-left: 6px;
-  visibility: hidden;
+/* Move to folder dropdown — anchored to footer Move button */
+.moveWrap {
   position: relative;
 }
 
-.tableRow:hover .rowActions,
-.tableRowActive .rowActions {
-  visibility: visible;
-}
-
-.rowActionBtn {
-  background: none;
-  border: none;
-  font-size: 11px;
-  color: var(--fg-subtle);
-  cursor: pointer;
-  padding: 3px 5px;
-  border-radius: 3px;
-  line-height: 1;
-  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
-  transition: all 0.12s;
-}
-
-.rowActionBtn:hover {
-  color: var(--fg);
-  background: var(--bg-subtle-2);
-}
-
-/* Move to folder dropdown */
 .moveDropdown {
   position: absolute;
-  right: 0;
-  top: 100%;
-  background: rgba(255, 255, 255, 0.97);
+  bottom: 100%;
+  left: 0;
+  background: rgba(255, 255, 255, 0.98);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   z-index: 10;
-  min-width: 140px;
+  min-width: 160px;
   overflow: hidden;
   backdrop-filter: blur(12px);
+  margin-bottom: 4px;
 }
 
 .moveOption {
@@ -565,6 +538,22 @@
   background: rgba(80, 144, 224, 1);
   color: #fff;
 }
+
+.footerBtnDanger:hover:not(:disabled) {
+  background: rgba(200, 60, 60, 0.12);
+  color: rgba(200, 60, 60, 0.95);
+  border-color: rgba(200, 60, 60, 0.25);
+}
+
+.footerSep {
+  width: 1px;
+  height: 18px;
+  background: var(--border-soft);
+  margin: 0 4px;
+}
+
+/* Recompute button kept for backward CSS compat — unused */
+.recomputeBtn { display: none; }
 
 .newFolderRow {
   display: flex;

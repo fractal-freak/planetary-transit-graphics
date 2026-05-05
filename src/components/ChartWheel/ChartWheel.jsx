@@ -6,8 +6,9 @@ import { ZODIAC_SIGNS, getSignIndex } from '../../data/zodiac';
  * ChartWheel — single-chart zodiac wheel preview.
  *
  * Rotates so ASC (if available) sits at the 9 o'clock position. Falls back
- * to 0° Aries at 9 o'clock when no angles are present. Draws zodiac ring,
- * sign glyphs, planet glyphs at their longitudes, and ASC/MC markers.
+ * to 0° Aries at 9 o'clock when no angles are present. Draws the zodiac
+ * ring, whole-sign house cusps, planet glyphs at their longitudes, and
+ * ASC/MC markers.
  */
 export default function ChartWheel({ chart, size = 320 }) {
   const canvasRef = useRef(null);
@@ -38,55 +39,49 @@ function drawWheel(ctx, chart, size) {
   const cx = size / 2;
   const cy = size / 2;
   const rOuter = size * 0.47;
-  const rZodiac = size * 0.40;
-  const rPlanet = size * 0.31;
-  const rInner = size * 0.22;
+  const rZodiacInner = size * 0.37;
+  const rPlanets = size * 0.31;
+  const rHousesInner = size * 0.10;
 
   const ascLng = chart.angles?.Asc ?? 0;
   const angleFor = (L) => Math.PI - ((L - ascLng) * Math.PI / 180);
 
-  // ── Outer ring ──
-  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  // ── Boundary rings ──
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(cx, cy, rZodiac, 0, Math.PI * 2);
+  ctx.arc(cx, cy, rZodiacInner, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath();
-  ctx.arc(cx, cy, rPlanet, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, cy, rInner, 0, Math.PI * 2);
+  ctx.arc(cx, cy, rHousesInner, 0, Math.PI * 2);
   ctx.stroke();
 
   // ── Zodiac sign sectors and glyphs ──
   const signColors = ['#c83c3c', '#3c963c', '#beaa28', '#3264c8'];
   for (let i = 0; i < 12; i++) {
     const startLng = i * 30;
-    const endLng = (i + 1) * 30;
 
-    // Sector boundary line
+    // Sector boundary line through the sign band only
     const phiStart = angleFor(startLng);
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 0.7;
     ctx.beginPath();
-    ctx.moveTo(cx + rZodiac * Math.cos(phiStart), cy + rZodiac * Math.sin(phiStart));
+    ctx.moveTo(cx + rZodiacInner * Math.cos(phiStart), cy + rZodiacInner * Math.sin(phiStart));
     ctx.lineTo(cx + rOuter * Math.cos(phiStart), cy + rOuter * Math.sin(phiStart));
     ctx.stroke();
 
     // Sign glyph at sector midpoint
-    const midLng = startLng + 15;
-    const phiMid = angleFor(midLng);
-    const rGlyph = (rOuter + rZodiac) / 2;
-    const gx = cx + rGlyph * Math.cos(phiMid);
-    const gy = cy + rGlyph * Math.sin(phiMid);
+    const phiMid = angleFor(startLng + 15);
+    const rGlyph = (rOuter + rZodiacInner) / 2;
     ctx.fillStyle = signColors[i % 4];
-    ctx.font = `${Math.round(size * 0.045)}px ${GLYPH_FONT}`;
+    ctx.font = `${Math.round(size * 0.05)}px ${GLYPH_FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(ZODIAC_SIGNS[i].symbol, gx, gy);
+    ctx.fillText(ZODIAC_SIGNS[i].symbol, cx + rGlyph * Math.cos(phiMid), cy + rGlyph * Math.sin(phiMid));
   }
 
   // ── Degree ticks every 5° on the inside of the zodiac ring ──
@@ -96,49 +91,72 @@ function drawWheel(ctx, chart, size) {
     const phi = angleFor(d);
     const len = d % 30 === 0 ? 5 : (d % 10 === 0 ? 3 : 2);
     ctx.beginPath();
-    ctx.moveTo(cx + (rZodiac) * Math.cos(phi), cy + (rZodiac) * Math.sin(phi));
-    ctx.lineTo(cx + (rZodiac - len) * Math.cos(phi), cy + (rZodiac - len) * Math.sin(phi));
+    ctx.moveTo(cx + rZodiacInner * Math.cos(phi), cy + rZodiacInner * Math.sin(phi));
+    ctx.lineTo(cx + (rZodiacInner - len) * Math.cos(phi), cy + (rZodiacInner - len) * Math.sin(phi));
     ctx.stroke();
   }
 
-  // ── Angle axes (ASC/DSC, MC/IC) ──
-  if (chart.angles) {
-    const drawAxis = (lng, label, color) => {
-      const phi = angleFor(lng);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 3]);
-      ctx.beginPath();
-      ctx.moveTo(cx + rInner * Math.cos(phi), cy + rInner * Math.sin(phi));
-      ctx.lineTo(cx + rPlanet * Math.cos(phi), cy + rPlanet * Math.sin(phi));
-      ctx.stroke();
-      ctx.setLineDash([]);
+  // ── Whole-sign house cusps ──
+  const ascSignStart = Math.floor(ascLng / 30) * 30;
+  const houseCusps = [];
+  for (let i = 0; i < 12; i++) {
+    houseCusps.push((ascSignStart + i * 30) % 360);
+  }
+  for (let i = 0; i < 12; i++) {
+    const phi = angleFor(houseCusps[i]);
+    // Emphasize 1st (Asc) and 10th (MC in whole sign) cusps
+    if (i === 0) {
+      ctx.strokeStyle = 'rgba(200,60,60,0.6)';
+      ctx.lineWidth = 1.2;
+    } else if (i === 9) {
+      ctx.strokeStyle = 'rgba(180,140,40,0.6)';
+      ctx.lineWidth = 1.2;
+    } else {
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 0.6;
+    }
+    ctx.beginPath();
+    ctx.moveTo(cx + rHousesInner * Math.cos(phi), cy + rHousesInner * Math.sin(phi));
+    ctx.lineTo(cx + rZodiacInner * Math.cos(phi), cy + rZodiacInner * Math.sin(phi));
+    ctx.stroke();
+  }
 
-      // Label just inside the planet ring
-      const lx = cx + (rInner - 8) * Math.cos(phi);
-      const ly = cy + (rInner - 8) * Math.sin(phi);
+  // ── House numbers at house midpoint, just inside the inner ring ──
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.font = `${Math.round(size * 0.028)}px sans-serif`;
+  for (let i = 0; i < 12; i++) {
+    const midLng = (houseCusps[i] + 15) % 360;
+    const phi = angleFor(midLng);
+    const r = rHousesInner + (rPlanets - rHousesInner) * 0.18;
+    ctx.fillText(String(i + 1), cx + r * Math.cos(phi), cy + r * Math.sin(phi));
+  }
+
+  // ── ASC / MC labels on the cusp lines ──
+  if (chart.angles) {
+    const drawLabel = (lng, label, color) => {
+      if (lng == null) return;
+      const phi = angleFor(lng);
+      const r = rZodiacInner - (rZodiacInner - rPlanets) * 0.5;
       ctx.fillStyle = color;
-      ctx.font = `bold ${Math.round(size * 0.032)}px ${GLYPH_FONT}`;
+      ctx.font = `bold ${Math.round(size * 0.030)}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, lx, ly);
+      ctx.fillText(label, cx + r * Math.cos(phi), cy + r * Math.sin(phi));
     };
-    drawAxis(chart.angles.Asc, 'AC', '#c83c3c');
-    if (chart.angles.MC != null) drawAxis(chart.angles.MC, 'MC', '#b8860b');
+    drawLabel(chart.angles.Asc, 'AC', 'rgba(200,60,60,0.85)');
+    drawLabel(chart.angles.MC, 'MC', 'rgba(180,140,40,0.95)');
   }
 
   // ── Planet glyphs ──
-  // Resolve collisions: bump glyphs apart along the ring if too close
+  // Collision-spread along the ring so overlapping glyphs are readable.
   const placements = [];
   for (const planet of PLANETS) {
     const lng = chart.positions?.[planet.id];
     if (lng == null) continue;
     placements.push({ planet, lng, originalLng: lng });
   }
-
-  // Sort by longitude and spread out clusters
   placements.sort((a, b) => a.lng - b.lng);
-  const minSep = 7; // degrees
+  const minSep = 7;
   for (let pass = 0; pass < 3; pass++) {
     for (let i = 0; i < placements.length; i++) {
       const cur = placements[i];
@@ -154,43 +172,40 @@ function drawWheel(ctx, chart, size) {
   }
 
   for (const { planet, lng, originalLng } of placements) {
-    const phi = angleFor(lng);
-    const px = cx + rPlanet * Math.cos(phi) + (rPlanet - rInner) * 0.3 * Math.cos(phi);
-    const py = cy + rPlanet * Math.sin(phi) + (rPlanet - rInner) * 0.3 * Math.sin(phi);
-
-    // Draw line from original longitude on planet ring to glyph if displaced
-    if (Math.abs(lng - originalLng) > 0.5) {
-      const phiOrig = angleFor(originalLng);
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(cx + rPlanet * Math.cos(phiOrig), cy + rPlanet * Math.sin(phiOrig));
-      ctx.lineTo(px, py);
-      ctx.stroke();
-    }
-
-    // Tick at the actual longitude on the planet ring
     const phiOrig = angleFor(originalLng);
+    const phi = angleFor(lng);
+
+    // Tick at the actual longitude on the inside of the zodiac ring
     ctx.strokeStyle = planet.color;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(cx + (rPlanet + 2) * Math.cos(phiOrig), cy + (rPlanet + 2) * Math.sin(phiOrig));
-    ctx.lineTo(cx + (rPlanet - 4) * Math.cos(phiOrig), cy + (rPlanet - 4) * Math.sin(phiOrig));
+    ctx.moveTo(cx + rZodiacInner * Math.cos(phiOrig), cy + rZodiacInner * Math.sin(phiOrig));
+    ctx.lineTo(cx + (rZodiacInner - 4) * Math.cos(phiOrig), cy + (rZodiacInner - 4) * Math.sin(phiOrig));
     ctx.stroke();
+
+    // Optional connector if displaced from collision-spread
+    if (Math.abs(lng - originalLng) > 0.5) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(cx + rZodiacInner * Math.cos(phiOrig), cy + rZodiacInner * Math.sin(phiOrig));
+      ctx.lineTo(cx + rPlanets * Math.cos(phi), cy + rPlanets * Math.sin(phi));
+      ctx.stroke();
+    }
 
     // Glyph
     ctx.fillStyle = planet.color;
     ctx.font = `${Math.round(size * 0.05)}px ${GLYPH_FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(planet.symbol, px, py);
+    ctx.fillText(planet.symbol, cx + rPlanets * Math.cos(phi), cy + rPlanets * Math.sin(phi));
 
-    // Degree label
+    // Degree label slightly inward
     const signIdx = getSignIndex(originalLng);
     const degInSign = Math.floor(originalLng - signIdx * 30);
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.font = `${Math.round(size * 0.028)}px ${GLYPH_FONT}`;
-    const labelR = rPlanet + (rPlanet - rInner) * 0.55;
+    ctx.font = `${Math.round(size * 0.026)}px sans-serif`;
+    const labelR = rPlanets - (rPlanets - rHousesInner) * 0.22;
     ctx.fillText(`${degInSign}°`, cx + labelR * Math.cos(phi), cy + labelR * Math.sin(phi));
   }
 }

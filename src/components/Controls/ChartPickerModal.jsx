@@ -10,10 +10,7 @@ import {
   renameFolder,
   deleteFolder,
   moveChartToFolder,
-  updateChartAngles,
 } from '../../firebase/firestore';
-import { computeNatalAngles, combineDateAndTime } from '../../data/natalChart';
-import { getHouseCusps } from '../../api/ephemeris';
 import ChartWheel from '../ChartWheel/ChartWheel';
 import ChartDataView from '../ChartWheel/ChartDataView';
 import styles from './ChartPickerModal.module.css';
@@ -174,25 +171,6 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
       }
     } catch (err) {
       console.error('Delete failed:', err);
-    }
-  }
-
-  async function handleRecomputeAngles(chart) {
-    if (!chart || chart.lat == null || chart.lng == null || !chart.birthDate) {
-      return;
-    }
-    try {
-      const dateTime = combineDateAndTime(chart.birthDate, chart.birthTime || '12:00', chart.lat, chart.lng);
-      const angles = computeNatalAngles(dateTime, chart.lat, chart.lng);
-      const houses = getHouseCusps(dateTime, chart.lat, chart.lng, 'P');
-      await updateChartAngles(user.uid, chart.id, {
-        angles,
-        houseCusps: houses.cusps,
-        houseSystem: 'P',
-      });
-      await refreshData();
-    } catch (err) {
-      console.error('Recompute angles failed:', err);
     }
   }
 
@@ -407,47 +385,6 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
                         </span>
                         <span className={styles.colDate}>{chart.birthDate || '—'}</span>
                         <span className={styles.colType}>{chart.chartType || 'natal'}</span>
-
-                        <div className={styles.rowActions} onClick={e => e.stopPropagation()}>
-                          <button
-                            className={styles.rowActionBtn}
-                            onClick={() => handleToggleDefault(chart.id)}
-                            title={chart.id === defaultChartId ? 'Remove default' : 'Set as default'}
-                          >{chart.id === defaultChartId ? '★' : '☆'}</button>
-                          <button
-                            className={styles.rowActionBtn}
-                            onClick={() => { setEditingChartId(chart.id); setEditChartName(chart.name); }}
-                            title="Rename"
-                          >{'✎'}</button>
-                          {savedFolders.length > 0 && (
-                            <button
-                              className={styles.rowActionBtn}
-                              onClick={() => setMoveChartId(moveChartId === chart.id ? null : chart.id)}
-                              title="Move to folder"
-                            >{'↷'}</button>
-                          )}
-                          <button
-                            className={styles.rowActionBtn}
-                            onClick={() => setConfirmDeleteChartId(chart.id)}
-                            title="Delete"
-                          >&times;</button>
-
-                          {moveChartId === chart.id && (
-                            <div className={styles.moveDropdown}>
-                              <button
-                                className={`${styles.moveOption} ${!chart.folderId ? styles.moveOptionActive : ''}`}
-                                onClick={() => handleMoveChart(chart.id, null)}
-                              >Uncategorized</button>
-                              {savedFolders.map(f => (
-                                <button
-                                  key={f.id}
-                                  className={`${styles.moveOption} ${chart.folderId === f.id ? styles.moveOptionActive : ''}`}
-                                  onClick={() => handleMoveChart(chart.id, f.id)}
-                                >{f.name}</button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
                       </div>
                     );
                   })
@@ -480,15 +417,6 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
                   </div>
                   {previewChart.locationName && (
                     <div className={styles.previewSub}>{previewChart.locationName}</div>
-                  )}
-                  {previewChart.lat != null && previewChart.lng != null && previewChart.birthDate && (
-                    <button
-                      className={styles.recomputeBtn}
-                      onClick={() => handleRecomputeAngles(previewChart)}
-                      title="Recompute Asc/MC/houses from birth data"
-                    >
-                      Recompute angles
-                    </button>
                   )}
                 </div>
 
@@ -529,6 +457,45 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
           ) : (
             <>
               <button className={styles.footerBtn} onClick={() => setCreatingFolder(true)}>+ New Folder</button>
+              <div className={styles.footerSep} />
+              <button
+                className={styles.footerBtn}
+                disabled={!previewChart}
+                onClick={() => previewChart && handleToggleDefault(previewChart.id)}
+                title={previewChart?.id === defaultChartId ? 'Remove default' : 'Set as default'}
+              >{previewChart?.id === defaultChartId ? '★ Default' : '☆ Default'}</button>
+              <div className={styles.moveWrap}>
+                <button
+                  className={styles.footerBtn}
+                  disabled={!previewChart}
+                  onClick={() => previewChart && setMoveChartId(moveChartId === previewChart.id ? null : previewChart.id)}
+                >Move</button>
+                {previewChart && moveChartId === previewChart.id && (
+                  <div className={styles.moveDropdown}>
+                    <button
+                      className={`${styles.moveOption} ${!previewChart.folderId ? styles.moveOptionActive : ''}`}
+                      onClick={() => handleMoveChart(previewChart.id, null)}
+                    >Uncategorized</button>
+                    {savedFolders.map(f => (
+                      <button
+                        key={f.id}
+                        className={`${styles.moveOption} ${previewChart.folderId === f.id ? styles.moveOptionActive : ''}`}
+                        onClick={() => handleMoveChart(previewChart.id, f.id)}
+                      >{f.name}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                className={styles.footerBtn}
+                disabled={!previewChart}
+                onClick={() => { if (previewChart) { setEditingChartId(previewChart.id); setEditChartName(previewChart.name); } }}
+              >Rename</button>
+              <button
+                className={`${styles.footerBtn} ${styles.footerBtnDanger}`}
+                disabled={!previewChart}
+                onClick={() => previewChart && setConfirmDeleteChartId(previewChart.id)}
+              >Delete</button>
               <div style={{ flex: 1 }} />
               <button className={styles.footerBtn} onClick={onClose}>Cancel</button>
               <button
