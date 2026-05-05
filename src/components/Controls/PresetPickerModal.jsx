@@ -17,6 +17,7 @@ import {
   updateAnonPresetJobs,
   restoreAnonDefaults,
 } from '../../utils/anonPresets';
+import { dateRangeToRelativeRange } from '../../data/defaultPresets';
 import styles from './PresetPickerModal.module.css';
 
 const MAX_PRESETS = 30;
@@ -159,8 +160,9 @@ export default function PresetPickerModal({
     if (!hasJobs) return;
     try {
       const cleanJobs = currentJobs.map(job => JSON.parse(JSON.stringify(job)));
-      if (user) await updatePresetJobs(user.uid, presetId, currentMode, cleanJobs, startDate, endDate);
-      else updateAnonPresetJobs(presetId, currentMode, cleanJobs, startDate, endDate);
+      const relativeRange = dateRangeToRelativeRange(startDate, endDate);
+      if (user) await updatePresetJobs(user.uid, presetId, currentMode, cleanJobs, relativeRange);
+      else updateAnonPresetJobs(presetId, currentMode, cleanJobs, relativeRange);
       await refreshPresets();
       setConfirmOverwriteId(null);
     } catch (err) {
@@ -173,14 +175,18 @@ export default function PresetPickerModal({
     if (!saveName.trim() || !hasJobs || atCap) return;
     setSaving(true);
     try {
-      // Serialize jobs to plain objects — strip undefined values that Firestore rejects
+      // Serialize jobs to plain objects — strip undefined values that Firestore rejects.
+      // Save the duration as a `relativeRange` (always anchors to today + span
+      // when the preset is loaded) instead of absolute startDate/endDate, so
+      // hopping between presets doesn't drag the user back to a stale "from"
+      // date. The `dateRangeLocked` toggle still preserves the current window.
       const cleanJobs = currentJobs.map(job => JSON.parse(JSON.stringify(job)));
+      const relativeRange = dateRangeToRelativeRange(startDate, endDate);
       const data = {
         name: saveName.trim(),
         mode: currentMode,
         jobs: cleanJobs,
-        startDate: startDate ? startDate.toISOString() : null,
-        endDate: endDate ? endDate.toISOString() : null,
+        relativeRange,
       };
       if (user) await savePreset(user.uid, data);
       else saveAnonPreset(data);

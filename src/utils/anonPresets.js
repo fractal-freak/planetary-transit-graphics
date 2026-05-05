@@ -65,6 +65,7 @@ export function saveAnonPreset(presetData, presetId) {
     jobs: presetData.jobs || [],
     startDate: presetData.startDate || null,
     endDate: presetData.endDate || null,
+    relativeRange: presetData.relativeRange || null,
     isFavorite: presetData.isFavorite || false,
     createdAt: now,
     updatedAt: now,
@@ -73,18 +74,20 @@ export function saveAnonPreset(presetData, presetId) {
   return id;
 }
 
-export function updateAnonPresetJobs(presetId, mode, jobs, startDate, endDate) {
+export function updateAnonPresetJobs(presetId, mode, jobs, relativeRange) {
   const all = readAll();
   const idx = all.findIndex(p => p.id === presetId);
   if (idx < 0) return;
-  // Overwriting with current setup → drop relativeRange, store explicit dates
-  const { relativeRange: _drop, ...rest } = all[idx];
+  // Overwriting with current setup → store as relativeRange so re-applying
+  // anchors to today + span, not to a stale absolute date.
+  const { startDate: _s, endDate: _e, ...rest } = all[idx];
   all[idx] = {
     ...rest,
     mode,
     jobs,
-    startDate: startDate ? startDate.toISOString() : null,
-    endDate: endDate ? endDate.toISOString() : null,
+    startDate: null,
+    endDate: null,
+    relativeRange: relativeRange || null,
     updatedAt: new Date().toISOString(),
   };
   writeAll(all);

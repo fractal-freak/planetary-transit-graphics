@@ -88,3 +88,14 @@ export function resolveRelativeDates(relativeRange, now = new Date()) {
   else if (unit === 'years') end.setFullYear(end.getFullYear() + value);
   return { startDate: start.toISOString(), endDate: end.toISOString() };
 }
+
+// Convert a concrete (startDate, endDate) pair into a `relativeRange` so
+// presets save the *span* the user picked rather than the absolute dates,
+// and re-applying the preset always anchors to today + span. Always uses
+// days as the unit — most precise and avoids the variable-length surprises
+// of months/years.
+export function dateRangeToRelativeRange(startDate, endDate) {
+  if (!startDate || !endDate) return null;
+  const days = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 86400000));
+  return { value: days, unit: 'days' };
+}

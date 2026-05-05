@@ -246,16 +246,18 @@ export async function savePreset(uid, presetData, presetId) {
 }
 
 /**
- * Update a preset's jobs, mode, and date range (overwrite current setup), keeping name & favorite.
- * Drops `relativeRange` since the user is committing explicit dates.
+ * Update a preset's jobs, mode, and relative date range (overwrite current
+ * setup), keeping name & favorite. Stores the duration as a `relativeRange`
+ * so re-applying the preset always anchors to today + span instead of
+ * dragging the user back to an absolute date.
  */
-export async function updatePresetJobs(uid, presetId, mode, jobs, startDate, endDate) {
+export async function updatePresetJobs(uid, presetId, mode, jobs, relativeRange) {
   await updateDoc(presetRef(uid, presetId), {
     mode,
     jobs,
-    startDate: startDate ? startDate.toISOString() : null,
-    endDate: endDate ? endDate.toISOString() : null,
-    relativeRange: deleteField(),
+    startDate: deleteField(),
+    endDate: deleteField(),
+    relativeRange: relativeRange || deleteField(),
     updatedAt: serverTimestamp(),
   });
 }

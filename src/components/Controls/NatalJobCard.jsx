@@ -46,9 +46,9 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
       >
         <span className={styles.jobPlanet}>
           {job.isLunation ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <SolarEclipseGlyph size={14} />
-              Lunations
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, lineHeight: 1 }}>
+              <SolarEclipseGlyph size={12} />
+              <span style={{ fontSize: '11px' }}>Lunations</span>
             </span>
           ) : (
             <>
@@ -68,7 +68,7 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
         </button>
       </div>
 
-      {hasAnyActivity === false && (
+      {hasAnyActivity === false && !job.isLunation && (
         <div className={styles.jobNoAspects}>No transits during this timeframe.</div>
       )}
 
