@@ -1470,7 +1470,11 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
         const rounded = Math.ceil(peak.deviation);
         nearMiss = `<${rounded}°`;
       }
-      const dateLine = `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
+      // Span peaks (e.g. lunar-node gradual approach) label the whole
+      // active window as a date range instead of a single perfection date.
+      const dateLine = peak.isSpan && peak.spanStart && peak.spanEnd
+        ? `${MONTH_NAMES[peak.spanStart.getMonth()]} ${peak.spanStart.getDate()} – ${MONTH_NAMES[peak.spanEnd.getMonth()]} ${peak.spanEnd.getDate()}`
+        : `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
 
       // ── Lunation / eclipse override ──
       let lunation = null;

@@ -139,7 +139,28 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
             const hasActivity = points.some(p => p.intensity > 0);
             if (!hasActivity) continue;
 
-            const peaks = findPeaks(points);
+            let peaks = findPeaks(points);
+
+            // True Node oscillates instead of moving steadily, so a single
+            // gradual conjunction with a natal point produces many local-max
+            // wobble peaks (each labeled "<1°", "<2°", etc.). Collapse those
+            // into one "span" peak — same curve, one label that names the
+            // whole approach window as a date range.
+            if (isNodePair && peaks.length > 1) {
+              const bestPeak = peaks.reduce(
+                (best, p) => (p.intensity > best.intensity ? p : best),
+                peaks[0],
+              );
+              const activePoints = points.filter(p => p.intensity > 0);
+              const spanStart = activePoints[0]?.date;
+              const spanEnd = activePoints[activePoints.length - 1]?.date;
+              peaks = [{
+                ...bestPeak,
+                isSpan: true,
+                spanStart,
+                spanEnd,
+              }];
+            }
 
             // Enrich peaks with retrograde info (transit planet only — natal planet doesn't move)
             const HALF_DAY = 12 * 60 * 60 * 1000;
