@@ -123,7 +123,9 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
               onClick={() => { onToggleLunations(); reset(); }}
               type="button"
             >
-              <SolarEclipseGlyph size={16} />
+              <span className={styles.planetBtnSymbol}>
+                <SolarEclipseGlyph size={16} />
+              </span>
               <span className={styles.planetBtnName}>Lunations</span>
             </button>
           )}
@@ -244,19 +246,22 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
 // Replicates the canvas drawSolarEclipseGlyph: red sun peeking left,
 // dark navy moon in front, white separator at the overlap.
 function SolarEclipseGlyph({ size = 16 }) {
-  const r = size * 0.5;
+  // Render at 4x internal resolution for clean anti-aliased curves at small display sizes.
+  const SCALE = 4;
+  const r = size * 0.5 * SCALE;
   const peek = r * 0.55;
   const sunCx = r;
   const moonCx = r + peek;
   const cy = r;
   const w = moonCx + r;
   const h = r * 2;
-  const sw = 1.25;
+  const sw = 1.25 * SCALE;
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
-      width={w}
-      height={h}
+      width={w / SCALE}
+      height={h / SCALE}
+      shapeRendering="geometricPrecision"
       style={{ display: 'block', flexShrink: 0 }}
     >
       <defs>
