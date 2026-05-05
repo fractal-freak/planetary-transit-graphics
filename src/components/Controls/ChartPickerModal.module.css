@@ -294,21 +294,17 @@
 }
 
 .rowActions {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   gap: 1px;
-  background: linear-gradient(to right, transparent, var(--bg-subtle) 16px);
-  padding-left: 16px;
-  opacity: 0;
-  transition: opacity 0.12s;
+  flex-shrink: 0;
+  margin-left: 6px;
+  visibility: hidden;
+  position: relative;
 }
 
 .tableRow:hover .rowActions,
 .tableRowActive .rowActions {
-  opacity: 1;
+  visibility: visible;
 }
 
 .rowActionBtn {
@@ -320,7 +316,7 @@
   padding: 3px 5px;
   border-radius: 3px;
   line-height: 1;
-  font-family: inherit;
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   transition: all 0.12s;
 }
 
@@ -423,6 +419,24 @@
   color: var(--fg-muted);
   margin-top: 2px;
   font-variant-numeric: tabular-nums;
+}
+
+.recomputeBtn {
+  margin-top: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+  font-size: 10px;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.recomputeBtn:hover {
+  background: var(--border-soft);
+  color: var(--fg-strong);
 }
 
 .previewBody {

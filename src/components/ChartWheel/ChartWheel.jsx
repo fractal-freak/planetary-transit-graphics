@@ -29,6 +29,9 @@ export default function ChartWheel({ chart, size = 320 }) {
   return <canvas ref={canvasRef} />;
 }
 
+// Force text-style rendering for astrological glyphs (no color emoji).
+const GLYPH_FONT = '"Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif';
+
 function drawWheel(ctx, chart, size) {
   ctx.clearRect(0, 0, size, size);
 
@@ -80,7 +83,7 @@ function drawWheel(ctx, chart, size) {
     const gx = cx + rGlyph * Math.cos(phiMid);
     const gy = cy + rGlyph * Math.sin(phiMid);
     ctx.fillStyle = signColors[i % 4];
-    ctx.font = `${Math.round(size * 0.045)}px sans-serif`;
+    ctx.font = `${Math.round(size * 0.045)}px ${GLYPH_FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(ZODIAC_SIGNS[i].symbol, gx, gy);
@@ -115,7 +118,7 @@ function drawWheel(ctx, chart, size) {
       const lx = cx + (rInner - 8) * Math.cos(phi);
       const ly = cy + (rInner - 8) * Math.sin(phi);
       ctx.fillStyle = color;
-      ctx.font = `bold ${Math.round(size * 0.032)}px sans-serif`;
+      ctx.font = `bold ${Math.round(size * 0.032)}px ${GLYPH_FONT}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(label, lx, ly);
@@ -177,7 +180,7 @@ function drawWheel(ctx, chart, size) {
 
     // Glyph
     ctx.fillStyle = planet.color;
-    ctx.font = `${Math.round(size * 0.05)}px sans-serif`;
+    ctx.font = `${Math.round(size * 0.05)}px ${GLYPH_FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(planet.symbol, px, py);
@@ -186,7 +189,7 @@ function drawWheel(ctx, chart, size) {
     const signIdx = getSignIndex(originalLng);
     const degInSign = Math.floor(originalLng - signIdx * 30);
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.font = `${Math.round(size * 0.028)}px sans-serif`;
+    ctx.font = `${Math.round(size * 0.028)}px ${GLYPH_FONT}`;
     const labelR = rPlanet + (rPlanet - rInner) * 0.55;
     ctx.fillText(`${degInSign}°`, cx + labelR * Math.cos(phi), cy + labelR * Math.sin(phi));
   }

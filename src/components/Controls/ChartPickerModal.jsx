@@ -10,7 +10,10 @@ import {
   renameFolder,
   deleteFolder,
   moveChartToFolder,
+  updateChartAngles,
 } from '../../firebase/firestore';
+import { computeNatalAngles, combineDateAndTime } from '../../data/natalChart';
+import { getHouseCusps } from '../../api/ephemeris';
 import ChartWheel from '../ChartWheel/ChartWheel';
 import ChartDataView from '../ChartWheel/ChartDataView';
 import styles from './ChartPickerModal.module.css';
@@ -171,6 +174,25 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
       }
     } catch (err) {
       console.error('Delete failed:', err);
+    }
+  }
+
+  async function handleRecomputeAngles(chart) {
+    if (!chart || chart.lat == null || chart.lng == null || !chart.birthDate) {
+      return;
+    }
+    try {
+      const dateTime = combineDateAndTime(chart.birthDate, chart.birthTime || '12:00', chart.lat, chart.lng);
+      const angles = computeNatalAngles(dateTime, chart.lat, chart.lng);
+      const houses = getHouseCusps(dateTime, chart.lat, chart.lng, 'P');
+      await updateChartAngles(user.uid, chart.id, {
+        angles,
+        houseCusps: houses.cusps,
+        houseSystem: 'P',
+      });
+      await refreshData();
+    } catch (err) {
+      console.error('Recompute angles failed:', err);
     }
   }
 
@@ -458,6 +480,15 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
                   </div>
                   {previewChart.locationName && (
                     <div className={styles.previewSub}>{previewChart.locationName}</div>
+                  )}
+                  {previewChart.lat != null && previewChart.lng != null && previewChart.birthDate && (
+                    <button
+                      className={styles.recomputeBtn}
+                      onClick={() => handleRecomputeAngles(previewChart)}
+                      title="Recompute Asc/MC/houses from birth data"
+                    >
+                      Recompute angles
+                    </button>
                   )}
                 </div>
 

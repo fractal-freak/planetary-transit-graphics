@@ -120,6 +120,15 @@ export async function renameChart(uid, chartId, newName) {
   });
 }
 
+/** Update just a chart's angles + house cusps (e.g. after recomputing). */
+export async function updateChartAngles(uid, chartId, { angles, houseCusps, houseSystem }) {
+  const patch = { updatedAt: serverTimestamp() };
+  if (angles !== undefined) patch.angles = angles;
+  if (houseCusps !== undefined) patch.houseCusps = houseCusps;
+  if (houseSystem !== undefined) patch.houseSystem = houseSystem;
+  await updateDoc(chartRef(uid, chartId), patch);
+}
+
 // ── Default chart ──
 
 export async function getDefaultChartId(uid) {

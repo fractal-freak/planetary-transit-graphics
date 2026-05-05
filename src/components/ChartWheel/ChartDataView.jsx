@@ -51,7 +51,7 @@ export default function ChartDataView({ chart }) {
                   background: row.kind === 'angle' ? 'var(--bg-subtle)' : 'transparent',
                 }}
               >
-                <td style={{ padding: '6px 8px', width: '24px', color: row.color, fontSize: '15px', textAlign: 'center' }}>
+                <td style={{ padding: '6px 8px', width: '24px', color: row.color, fontSize: '15px', textAlign: 'center', fontFamily: '"Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif' }}>
                   {row.symbol}
                 </td>
                 <td style={{ padding: '6px 8px', color: 'var(--fg-strong)', fontWeight: 500 }}>
@@ -60,7 +60,7 @@ export default function ChartDataView({ chart }) {
                 <td style={{ padding: '6px 8px', textAlign: 'right', color: 'var(--fg)', fontVariantNumeric: 'tabular-nums' }}>
                   {String(deg).padStart(2, '0')}&deg;
                 </td>
-                <td style={{ padding: '6px 4px', width: '20px', textAlign: 'center', fontSize: '14px' }}>
+                <td style={{ padding: '6px 4px', width: '20px', textAlign: 'center', fontSize: '14px', fontFamily: '"Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif' }}>
                   {sign.symbol}
                 </td>
                 <td style={{ padding: '6px 8px', color: 'var(--fg-muted)', fontVariantNumeric: 'tabular-nums', width: '40px' }}>
