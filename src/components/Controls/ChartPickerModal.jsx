@@ -514,7 +514,7 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
 
                 <div className={styles.previewBody}>
                   {previewMode === 'wheel'
-                    ? <ChartWheel chart={previewChart} size={320} />
+                    ? <ChartWheel chart={previewChart} size={380} />
                     : <ChartDataView chart={previewChart} />
                   }
                 </div>

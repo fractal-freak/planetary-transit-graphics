@@ -15,8 +15,8 @@
 .modal {
   position: relative;
   width: 100%;
-  max-width: 880px;
-  max-height: min(680px, 90vh);
+  max-width: 960px;
+  max-height: min(720px, 92vh);
   background: #f5f3ef;
   border-radius: 14px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
@@ -154,7 +154,7 @@
 }
 
 .rightPane {
-  width: 380px;
+  width: 440px;
   flex-shrink: 0;
   margin-left: 14px;
   display: flex;
