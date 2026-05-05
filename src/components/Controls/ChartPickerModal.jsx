@@ -46,6 +46,10 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
   const [confirmDeleteFolderId, setConfirmDeleteFolderId] = useState(null);
 
   const [moveChartId, setMoveChartId] = useState(null);
+  // Multi-select for bulk move/delete. Distinct from previewId.
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -61,6 +65,9 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
       setEditingFolderId(null);
       setConfirmDeleteFolderId(null);
       setMoveChartId(null);
+      setSelectedIds(new Set());
+      setBulkMoveOpen(false);
+      setConfirmBulkDelete(false);
       setCreatingFolder(false);
       setNewFolderName('');
       // Default the folder to the one containing the current chart, else All
@@ -102,6 +109,21 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
     });
     return list;
   }, [savedCharts, query, activeFolder, defaultChartId]);
+
+  // Detect likely duplicates across the whole library (name + birthDate + birthTime + lat + lng).
+  const duplicateIds = useMemo(() => {
+    const groups = new Map();
+    for (const c of savedCharts) {
+      const key = `${c.name || ''}|${c.birthDate || ''}|${c.birthTime || ''}|${c.lat ?? ''}|${c.lng ?? ''}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(c.id);
+    }
+    const dups = new Set();
+    for (const ids of groups.values()) {
+      if (ids.length > 1) ids.forEach(id => dups.add(id));
+    }
+    return dups;
+  }, [savedCharts]);
 
   if (!open) return null;
 
@@ -182,6 +204,58 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
       if (folderId) setActiveFolder(folderId);
     } catch (err) {
       console.error('Move failed:', err);
+    }
+  }
+
+  // ── Multi-select helpers ──
+
+  function toggleSelected(id, e) {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === visibleCharts.length && visibleCharts.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(visibleCharts.map(c => c.id)));
+    }
+  }
+
+  async function handleBulkMove(folderId) {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    try {
+      await Promise.all(ids.map(id => moveChartToFolder(user.uid, id, folderId)));
+      await refreshData();
+      setBulkMoveOpen(false);
+      setSelectedIds(new Set());
+      if (folderId) setActiveFolder(folderId);
+    } catch (err) {
+      console.error('Bulk move failed:', err);
+    }
+  }
+
+  async function handleBulkDelete() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    try {
+      await Promise.all(ids.map(id => deleteChart(user.uid, id)));
+      if (defaultChartId && ids.includes(defaultChartId)) {
+        await setDefaultChartId(user.uid, null);
+        setDefId(null);
+      }
+      await refreshData();
+      setConfirmBulkDelete(false);
+      if (previewId && ids.includes(previewId)) setPreviewId(null);
+      setSelectedIds(new Set());
+    } catch (err) {
+      console.error('Bulk delete failed:', err);
     }
   }
 
@@ -325,6 +399,14 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
 
             <div className={styles.tableWrap}>
               <div className={styles.tableHeader}>
+                <input
+                  type="checkbox"
+                  className={styles.colCheck}
+                  checked={visibleCharts.length > 0 && selectedIds.size === visibleCharts.length}
+                  ref={el => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < visibleCharts.length; }}
+                  onChange={toggleSelectAll}
+                  title="Select all"
+                />
                 <span className={styles.colName}>Name</span>
                 <span className={styles.colDate}>Date</span>
                 <span className={styles.colType}>Type</span>
@@ -372,16 +454,26 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
                       );
                     }
 
+                    const isDup = duplicateIds.has(chart.id);
+                    const isSelected = selectedIds.has(chart.id);
                     return (
                       <div
                         key={chart.id}
-                        className={`${styles.tableRow} ${isPreview ? styles.tableRowActive : ''} ${isCurrent ? styles.tableRowCurrent : ''}`}
+                        className={`${styles.tableRow} ${isPreview ? styles.tableRowActive : ''} ${isCurrent ? styles.tableRowCurrent : ''} ${isSelected ? styles.tableRowSelected : ''}`}
                         onClick={() => setPreviewId(chart.id)}
                         onDoubleClick={() => handleSelectChart(chart)}
                       >
+                        <input
+                          type="checkbox"
+                          className={styles.colCheck}
+                          checked={isSelected}
+                          onChange={() => toggleSelected(chart.id)}
+                          onClick={e => e.stopPropagation()}
+                        />
                         <span className={styles.colName} title={chart.name}>
                           {chart.name}
                           {chart.id === defaultChartId && <span className={styles.chartDefault}> {'★'}</span>}
+                          {isDup && <span className={styles.dupBadge} title="Possible duplicate">dup</span>}
                         </span>
                         <span className={styles.colDate}>{chart.birthDate || '—'}</span>
                         <span className={styles.colType}>{chart.chartType || 'natal'}</span>
@@ -454,6 +546,47 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
               <button className={styles.inlineBtn} onClick={handleCreateFolder}>Create</button>
               <button className={styles.inlineBtn} onClick={() => { setCreatingFolder(false); setNewFolderName(''); }}>Cancel</button>
             </div>
+          ) : confirmBulkDelete ? (
+            <div className={styles.newFolderRow}>
+              <span className={styles.deleteText} style={{ flex: 1 }}>
+                Delete {selectedIds.size} chart{selectedIds.size === 1 ? '' : 's'}? This cannot be undone.
+              </span>
+              <button className={`${styles.inlineBtn} ${styles.inlineBtnDanger}`} onClick={handleBulkDelete}>Delete {selectedIds.size}</button>
+              <button className={styles.inlineBtn} onClick={() => setConfirmBulkDelete(false)}>Cancel</button>
+            </div>
+          ) : selectedIds.size > 0 ? (
+            <>
+              <span className={styles.selectionLabel}>{selectedIds.size} selected</span>
+              <button className={styles.footerBtn} onClick={() => setSelectedIds(new Set())}>Clear</button>
+              <div className={styles.footerSep} />
+              <div className={styles.moveWrap}>
+                <button
+                  className={styles.footerBtn}
+                  onClick={() => setBulkMoveOpen(v => !v)}
+                >Move {selectedIds.size}…</button>
+                {bulkMoveOpen && (
+                  <div className={styles.moveDropdown}>
+                    <button
+                      className={styles.moveOption}
+                      onClick={() => handleBulkMove(null)}
+                    >Uncategorized</button>
+                    {savedFolders.map(f => (
+                      <button
+                        key={f.id}
+                        className={styles.moveOption}
+                        onClick={() => handleBulkMove(f.id)}
+                      >{f.name}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                className={`${styles.footerBtn} ${styles.footerBtnDanger}`}
+                onClick={() => setConfirmBulkDelete(true)}
+              >Delete {selectedIds.size}</button>
+              <div style={{ flex: 1 }} />
+              <button className={styles.footerBtn} onClick={onClose}>Cancel</button>
+            </>
           ) : (
             <>
               <button className={styles.footerBtn} onClick={() => setCreatingFolder(true)}>+ New Folder</button>
