@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { PLANETS, PLANET_MAP, SPEED_ORDER } from '../../data/planets';
+import { LUNATION_ORB_KEY, LUNATION_ORB_DEFAULT } from '../../data/orbDefaults';
+import SolarEclipseGlyph from './SolarEclipseGlyph';
 import { IconSliders } from './sectionIcons';
 import styles from './Controls.module.css';
 
@@ -59,6 +61,24 @@ export default function OrbSettings({ orbSettings, onOrbChange }) {
               </div>
             );
           })}
+          {(() => {
+            const orb = orbSettings[LUNATION_ORB_KEY] ?? LUNATION_ORB_DEFAULT;
+            return (
+              <div key={LUNATION_ORB_KEY} className={styles.orbRow}>
+                <span className={styles.orbPlanetSymbol}><SolarEclipseGlyph size={14} /></span>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={orb}
+                  onChange={e => onOrbChange(LUNATION_ORB_KEY, parseFloat(e.target.value))}
+                  className={styles.orbSlider}
+                />
+                <span className={styles.orbValue}>{orb % 1 === 0 ? orb + '.0' : orb}°</span>
+              </div>
+            );
+          })()}
         </div>
       )}
     </section>

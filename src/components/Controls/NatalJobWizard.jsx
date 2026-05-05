@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PLANETS, PLANET_MAP, SPEED_ORDER, NON_RETROGRADE_PLANETS, NATAL_ANGLES, NATAL_ANGLE_IDS } from '../../data/planets';
 import { ASPECTS } from '../../utils/aspects';
 import { formatDegree } from '../../data/natalChart';
+import SolarEclipseGlyph from './SolarEclipseGlyph';
 import styles from './Controls.module.css';
 
 const ALL_ASPECT_NAMES = ASPECTS.map(a => a.name);
@@ -12,7 +13,7 @@ const ALL_ASPECT_NAMES = ASPECTS.map(a => a.name);
  * Step 1: Pick a transiting planet (any planet can transit natal positions)
  * Step 2: Pick which natal planets to track aspects against
  */
-export default function NatalJobWizard({ natalChart, onAddJob }) {
+export default function NatalJobWizard({ natalChart, onAddJob, lunationsActive, onToggleLunations }) {
   const [step, setStep] = useState(0);
   const [transitPlanet, setTransitPlanet] = useState(null);
   const [natalTargets, setNatalTargets] = useState([]);
@@ -105,6 +106,18 @@ export default function NatalJobWizard({ natalChart, onAddJob }) {
               </button>
             );
           })}
+          {onToggleLunations && (
+            <button
+              className={`${styles.planetBtn} ${lunationsActive ? styles.planetBtnActive : ''}`}
+              onClick={() => { onToggleLunations(); reset(); }}
+              type="button"
+            >
+              <span className={styles.planetBtnSymbol}>
+                <SolarEclipseGlyph size={16} />
+              </span>
+              <span className={styles.planetBtnName}>Lunations</span>
+            </button>
+          )}
         </div>
       </div>
     );

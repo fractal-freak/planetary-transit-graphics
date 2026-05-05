@@ -22,10 +22,17 @@ const DEFAULTS = {
   TrueNode: 3,
 };
 
+// Special non-planet orb keys — used by the Lunations feature in natal mode
+// to control how close a new/full moon must be to a natal target before
+// the proximity tag appears.
+export const LUNATION_ORB_KEY = 'Lunation';
+export const LUNATION_ORB_DEFAULT = 8;
+
 export function getDefaultOrbSettings() {
   const settings = {};
   for (const p of PLANETS) {
     settings[p.id] = DEFAULTS[p.id] || 8;
   }
+  settings[LUNATION_ORB_KEY] = LUNATION_ORB_DEFAULT;
   return settings;
 }

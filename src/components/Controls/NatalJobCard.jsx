@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PLANET_MAP, SPEED_ORDER, NON_RETROGRADE_PLANETS, NATAL_ANGLES, NATAL_ANGLE_IDS } from '../../data/planets';
 import { ASPECTS } from '../../utils/aspects';
 import { formatDegree } from '../../data/natalChart';
+import SolarEclipseGlyph from './SolarEclipseGlyph';
 import styles from './Controls.module.css';
 
 export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivity, onRemove, onUpdate }) {
@@ -17,7 +18,9 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
     const newTargets = job.natalTargets.includes(targetId)
       ? job.natalTargets.filter(t => t !== targetId)
       : [...job.natalTargets, targetId];
-    if (newTargets.length > 0 || job.showSignChanges || job.showRetrogrades) {
+    // Lunations always render the Moon-Sun curve regardless of natal target
+    // selection (those are just decoration), so allow an empty list there.
+    if (job.isLunation || newTargets.length > 0 || job.showSignChanges || job.showRetrogrades) {
       onUpdate({ natalTargets: newTargets });
     }
   }
@@ -42,10 +45,19 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
         onClick={() => setExpanded(e => !e)}
       >
         <span className={styles.jobPlanet}>
-          {transitP.symbol}
-          <span style={{ fontSize: '9px', color: 'rgba(0,0,0,0.3)', marginLeft: 4 }}>
-            → natal
-          </span>
+          {job.isLunation ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <SolarEclipseGlyph size={14} />
+              Lunations
+            </span>
+          ) : (
+            <>
+              {transitP.symbol}
+              <span style={{ fontSize: '9px', color: 'rgba(0,0,0,0.3)', marginLeft: 4 }}>
+                → natal
+              </span>
+            </>
+          )}
         </span>
         <button
           className={styles.jobRemove}
@@ -66,7 +78,9 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
               ones (Nodes). Without this list, a job pre-seeded with targets
               would render aspects on the canvas with no way to edit/clear them. */}
           <div className={styles.jobSection}>
-            <span className={styles.jobSectionLabel}>Natal Targets</span>
+            <span className={styles.jobSectionLabel}>
+              {job.isLunation ? 'Track near natal' : 'Natal Targets'}
+            </span>
             <div className={styles.targetList}>
               {allOthers.map(id => {
                 const p = PLANET_MAP[id];
@@ -122,8 +136,9 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
 
           {/* Aspects picker — only meaningful when the body uses more than
               just Conjunction. Nodes are conjunction-only by convention so
-              the picker is hidden (engine still computes Conjunction for them). */}
-          {!transitP.conjunctionOnly && (
+              the picker is hidden (engine still computes Conjunction for them).
+              Lunations are also locked to Conjunction+Opposition. */}
+          {!transitP.conjunctionOnly && !job.isLunation && (
             <div className={styles.jobSection}>
               <span className={styles.jobSectionLabel}>Aspects</span>
               <div className={styles.targetList}>
@@ -144,29 +159,31 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
             </div>
           )}
 
-          <div className={styles.jobSection}>
-            <label className={styles.signChangeToggle}>
-              <input
-                type="checkbox"
-                checked={job.showSignChanges ?? false}
-                onChange={() => onUpdate({ showSignChanges: !job.showSignChanges })}
-                className={styles.targetCheckbox}
-              />
-              <span className={styles.signChangeLabel}>Sign changes</span>
-            </label>
-
-            {!NON_RETROGRADE_PLANETS.has(job.transitPlanet) && (
-              <label className={styles.signChangeToggle} style={{ marginTop: 4 }}>
+          {!job.isLunation && (
+            <div className={styles.jobSection}>
+              <label className={styles.signChangeToggle}>
                 <input
                   type="checkbox"
-                  checked={job.showRetrogrades ?? false}
-                  onChange={() => onUpdate({ showRetrogrades: !job.showRetrogrades })}
+                  checked={job.showSignChanges ?? false}
+                  onChange={() => onUpdate({ showSignChanges: !job.showSignChanges })}
                   className={styles.targetCheckbox}
                 />
-                <span className={styles.signChangeLabel}>Retrograde cycles</span>
+                <span className={styles.signChangeLabel}>Sign changes</span>
               </label>
-            )}
-          </div>
+
+              {!NON_RETROGRADE_PLANETS.has(job.transitPlanet) && (
+                <label className={styles.signChangeToggle} style={{ marginTop: 4 }}>
+                  <input
+                    type="checkbox"
+                    checked={job.showRetrogrades ?? false}
+                    onChange={() => onUpdate({ showRetrogrades: !job.showRetrogrades })}
+                    className={styles.targetCheckbox}
+                  />
+                  <span className={styles.signChangeLabel}>Retrograde cycles</span>
+                </label>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -42,17 +42,50 @@ export function buildEventMap(curves, signChanges) {
 
         let event;
         if (lunationLabel && isSweReady()) {
-          // Sun-Moon conjunction/opposition → render as New/Full Moon with
-          // the moon's sign at the moment of perfection.
           const moonLon = getLongitude('Moon', date);
           const sign = ZODIAC_SIGNS[getSignIndex(moonLon)];
-          event = {
-            type: 'lunation',
-            date,
-            glyphs: `${sign.symbol} ${lunationLabel}`,
-            title: `${lunationLabel} in ${sign.name}`,
-            color: curve.color,
-          };
+
+          // Eclipse coincidence: a New Moon that matches a solar eclipse (or
+          // Full Moon → lunar) within ±1 day swaps to an eclipse event.
+          let eclipseHit = null;
+          if (signChanges?.eclipses?.length) {
+            const wantType = lunationLabel === 'New Moon' ? 'solar' : 'lunar';
+            const dayMs = 86400000;
+            eclipseHit = signChanges.eclipses.find(e =>
+              e.type === wantType && Math.abs(e.date - date) < dayMs,
+            ) || null;
+          }
+
+          // Natal-mode proximity decoration — " · ♀ 3°" per nearby target.
+          const proxTag = peak.natalProximity?.length
+            ? ' ' + peak.natalProximity
+                .map(p => `· ${p.symbol} ${Math.round(p.distanceDeg)}°`)
+                .join(' ')
+            : '';
+          const proxTitle = peak.natalProximity?.length
+            ? ' near ' + peak.natalProximity
+                .map(p => `${p.name} (${Math.round(p.distanceDeg)}°)`)
+                .join(', ')
+            : '';
+
+          if (eclipseHit) {
+            const eclipseLabel = eclipseHit.type === 'solar' ? 'Solar Eclipse' : 'Lunar Eclipse';
+            event = {
+              type: 'eclipse',
+              date,
+              glyphs: `${eclipseHit.signSymbol || sign.symbol} ${eclipseLabel}${proxTag}`,
+              title: `${eclipseLabel} in ${sign.name}${proxTitle}`,
+              color: curve.color,
+            };
+          } else {
+            event = {
+              type: 'lunation',
+              date,
+              glyphs: `${sign.symbol} ${lunationLabel}${proxTag}`,
+              title: `${lunationLabel} in ${sign.name}${proxTitle}`,
+              color: curve.color,
+            };
+          }
         } else {
           event = {
             type: 'aspect',

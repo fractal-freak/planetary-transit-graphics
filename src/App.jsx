@@ -105,9 +105,12 @@ export default function App() {
     readStoredJSON('ptg_dateRangeLocked', false)
   );
   const [zoom, setZoom] = useState(1);
-  const [orbSettings, setOrbSettings] = useState(() =>
-    readStoredJSON('ptg_orbSettings', null) || getDefaultOrbSettings()
-  );
+  const [orbSettings, setOrbSettings] = useState(() => {
+    // Merge stored values with defaults so newly-introduced keys (e.g. Lunation)
+    // pick up sane defaults on existing installs.
+    const stored = readStoredJSON('ptg_orbSettings', null);
+    return { ...getDefaultOrbSettings(), ...(stored || {}) };
+  });
   const [overlayData, setOverlayData] = useState({ crowdedRows: [], rowLayouts: [] });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);

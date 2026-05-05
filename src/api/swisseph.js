@@ -10,6 +10,7 @@
 import SwissEph from 'swisseph-wasm';
 
 let _swe = null;
+let _ready = false;
 let _initPromise = null;
 
 /**
@@ -22,6 +23,7 @@ export function initSwissEph() {
   _initPromise = (async () => {
     _swe = new SwissEph();
     await _swe.initSwissEph();
+    _ready = true;
     return _swe;
   })();
 
@@ -33,15 +35,18 @@ export function initSwissEph() {
  * Throws if called before `initSwissEph()` resolves.
  */
 export function getSwe() {
-  if (!_swe) throw new Error('Swiss Ephemeris not initialized — call initSwissEph() first');
+  if (!_ready) throw new Error('Swiss Ephemeris not initialized — call initSwissEph() first');
   return _swe;
 }
 
 /**
- * Check whether the WASM module is ready.
+ * Check whether the WASM module is ready for synchronous calls.
+ * Returns false during the async WASM init even though the SwissEph
+ * instance has been constructed — call sites must wait for true before
+ * using getSwe / dateToJd / etc.
  */
 export function isSweReady() {
-  return _swe !== null;
+  return _ready;
 }
 
 /**

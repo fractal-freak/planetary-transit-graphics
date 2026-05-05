@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PLANETS, PLANET_MAP, SPEED_ORDER, getSlowerPlanets, NON_RETROGRADE_PLANETS } from '../../data/planets';
 import { ASPECTS } from '../../utils/aspects';
+import SolarEclipseGlyph from './SolarEclipseGlyph';
 import styles from './Controls.module.css';
 
 const ALL_ASPECT_NAMES = ASPECTS.map(a => a.name);
@@ -241,44 +242,4 @@ export default function TransitJobWizard({ onAddJob, lunationsActive, onToggleLu
   }
 
   return null;
-}
-
-// Replicates the canvas drawSolarEclipseGlyph: red sun peeking left,
-// dark navy moon in front, white separator at the overlap.
-function SolarEclipseGlyph({ size = 16 }) {
-  // Classic eclipse glyph: a sun circle with a moon crescent inside it.
-  // - Sun: stroked circle, line-drawn like ☉/♂/♀ etc.
-  // - Crescent: a single filled <path> built from two arcs.
-  const cx = size / 2;
-  const cy = size / 2;
-  const R = size * 0.42;          // Sun outer radius (with margin for stroke)
-  const rMoon = R * 0.68;         // Crescent's circle radius
-  const offset = rMoon * 0.55;    // Distance between the two crescent circles → controls thickness
-  const sw = 1;
-
-  // Position so the crescent's bounding box is centered horizontally in the sun.
-  const c1 = cx + rMoon / 2 - offset / 4;
-  const c2 = c1 + offset;
-  const xInt = (c1 + c2) / 2;
-  const yOff = Math.sqrt(rMoon * rMoon - (offset * offset) / 4);
-
-  const crescentPath = [
-    `M${xInt} ${cy - yOff}`,
-    `A${rMoon} ${rMoon} 0 1 0 ${xInt} ${cy + yOff}`,
-    `A${rMoon} ${rMoon} 0 0 0 ${xInt} ${cy - yOff}`,
-    `Z`,
-  ].join(' ');
-
-  return (
-    <svg
-      viewBox={`0 0 ${size} ${size}`}
-      width={size}
-      height={size}
-      shapeRendering="geometricPrecision"
-      style={{ display: 'block', flexShrink: 0 }}
-    >
-      <circle cx={cx} cy={cy} r={R} fill="none" stroke="currentColor" strokeWidth={sw} />
-      <path d={crescentPath} fill="currentColor" />
-    </svg>
-  );
 }

@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { computeLongitudes, getLongitude } from '../api/ephemeris';
 import { ASPECTS, computeAspectCurve, findPeaks, angularSeparation } from '../utils/aspects';
-import { PLANET_MAP, SPEED_ORDER, NON_RETROGRADE_PLANETS } from '../data/planets';
+import { PLANET_MAP, SPEED_ORDER, NON_RETROGRADE_PLANETS, NATAL_ANGLE_IDS } from '../data/planets';
 import { detectSignChanges, ZODIAC_SIGNS } from '../data/zodiac';
 import { detectStations, getRetrogradeCycleIngresses } from '../data/retrograde';
+import { computeEclipses } from '../api/eclipses';
+import { isSweReady } from '../api/swisseph';
+import { LUNATION_ORB_KEY, LUNATION_ORB_DEFAULT } from '../data/orbDefaults';
 
 // Module-level cache for computed longitudes (shared with useTransits)
 const longitudeCache = new Map();
@@ -71,8 +74,17 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
     // Schedule on a macrotask so the effect cleanup of any prior run has a
     // chance to settle. setTimeout(0) is more reliable than rAF in React 19
     // strict-mode double-mount, where rAF can be cancelled before firing.
-    const timeoutId = setTimeout(() => {
+    let timeoutId;
+    const run = () => {
       if (cancelledRef.current) return;
+      // Swiss Ephemeris WASM may not be initialized yet on first render
+      // (App.jsx renders the hooks before the loading screen returns).
+      // Poll until ready; without this the hook fires once with persisted
+      // state, throws, and never retries because depsKey doesn't change.
+      if (!isSweReady()) {
+        timeoutId = setTimeout(run, 100);
+        return;
+      }
 
       // Merge planet positions + chart angles into one lookup
       const positions = { ...natalChart.positions, ...(natalChart.angles || {}) };
@@ -94,6 +106,10 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
       // Compute aspect curves: for each job → each natal target → each aspect
       const result = [];
       for (const job of natalJobs) {
+        // Lunation jobs are handled separately below — they're transit-transit
+        // (Moon→Sun) curves with natal-target proximity decoration, not the
+        // standard transit-natal aspect computation.
+        if (job.isLunation) continue;
         const transitP = PLANET_MAP[job.transitPlanet];
         if (!transitP) continue;
 
@@ -278,11 +294,109 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
         }
       }
 
+      // ── Lunation jobs (natal mode) ──
+      // Transit-transit Moon→Sun Conjunction & Opposition curves, with each
+      // peak decorated with the natal targets within `lunationOrb` of the
+      // Moon at perfection.
+      const lunationJob = natalJobs.find(j => j.isLunation);
+      if (lunationJob) {
+        if (!longitudes['Moon']) longitudes['Moon'] = getCachedLongitudes('Moon', startDate, endDate);
+        if (!longitudes['Sun']) longitudes['Sun'] = getCachedLongitudes('Sun', startDate, endDate);
+
+        const moonP = PLANET_MAP['Moon'];
+        const sunP = PLANET_MAP['Sun'];
+        const moonOrb = orbSettings?.['Moon'] || 8;
+        const lunationOrb = orbSettings?.[LUNATION_ORB_KEY] ?? LUNATION_ORB_DEFAULT;
+
+        const getMoonLon = (date) => getLongitude('Moon', date);
+        const getSunLon = (date) => getLongitude('Sun', date);
+
+        const lunationAspects = ['Conjunction', 'Opposition']
+          .map(name => ASPECT_MAP[name])
+          .filter(Boolean);
+
+        for (const aspect of lunationAspects) {
+          const points = computeAspectCurve(
+            longitudes['Moon'],
+            longitudes['Sun'],
+            aspect.angle,
+            moonOrb,
+            getMoonLon,
+            getSunLon,
+          );
+
+          if (!points.some(p => p.intensity > 0)) continue;
+
+          const peaks = findPeaks(points);
+
+          const keptPeaks = [];
+          for (const peak of peaks) {
+            const moonLonAtPeak = getMoonLon(peak.date);
+            const proximity = [];
+            for (const targetId of (lunationJob.natalTargets || [])) {
+              const targetLon = positions[targetId];
+              if (targetLon == null) continue;
+              const dist = angularSeparation(moonLonAtPeak, targetLon);
+              if (dist <= lunationOrb) {
+                const targetP = PLANET_MAP[targetId];
+                const isAngle = NATAL_ANGLE_IDS.includes(targetId);
+                proximity.push({
+                  id: targetId,
+                  symbol: targetP?.symbol ?? targetId,
+                  name: targetP?.name ?? targetId,
+                  color: targetP?.color ?? '#888888',
+                  distanceDeg: dist,
+                  isAngle,
+                });
+              }
+            }
+            // Natal-mode lunations only surface when there's at least one
+            // natal target within orb — otherwise they're just world-mode
+            // lunations the user didn't ask for.
+            if (proximity.length === 0) continue;
+            proximity.sort((a, b) => a.distanceDeg - b.distanceDeg);
+            peak.natalProximity = proximity;
+
+            const HALF_DAY = 12 * 60 * 60 * 1000;
+            const t = peak.date.getTime();
+            const moonBefore = getMoonLon(new Date(t - HALF_DAY));
+            const moonAfter = getMoonLon(new Date(t + HALF_DAY));
+            let dM = moonAfter - moonBefore;
+            if (dM > 180) dM -= 360;
+            if (dM < -180) dM += 360;
+            peak.transitRetrograde = dM < 0;
+            peak.targetRetrograde = false;
+            keptPeaks.push(peak);
+          }
+
+          if (keptPeaks.length === 0) continue;
+
+          const color = blendColors(moonP.color, sunP.color);
+          result.push({
+            id: `${lunationJob.id}-Sun-${aspect.name}`,
+            jobId: lunationJob.id,
+            transitPlanet: 'Moon',
+            target: 'Sun',
+            isNatal: false,
+            isLunation: true,
+            rowKey: 'planet-Moon',
+            rowPlanet: 'Moon',
+            rowTargetPlanet: null,
+            pairLabel: `${moonP.symbol}${aspect.symbol}${sunP.symbol}`,
+            aspect,
+            color,
+            points,
+            peaks: keptPeaks,
+          });
+        }
+      }
+
       // Deduplicate
       const seenCurves = new Set();
       const deduped = [];
       for (const c of result) {
-        const curveKey = `${c.transitPlanet}-natal-${c.target}-${c.aspect.name}`;
+        const lunMark = c.isLunation ? '-lun' : '';
+        const curveKey = `${c.transitPlanet}-natal-${c.target}-${c.aspect.name}${lunMark}`;
         if (seenCurves.has(curveKey)) continue;
         seenCurves.add(curveKey);
         deduped.push(c);
@@ -386,18 +500,26 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
         }
       }
 
+      // Eclipses are needed when a lunation job is present so the canvas can
+      // swap New/Full Moon glyphs to solar/lunar eclipse glyphs on coincident
+      // dates (matches world-mode behaviour).
+      const eclipseEvents = lunationJob
+        ? computeEclipses(startDate, endDate)
+        : [];
+
       if (!cancelledRef.current) {
         setCurves(result);
         setSignChanges({
           changes: signChangeResults,
           initialSigns,
-          eclipses: [],
+          eclipses: eclipseEvents,
           stations: stationResults,
           retrogradePeriods: retrogradePeriodResults,
         });
         setLoading(false);
       }
-    });
+    };
+    timeoutId = setTimeout(run, 0);
 
     return () => {
       cancelledRef.current = true;

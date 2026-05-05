@@ -1540,6 +1540,7 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
         tSym, tRetro, aspectSym, targetSym, targetRetro, nearMiss,
         pairKey: `${curve.transitPlanet}-${curve.target}`,
         lunation, eclipse: eclipseHit,
+        natalProximity: peak.natalProximity || null,
         peakInfo,
       });
     });
@@ -1606,6 +1607,27 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     return { advance, visualRight };
   }
 
+  function hexToRGB(hex) {
+    const h = (hex || '').replace('#', '');
+    if (h.length < 6) return [136, 136, 136];
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  // Width of " · ♀ 3°" tags appended to lunation/eclipse labels.
+  function proximityWidth(natalProximity) {
+    if (!natalProximity || natalProximity.length === 0) return 0;
+    let w = 0;
+    for (const p of natalProximity) {
+      ctx.font = DATE_FONT;
+      w += ctx.measureText(' · ').width;
+      ctx.font = GLYPH_FONT;
+      w += ctx.measureText(p.symbol).width;
+      ctx.font = DATE_FONT;
+      w += ctx.measureText(` ${Math.round(p.distanceDeg)}°`).width;
+    }
+    return w;
+  }
+
   // Eclipse peak labels are rendered by a custom path; report the visual
   // width here so cluster placement still works without going through the
   // glyph-segments code path.
@@ -1616,7 +1638,7 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     const textW = ctx.measureText(text).width;
     ctx.font = GLYPH_FONT;
     const signW = ctx.measureText(lbl.eclipse.signSymbol).width;
-    return ECLIPSE_GLYPH_R * 2 + 4 + textW + 4 + signW;
+    return ECLIPSE_GLYPH_R * 2 + 4 + textW + 4 + signW + proximityWidth(lbl.natalProximity);
   }
 
   function layoutGlyphLine(lbl) {
@@ -1649,6 +1671,45 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
         yOff: 0,
       });
       cursor += textW;
+      // Natal-mode proximity tags: " · ♀ 3°" per target within orb.
+      if (lbl.natalProximity && lbl.natalProximity.length > 0) {
+        for (const p of lbl.natalProximity) {
+          ctx.font = DATE_FONT;
+          const sepW = ctx.measureText(' · ').width;
+          segments.push({
+            text: ' · ',
+            font: DATE_FONT,
+            alphaKey: 'glyph',
+            x: cursor,
+            baseline: 'bottom',
+            yOff: 0,
+          });
+          cursor += sepW;
+          const symM = glyphMetrics(p.symbol, GLYPH_FONT);
+          segments.push({
+            text: p.symbol,
+            font: GLYPH_FONT,
+            alphaKey: 'glyph',
+            x: cursor,
+            baseline: 'bottom',
+            yOff: 0,
+            rgb: hexToRGB(p.color),
+          });
+          cursor += symM.advance + 2;
+          const degText = `${Math.round(p.distanceDeg)}°`;
+          ctx.font = DATE_FONT;
+          const degW = ctx.measureText(degText).width;
+          segments.push({
+            text: degText,
+            font: DATE_FONT,
+            alphaKey: 'glyph',
+            x: cursor,
+            baseline: 'bottom',
+            yOff: 0,
+          });
+          cursor += degW;
+        }
+      }
       return { segments, totalW: cursor };
     }
     if (lbl.eclipse) {
@@ -1718,7 +1779,8 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     const textW = ctx.measureText(text).width;
     ctx.font = GLYPH_FONT;
     const signW = ctx.measureText(lbl.eclipse.signSymbol).width;
-    const lineW = ECLIPSE_GLYPH_R * 2 + 4 + textW + 4 + signW;
+    const proxW = proximityWidth(lbl.natalProximity);
+    const lineW = ECLIPSE_GLYPH_R * 2 + 4 + textW + 4 + signW + proxW;
     const dateW = ctx.measureText(lbl.dateLine).width;
     const maxW = Math.max(lineW, dateW);
     const halfW = maxW / 2;
@@ -1758,6 +1820,29 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     const [r, g, b] = getElementRGB(lbl.eclipse.signIndex);
     ctx.fillStyle = `rgba(${r},${g},${b},${(0.95 * labelOpacity).toFixed(2)})`;
     ctx.fillText(lbl.eclipse.signSymbol, textX + textW + 4, baseY);
+
+    // Natal-mode proximity tags trail after the sign glyph.
+    if (lbl.natalProximity && lbl.natalProximity.length > 0) {
+      let proxX = textX + textW + 4 + signW;
+      const proxAlpha = (0.85 * labelOpacity).toFixed(2);
+      const dateLineAlpha = (0.62 * labelOpacity).toFixed(2);
+      for (const p of lbl.natalProximity) {
+        ctx.font = DATE_FONT;
+        ctx.fillStyle = `rgba(${T.textRGB}, ${dateLineAlpha})`;
+        ctx.fillText(' · ', proxX, baseY);
+        proxX += ctx.measureText(' · ').width;
+        ctx.font = GLYPH_FONT;
+        const [pr, pg, pb] = hexToRGB(p.color);
+        ctx.fillStyle = `rgba(${pr},${pg},${pb},${proxAlpha})`;
+        ctx.fillText(p.symbol, proxX, baseY);
+        proxX += ctx.measureText(p.symbol).width + 2;
+        const degText = `${Math.round(p.distanceDeg)}°`;
+        ctx.font = DATE_FONT;
+        ctx.fillStyle = `rgba(${T.textRGB}, ${dateLineAlpha})`;
+        ctx.fillText(degText, proxX, baseY);
+        proxX += ctx.measureText(degText).width;
+      }
+    }
 
     // Optional leader to peak point.
     if (needsLeader) {
