@@ -79,3 +79,10 @@ export function rekeyAnonNotes(oldChartId, newChartId) {
   writeAll(newChartId, notes);
   try { localStorage.removeItem(keyFor(oldChartId)); } catch {}
 }
+
+/** Drop all anon notes for a chart id (e.g. after migrating them to
+ *  Firestore so they don't double up). */
+export function clearAnonNotes(chartId) {
+  if (!chartId) return;
+  try { localStorage.removeItem(keyFor(chartId)); } catch {}
+}

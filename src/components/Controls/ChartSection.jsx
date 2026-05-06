@@ -28,6 +28,7 @@ import styles from './Controls.module.css';
 export default function ChartSection({
   natalChart,
   onNatalChartChange,
+  onChartSaved,
   timelordEnabled,
   onTimelordEnabledChange,
   timelordStartSign,
@@ -126,6 +127,14 @@ export default function ChartSection({
       if (charts.length === 1) {
         await setDefaultChartId(user.uid, chartId);
         setDefId(chartId);
+      }
+      // Hand the new Firestore id back up so App.jsx can sync the active
+      // natalChart's id and migrate any locally-saved notes onto the new id.
+      const oldId = natalChart.id;
+      if (onChartSaved) {
+        await onChartSaved(oldId, chartId, { ...natalChart, id: chartId, name: saveName.trim() });
+      } else {
+        onNatalChartChange({ ...natalChart, id: chartId, name: saveName.trim() });
       }
       setView('idle');
       setSaveName('');

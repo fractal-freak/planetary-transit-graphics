@@ -23,7 +23,7 @@ import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 import { resolveRelativeDates, dateRangeToRelativeRange } from './data/defaultPresets';
 import { getTimeLord, resolveStartSign, getTimeLordSegments } from './utils/timelord';
-import { loadAnonNotes, saveAnonNote, deleteAnonNote } from './utils/anonNotes';
+import { loadAnonNotes, saveAnonNote, deleteAnonNote, clearAnonNotes } from './utils/anonNotes';
 import { loadChartNotes, saveChartNote, deleteChartNote } from './firebase/firestore';
 
 /**
@@ -782,6 +782,36 @@ export default function App() {
     else handleAddNoteTransit(note);
   }
 
+  // Called by ChartSection after a chart is persisted to Firestore for the
+  // first time. The Firestore id replaces the local- id we minted at chart
+  // creation; any notes the user attached against that local id need to
+  // come along and live in the new Firestore subcollection so the picker
+  // and the sidebar both find them under the new id.
+  async function handleChartSaved(oldId, newId, updatedChart) {
+    setNatalChart(refreshAngles(updatedChart));
+    if (!user || !oldId || !newId || oldId === newId) return;
+    const localNotes = loadAnonNotes(oldId);
+    if (localNotes.length === 0) return;
+    try {
+      for (const note of localNotes) {
+        await saveChartNote(user.uid, newId, {
+          transitPlanet: note.transitPlanet,
+          target: note.target,
+          aspect: note.aspect,
+          peakDate: note.peakDate,
+          body: note.body,
+          createdAt: note.createdAt,
+        });
+      }
+      clearAnonNotes(oldId);
+      // Re-fetch under the new id so the sidebar list updates immediately.
+      const fresh = await loadChartNotes(user.uid, newId);
+      setChartNotes(fresh);
+    } catch (err) {
+      console.error('Note migration failed:', err);
+    }
+  }
+
   // ── Mundane job handlers ──
   function handleAddMundaneJob(job) {
     setMundaneJobs(prev => [...prev, job]);
@@ -986,6 +1016,7 @@ export default function App() {
           onToggleDateRangeLocked={() => setDateRangeLocked(l => !l)}
           natalChart={natalChart}
           onNatalChartChange={chart => setNatalChart(refreshAngles(chart))}
+          onChartSaved={handleChartSaved}
           timelordEnabled={timelordEnabled}
           onTimelordEnabledChange={setTimelordEnabled}
           timelordStartSign={timelordStartSign}

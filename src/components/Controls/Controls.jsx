@@ -57,6 +57,7 @@ export default function Controls({
   onToggleDateRangeLocked,
   natalChart,
   onNatalChartChange,
+  onChartSaved,
   timelordEnabled,
   onTimelordEnabledChange,
   timelordStartSign,
@@ -181,6 +182,7 @@ export default function Controls({
               <ChartSection
                 natalChart={natalChart}
                 onNatalChartChange={onNatalChartChange}
+                onChartSaved={onChartSaved}
                 timelordEnabled={timelordEnabled}
                 onTimelordEnabledChange={onTimelordEnabledChange}
                 timelordStartSign={timelordStartSign}
