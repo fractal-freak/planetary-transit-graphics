@@ -32,7 +32,7 @@ export default function ChartSection({
   onTimelordEnabledChange,
   timelordStartSign,
   onTimelordStartSignChange,
-  currentTimelord,
+  currentTimelordSegments,
 }) {
   const { user, savedCharts, setSavedCharts, defaultChartId, setDefaultChartId: setDefId } = useAuth();
 
@@ -332,7 +332,7 @@ export default function ChartSection({
           onEnabledChange={onTimelordEnabledChange}
           startSign={timelordStartSign}
           onStartSignChange={onTimelordStartSignChange}
-          currentTimelord={currentTimelord}
+          segments={currentTimelordSegments}
           natalChart={natalChart}
         />
       )}
@@ -494,8 +494,7 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
 }
 
 /** Tickbox + start-sign dropdown for annual profections / time lord highlight. */
-function TimelordControls({ enabled, onEnabledChange, startSign, onStartSignChange, currentTimelord, natalChart }) {
-  const planet = currentTimelord ? PLANET_MAP[currentTimelord.planetId] : null;
+function TimelordControls({ enabled, onEnabledChange, startSign, onStartSignChange, segments, natalChart }) {
   return (
     <div className={styles.timelordBox}>
       <label className={styles.timelordToggle}>
@@ -521,17 +520,27 @@ function TimelordControls({ enabled, onEnabledChange, startSign, onStartSignChan
           </select>
         </div>
       )}
-      {enabled && currentTimelord && planet && (
-        <div className={styles.timelordCurrent}>
-          <span className={styles.timelordCurrentLabel}>Year {currentTimelord.age + 1}</span>
-          <span className={styles.timelordCurrentSep}>·</span>
-          <span className={styles.timelordCurrentLord} style={{ color: planet.color }}>
-            {planet.symbol} {planet.name}
-          </span>
-          <span className={styles.timelordCurrentSep}>·</span>
-          <span className={styles.timelordCurrentSign}>
-            {ZODIAC_SIGNS[currentTimelord.profectedSign].name} ({currentTimelord.profectedHouse}H)
-          </span>
+      {/* One row per profection year overlapping the visible date range, so
+          scrolling the timeline forward updates which lord(s) you're seeing. */}
+      {enabled && segments && segments.length > 0 && (
+        <div className={styles.timelordSegments}>
+          {segments.map(seg => {
+            const planet = PLANET_MAP[seg.planetId];
+            if (!planet) return null;
+            return (
+              <div key={seg.age} className={styles.timelordCurrent}>
+                <span className={styles.timelordCurrentLabel}>Year {seg.age + 1}</span>
+                <span className={styles.timelordCurrentSep}>·</span>
+                <span className={styles.timelordCurrentLord} style={{ color: planet.color }}>
+                  {planet.symbol} {planet.name}
+                </span>
+                <span className={styles.timelordCurrentSep}>·</span>
+                <span className={styles.timelordCurrentSign}>
+                  {ZODIAC_SIGNS[seg.profectedSign].name} ({seg.profectedHouse}H)
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -60,7 +60,7 @@ export default function Controls({
   onTimelordEnabledChange,
   timelordStartSign,
   onTimelordStartSignChange,
-  currentTimelord,
+  currentTimelordSegments,
   natalJobs,
   natalCurves,
   natalSignChanges,
@@ -178,7 +178,7 @@ export default function Controls({
                 onTimelordEnabledChange={onTimelordEnabledChange}
                 timelordStartSign={timelordStartSign}
                 onTimelordStartSignChange={onTimelordStartSignChange}
-                currentTimelord={currentTimelord}
+                currentTimelordSegments={currentTimelordSegments}
               />
             </CollapsibleSection>
           )}

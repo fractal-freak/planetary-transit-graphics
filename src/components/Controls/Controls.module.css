@@ -1715,6 +1715,13 @@
   cursor: pointer;
 }
 
+.timelordSegments {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 2px;
+}
+
 .timelordCurrent {
   display: flex;
   align-items: center;

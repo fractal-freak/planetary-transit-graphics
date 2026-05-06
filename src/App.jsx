@@ -22,7 +22,7 @@ import AlignmentCalendar from './components/Calendar/AlignmentCalendar';
 import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 import { resolveRelativeDates, dateRangeToRelativeRange } from './data/defaultPresets';
-import { getTimeLord, resolveStartSign } from './utils/timelord';
+import { getTimeLord, resolveStartSign, getTimeLordSegments } from './utils/timelord';
 
 /**
  * Recompute positions and angles from birth data on load. This fixes stale
@@ -397,13 +397,20 @@ export default function App() {
     natalJobs, natalChart, startDate, endDate, orbSettings, timelordStartSignResolved
   );
 
-  // Active time lord (annual profections). Recomputed when settings change or
-  // when crossing the native's birthday. Used to mark which natal curves
-  // should render with the time-lord highlight color.
-  const currentTimelord = useMemo(() => {
-    if (!timelordEnabled || !natalChart?.birthDate || timelordStartSignResolved == null) return null;
-    return getTimeLord(natalChart.birthDate, timelordStartSignResolved);
-  }, [timelordEnabled, natalChart, timelordStartSignResolved]);
+  // Time lord segments active across the *visible* date range. The readout
+  // in the sidebar lists every lord that holds during the user's current
+  // window — so scrolling forward two years shows the lord(s) for that
+  // window, not today's. Per-peak highlighting still computes its own lord
+  // at each peak's date independently.
+  const currentTimelordSegments = useMemo(() => {
+    if (
+      !timelordEnabled ||
+      !natalChart?.birthDate ||
+      timelordStartSignResolved == null ||
+      !startDate || !endDate
+    ) return [];
+    return getTimeLordSegments(natalChart.birthDate, timelordStartSignResolved, startDate, endDate);
+  }, [timelordEnabled, natalChart, timelordStartSignResolved, startDate, endDate]);
 
   // Tag *individual peaks* whose date falls within a profection year where
   // the curve's target equals that year's lord. Per-peak (rather than
@@ -821,7 +828,7 @@ export default function App() {
           onTimelordEnabledChange={setTimelordEnabled}
           timelordStartSign={timelordStartSign}
           onTimelordStartSignChange={setTimelordStartSign}
-          currentTimelord={currentTimelord}
+          currentTimelordSegments={currentTimelordSegments}
           natalJobs={natalJobs}
           natalCurves={natalCurves}
           natalSignChanges={natalSignChanges}
