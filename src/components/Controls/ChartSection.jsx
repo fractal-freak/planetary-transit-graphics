@@ -8,6 +8,7 @@ import {
   loadCharts,
 } from '../../firebase/firestore';
 import { useSFchtImport } from '../../hooks/useSFchtImport';
+import { useAstroGoldFolderImport } from '../../hooks/useAstroGoldFolderImport';
 import { ZODIAC_SIGNS } from '../../data/zodiac';
 import { PLANET_MAP } from '../../data/planets';
 import NatalDataInput from './NatalDataInput';
@@ -70,6 +71,14 @@ export default function ChartSection({
       }
     },
   });
+
+  const {
+    connect: connectChartLibrary,
+    status: agStatus,
+    busy: agBusy,
+    summary: agSummary,
+    supported: agSupported,
+  } = useAstroGoldFolderImport();
 
   // Save flow
   const [saveName, setSaveName] = useState('');
@@ -301,6 +310,42 @@ export default function ChartSection({
         >
           + Import .SFcht
         </button>
+
+        {agSupported && (
+          <button
+            className={styles.wizardBtn}
+            onClick={connectChartLibrary}
+            disabled={agBusy}
+            style={{ width: '100%', marginTop: '4px' }}
+            title={
+              user
+                ? 'Pick a folder of .SFcht chart files (e.g. your Astro Gold iCloud folder) to bulk-import them.'
+                : 'Sign in first to sync charts to your library.'
+            }
+          >
+            {agBusy ? 'Syncing…' : 'Connect chart library'}
+          </button>
+        )}
+
+        {(agStatus || agSummary) && (
+          <div
+            style={{
+              marginTop: '6px',
+              fontSize: '11px',
+              color: 'var(--fg-muted)',
+              lineHeight: 1.4,
+            }}
+          >
+            {agStatus}
+            {agSummary && (
+              <span>
+                Imported {agSummary.added} new, updated {agSummary.updated}
+                {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
+                {' '}from {agSummary.files} file{agSummary.files === 1 ? '' : 's'}.
+              </span>
+            )}
+          </div>
+        )}
 
         <input
           ref={fileInputRef}

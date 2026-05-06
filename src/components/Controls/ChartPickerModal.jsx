@@ -347,11 +347,11 @@ export default function ChartPickerModal({
               style={{ marginLeft: 'auto', marginRight: '8px' }}
               title={
                 user
-                  ? 'Pick your Astro Gold iCloud folder to bulk-import every .SFcht library it contains.'
+                  ? 'Pick a folder of .SFcht chart files (e.g. your Astro Gold iCloud folder) to bulk-import them.'
                   : 'Sign in first to sync charts to your library.'
               }
             >
-              {agBusy ? 'Syncing…' : 'Connect Astro Gold'}
+              {agBusy ? 'Syncing…' : 'Connect chart library'}
             </button>
           )}
           <button className={styles.closeBtn} onClick={onClose}>&times;</button>
