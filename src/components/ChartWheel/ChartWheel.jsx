@@ -204,54 +204,58 @@ function drawWheel(ctx, chart, size) {
     ctx.fillText(`${String(min).padStart(2, '0')}'`, cx + rMinute * Math.cos(phi), cy + rMinute * Math.sin(phi));
   };
 
-  // ── All four angles: AC / DC / MC / IC (DC and IC fall back to Asc+180 / MC+180). ──
+  // ── Build a single list of bodies (planets + angles) for shared spread. ──
+  const bodies = placements.map(({ planet, originalLng }) => ({
+    kind: 'planet',
+    glyph: planet.symbol,
+    color: planet.color,
+    originalLng,
+    lng: originalLng,
+  }));
   if (chart.angles) {
     const ascLngA = chart.angles.Asc;
     const mcLngA = chart.angles.MC;
     const dscLngA = chart.angles.Dsc ?? (ascLngA != null ? (ascLngA + 180) % 360 : null);
     const icLngA = chart.angles.IC ?? (mcLngA != null ? (mcLngA + 180) % 360 : null);
-
-    const drawAngle = (lng, label) => {
+    const pushAngle = (lng, label) => {
       if (lng == null) return;
-      const phi = angleFor(lng);
-      drawBody({ phiOrig: phi, phi, glyph: label, color: '#000', lng, isAngle: true });
+      bodies.push({ kind: 'angle', glyph: label, color: '#000', originalLng: lng, lng });
     };
-    drawAngle(ascLngA, 'AC');
-    drawAngle(dscLngA, 'DC');
-    drawAngle(mcLngA, 'MC');
-    drawAngle(icLngA, 'IC');
+    pushAngle(ascLngA, 'AC');
+    pushAngle(dscLngA, 'DC');
+    pushAngle(mcLngA, 'MC');
+    pushAngle(icLngA, 'IC');
   }
 
-  // ── Planet glyphs: collision-spread, but constrained per-sign so glyphs ──
-  // never sit on a sign/house cusp line.
-  const margin = 1.5; // degrees of buffer from each cusp
-  const minSep = 8;
-
-  // Group by sign (= house in whole-sign), spread inside each sign only.
+  // ── Per-sign collision spread covering planets and angles together so a
+  // planet conjunct an angle pushes the angle aside (and vice versa). Margin
+  // of 4° from each cusp keeps glyphs visually inside their sign sector;
+  // minSep of 10° keeps glyph circles from overlapping.
+  const margin = 4;
+  const minSep = 10;
   const groups = new Map();
-  for (const p of placements) {
-    const sign = Math.floor(((p.originalLng % 360) + 360) % 360 / 30);
+  for (const b of bodies) {
+    const sign = Math.floor(((b.originalLng % 360) + 360) % 360 / 30);
     if (!groups.has(sign)) groups.set(sign, []);
-    groups.get(sign).push(p);
+    groups.get(sign).push(b);
   }
   for (const [sign, group] of groups) {
     const signStart = sign * 30 + margin;
     const signEnd = sign * 30 + 30 - margin;
+    const span = Math.max(0, signEnd - signStart);
     group.sort((a, b) => a.originalLng - b.originalLng);
-    // Scale separation down if the sign can't fit minSep × n.
-    const sep = Math.min(minSep, (signEnd - signStart) / Math.max(group.length, 1));
-    for (let pass = 0; pass < 5; pass++) {
+    const sep = Math.min(minSep, group.length > 1 ? span / (group.length - 1) : minSep);
+    for (let pass = 0; pass < 6; pass++) {
       for (let i = 0; i < group.length - 1; i++) {
         const cur = group[i];
-        const next = group[i + 1];
-        const gap = next.lng - cur.lng;
+        const nxt = group[i + 1];
+        const gap = nxt.lng - cur.lng;
         if (gap < sep) {
           const push = (sep - gap) / 2;
           cur.lng -= push;
-          next.lng += push;
+          nxt.lng += push;
         }
       }
-      // Clamp into the sign's safe range, working from edges inward.
       for (let i = 0; i < group.length; i++) {
         const minAllowed = signStart + i * sep;
         if (group[i].lng < minAllowed) group[i].lng = minAllowed;
@@ -263,12 +267,11 @@ function drawWheel(ctx, chart, size) {
     }
   }
 
-  for (const { planet, lng, originalLng } of placements) {
-    const phiOrig = angleFor(originalLng);
-    const phi = angleFor(lng);
-
-    // Connector if displaced from collision-spread
-    if (Math.abs(lng - originalLng) > 0.5) {
+  // ── Render planets first, then angles on top. ──
+  const renderBody = (b) => {
+    const phiOrig = angleFor(b.originalLng);
+    const phi = angleFor(b.lng);
+    if (Math.abs(b.lng - b.originalLng) > 0.5) {
       ctx.strokeStyle = 'rgba(0,0,0,0.25)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
@@ -276,15 +279,16 @@ function drawWheel(ctx, chart, size) {
       ctx.lineTo(cx + rGlyph * Math.cos(phi), cy + rGlyph * Math.sin(phi));
       ctx.stroke();
     }
-
     drawBody({
       phiOrig,
       phi,
-      glyph: planet.symbol,
-      color: planet.color,
-      lng: originalLng,
+      glyph: b.glyph,
+      color: b.color,
+      lng: b.originalLng,
       glyphFontSize: 0.054,
-      isAngle: false,
+      isAngle: b.kind === 'angle',
     });
-  }
+  };
+  for (const b of bodies) if (b.kind === 'planet') renderBody(b);
+  for (const b of bodies) if (b.kind === 'angle') renderBody(b);
 }
