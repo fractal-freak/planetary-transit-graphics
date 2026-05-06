@@ -342,6 +342,18 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
             <span className={styles.tooltipLunationOrb}>{Math.round(p.distanceDeg * 10) / 10}°</span>
           </div>
         ))}
+        {pinned && notesEnabled && (
+          <NoteBlock
+            existing={existingNote}
+            editing={editing}
+            editBody={editBody}
+            onStartEdit={() => { setEditBody(existingNote?.body || ''); setEditing(true); }}
+            onChangeBody={setEditBody}
+            onSave={async () => { await onSavePeakNote(peakInfo, editBody, existingNote?.id); setEditing(false); }}
+            onCancel={() => { setEditing(false); setEditBody(''); }}
+            onDelete={() => onDeleteNote && existingNote && onDeleteNote(existingNote.id)}
+          />
+        )}
       </div>
     );
   }
@@ -354,14 +366,28 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
         className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
         style={{ left: pos.left, top: pos.top }}
       >
-        <Body
-          glyph={peakInfo.transitSymbol}
-          position={peakInfo.transitPosition}
-          retrograde={false}
-        />
-        <span className={styles.tooltipStationLabel}>
-          stations {peakInfo.stationDirection}
-        </span>
+        <div className={styles.tooltipAspectLine}>
+          <Body
+            glyph={peakInfo.transitSymbol}
+            position={peakInfo.transitPosition}
+            retrograde={false}
+          />
+          <span className={styles.tooltipStationLabel}>
+            stations {peakInfo.stationDirection}
+          </span>
+        </div>
+        {pinned && notesEnabled && (
+          <NoteBlock
+            existing={existingNote}
+            editing={editing}
+            editBody={editBody}
+            onStartEdit={() => { setEditBody(existingNote?.body || ''); setEditing(true); }}
+            onChangeBody={setEditBody}
+            onSave={async () => { await onSavePeakNote(peakInfo, editBody, existingNote?.id); setEditing(false); }}
+            onCancel={() => { setEditing(false); setEditBody(''); }}
+            onDelete={() => onDeleteNote && existingNote && onDeleteNote(existingNote.id)}
+          />
+        )}
       </div>
     );
   }
@@ -369,7 +395,7 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
   // Aspect tooltip — single line: body · aspect glyph · body, with an
   // expandable note editor when the user has pinned the tooltip on a
   // natal-mode aspect.
-  const showNoteUi = pinned && notesEnabled && peakInfo.isNatal;
+  const showNoteUi = pinned && notesEnabled && peakInfo.aspectName;
 
   function startEdit() {
     setEditBody(existingNote?.body || '');
@@ -404,50 +430,66 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
         />
       </div>
       {showNoteUi && (
-        <div className={styles.tooltipNote}>
-          {editing ? (
-            <>
-              <textarea
-                className={styles.tooltipNoteInput}
-                value={editBody}
-                onChange={e => setEditBody(e.target.value)}
-                placeholder="Note for this transit…"
-                autoFocus
-                onClick={e => e.stopPropagation()}
-                onKeyDown={e => e.stopPropagation()}
-              />
-              <div className={styles.tooltipNoteActions}>
-                <button
-                  className={`${styles.tooltipNoteBtn} ${styles.tooltipNoteBtnPrimary}`}
-                  onClick={e => { e.stopPropagation(); commitNote(); }}
-                >Save</button>
-                <button
-                  className={styles.tooltipNoteBtn}
-                  onClick={e => { e.stopPropagation(); setEditing(false); setEditBody(''); }}
-                >Cancel</button>
-              </div>
-            </>
-          ) : existingNote ? (
-            <>
-              <div className={styles.tooltipNoteBody}>{existingNote.body || <em>(empty note)</em>}</div>
-              <div className={styles.tooltipNoteActions}>
-                <button
-                  className={styles.tooltipNoteBtn}
-                  onClick={e => { e.stopPropagation(); startEdit(); }}
-                >Edit</button>
-                <button
-                  className={styles.tooltipNoteBtn}
-                  onClick={e => { e.stopPropagation(); onDeleteNote && onDeleteNote(existingNote.id); }}
-                >Delete</button>
-              </div>
-            </>
-          ) : (
+        <NoteBlock
+          existing={existingNote}
+          editing={editing}
+          editBody={editBody}
+          onStartEdit={startEdit}
+          onChangeBody={setEditBody}
+          onSave={commitNote}
+          onCancel={() => { setEditing(false); setEditBody(''); }}
+          onDelete={() => onDeleteNote && existingNote && onDeleteNote(existingNote.id)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Shared note editor block used inside aspect / station / lunation tooltips. */
+function NoteBlock({ existing, editing, editBody, onStartEdit, onChangeBody, onSave, onCancel, onDelete }) {
+  return (
+    <div className={styles.tooltipNote}>
+      {editing ? (
+        <>
+          <textarea
+            className={styles.tooltipNoteInput}
+            value={editBody}
+            onChange={e => onChangeBody(e.target.value)}
+            placeholder="Note for this transit…"
+            autoFocus
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+          />
+          <div className={styles.tooltipNoteActions}>
             <button
               className={`${styles.tooltipNoteBtn} ${styles.tooltipNoteBtnPrimary}`}
-              onClick={e => { e.stopPropagation(); startEdit(); }}
-            >+ Note</button>
-          )}
-        </div>
+              onClick={e => { e.stopPropagation(); onSave(); }}
+            >Save</button>
+            <button
+              className={styles.tooltipNoteBtn}
+              onClick={e => { e.stopPropagation(); onCancel(); }}
+            >Cancel</button>
+          </div>
+        </>
+      ) : existing ? (
+        <>
+          <div className={styles.tooltipNoteBody}>{existing.body || <em>(empty note)</em>}</div>
+          <div className={styles.tooltipNoteActions}>
+            <button
+              className={styles.tooltipNoteBtn}
+              onClick={e => { e.stopPropagation(); onStartEdit(); }}
+            >Edit</button>
+            <button
+              className={styles.tooltipNoteBtn}
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+            >Delete</button>
+          </div>
+        </>
+      ) : (
+        <button
+          className={`${styles.tooltipNoteBtn} ${styles.tooltipNoteBtnPrimary}`}
+          onClick={e => { e.stopPropagation(); onStartEdit(); }}
+        >+ Note</button>
       )}
     </div>
   );

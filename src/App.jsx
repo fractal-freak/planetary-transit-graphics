@@ -665,36 +665,60 @@ export default function App() {
     }
   }
 
-  // Find a stored note for the exact (transit, target, aspect, peak-day)
-  // identified by a peakInfo. Match peak date by yyyy-mm-dd so timezone /
-  // re-computation differences don't cause false misses.
+  // Build a (transit, target, aspect) triple from a peakInfo that may be
+  // an aspect peak, a station marker, or a lunation peak. Synthetic targets
+  // ('station', 'lunation', 'eclipse') let stations and lunations attach
+  // notes too without changing the persisted note schema.
+  function noteKeyFromPeak(peakInfo) {
+    if (!peakInfo) return null;
+    if (peakInfo.kind === 'station') {
+      return {
+        transitPlanet: peakInfo.transitPlanet,
+        target: 'station',
+        aspect: peakInfo.stationDirection || 'station',
+      };
+    }
+    if (peakInfo.kind === 'lunation') {
+      const isEclipse = !!peakInfo.eclipse;
+      return {
+        transitPlanet: 'Moon',
+        target: isEclipse ? 'eclipse' : 'lunation',
+        aspect: isEclipse ? peakInfo.eclipse.type : peakInfo.lunationKind,
+      };
+    }
+    if (peakInfo.aspectName && peakInfo.targetPlanet) {
+      return {
+        transitPlanet: peakInfo.transitPlanet,
+        target: peakInfo.targetPlanet,
+        aspect: peakInfo.aspectName,
+      };
+    }
+    return null;
+  }
+
+  // Match a stored note to a peakInfo by yyyy-mm-dd peak date so timezone /
+  // re-computation drift doesn't cause false misses.
   function findNoteForPeak(peakInfo) {
-    if (!peakInfo || !peakInfo.isNatal) return null;
-    const key = peakInfo.date instanceof Date
+    const key = noteKeyFromPeak(peakInfo);
+    if (!key) return null;
+    const day = peakInfo.date instanceof Date
       ? peakInfo.date.toISOString().slice(0, 10)
       : null;
-    if (!key) return null;
+    if (!day) return null;
     return chartNotes.find(n =>
-      n.transitPlanet === peakInfo.transitPlanet &&
-      n.target === peakInfo.targetPlanet &&
-      n.aspect === peakInfo.aspectName &&
-      ((n.peakDate || '').slice(0, 10) === key)
+      n.transitPlanet === key.transitPlanet &&
+      n.target === key.target &&
+      n.aspect === key.aspect &&
+      ((n.peakDate || '').slice(0, 10) === day)
     ) || null;
   }
 
   async function handleSavePeakNote(peakInfo, body, existingNoteId) {
     if (!activeChartId) return;
+    const key = noteKeyFromPeak(peakInfo);
+    if (!key) return;
     const peakIso = peakInfo.date instanceof Date ? peakInfo.date.toISOString() : null;
-    await handleSaveNote(
-      {
-        transitPlanet: peakInfo.transitPlanet,
-        target: peakInfo.targetPlanet,
-        aspect: peakInfo.aspectName,
-        peakDate: peakIso,
-        body,
-      },
-      existingNoteId,
-    );
+    await handleSaveNote({ ...key, peakDate: peakIso, body }, existingNoteId);
   }
 
   async function handleDeleteNote(noteId) {
