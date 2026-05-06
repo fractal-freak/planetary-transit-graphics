@@ -658,6 +658,38 @@ export default function App() {
     }
   }
 
+  // Find a stored note for the exact (transit, target, aspect, peak-day)
+  // identified by a peakInfo. Match peak date by yyyy-mm-dd so timezone /
+  // re-computation differences don't cause false misses.
+  function findNoteForPeak(peakInfo) {
+    if (!peakInfo || !peakInfo.isNatal) return null;
+    const key = peakInfo.date instanceof Date
+      ? peakInfo.date.toISOString().slice(0, 10)
+      : null;
+    if (!key) return null;
+    return chartNotes.find(n =>
+      n.transitPlanet === peakInfo.transitPlanet &&
+      n.target === peakInfo.targetPlanet &&
+      n.aspect === peakInfo.aspectName &&
+      ((n.peakDate || '').slice(0, 10) === key)
+    ) || null;
+  }
+
+  async function handleSavePeakNote(peakInfo, body, existingNoteId) {
+    if (!activeChartId) return;
+    const peakIso = peakInfo.date instanceof Date ? peakInfo.date.toISOString() : null;
+    await handleSaveNote(
+      {
+        transitPlanet: peakInfo.transitPlanet,
+        target: peakInfo.targetPlanet,
+        aspect: peakInfo.aspectName,
+        peakDate: peakIso,
+        body,
+      },
+      existingNoteId,
+    );
+  }
+
   async function handleDeleteNote(noteId) {
     if (!activeChartId) return;
     if (activeChartIsSaved) {
@@ -1044,6 +1076,10 @@ export default function App() {
                 zoom={zoom}
                 onOverlayUpdate={handleOverlayUpdate}
                 natalPositions={mode === 'natal' ? natalChart?.positions : null}
+                notesEnabled={mode === 'natal' && !!activeChartId}
+                findNoteForPeak={findNoteForPeak}
+                onSavePeakNote={handleSavePeakNote}
+                onDeleteNote={handleDeleteNote}
               />
             </div>
 

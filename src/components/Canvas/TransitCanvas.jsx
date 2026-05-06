@@ -7,7 +7,11 @@ import styles from './Canvas.module.css';
 export { PADDING };
 
 const TransitCanvas = forwardRef(function TransitCanvas(
-  { curves, signChanges, transitJobs, startDate, endDate, zoom = 1, onOverlayUpdate, natalPositions },
+  {
+    curves, signChanges, transitJobs, startDate, endDate, zoom = 1,
+    onOverlayUpdate, natalPositions,
+    notesEnabled, findNoteForPeak, onSavePeakNote, onDeleteNote,
+  },
   ref
 ) {
   const canvasRef = useRef(null);
@@ -232,7 +236,16 @@ const TransitCanvas = forwardRef(function TransitCanvas(
           cursor: hasCursor ? 'pointer' : 'default',
         }}
       />
-      {tooltip && <PeakTooltip tooltip={tooltip} wrapperRef={wrapperRef} />}
+      {tooltip && (
+        <PeakTooltip
+          tooltip={tooltip}
+          wrapperRef={wrapperRef}
+          notesEnabled={notesEnabled}
+          findNoteForPeak={findNoteForPeak}
+          onSavePeakNote={onSavePeakNote}
+          onDeleteNote={onDeleteNote}
+        />
+      )}
     </div>
   );
 });
@@ -260,10 +273,20 @@ function Body({ glyph, position, retrograde, prefix }) {
   );
 }
 
-function PeakTooltip({ tooltip, wrapperRef }) {
+function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSavePeakNote, onDeleteNote }) {
   const { peakInfo, x, y, pinned } = tooltip;
   const ttRef = useRef(null);
   const [pos, setPos] = useState({ left: x, top: y });
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState('');
+
+  const existingNote = pinned && notesEnabled && findNoteForPeak ? findNoteForPeak(peakInfo) : null;
+
+  // Reset the editor whenever the user clicks a different peak.
+  useEffect(() => {
+    setEditing(false);
+    setEditBody('');
+  }, [peakInfo]);
 
   // After render, measure tooltip and clamp inside wrapper.
   useEffect(() => {
@@ -343,27 +366,89 @@ function PeakTooltip({ tooltip, wrapperRef }) {
     );
   }
 
-  // Aspect tooltip — single line: body · aspect glyph · body.
+  // Aspect tooltip — single line: body · aspect glyph · body, with an
+  // expandable note editor when the user has pinned the tooltip on a
+  // natal-mode aspect.
+  const showNoteUi = pinned && notesEnabled && peakInfo.isNatal;
+
+  function startEdit() {
+    setEditBody(existingNote?.body || '');
+    setEditing(true);
+  }
+
+  async function commitNote() {
+    await onSavePeakNote(peakInfo, editBody, existingNote?.id);
+    setEditing(false);
+  }
+
   return (
     <div
       ref={ttRef}
       className={`${styles.peakTooltip} ${pinned ? styles.peakTooltipPinned : ''}`}
       style={{ left: pos.left, top: pos.top }}
     >
-      <Body
-        glyph={peakInfo.transitSymbol}
-        position={peakInfo.transitPosition}
-        retrograde={peakInfo.transitRetro}
-      />
-      <span className={styles.tooltipAspectGlyph}>
-        {peakInfo.aspectSymbol}
-      </span>
-      <Body
-        glyph={peakInfo.targetSymbol}
-        position={peakInfo.targetPosition}
-        retrograde={peakInfo.targetRetro}
-        prefix={peakInfo.isNatal ? 'natal' : null}
-      />
+      <div className={styles.tooltipAspectLine}>
+        <Body
+          glyph={peakInfo.transitSymbol}
+          position={peakInfo.transitPosition}
+          retrograde={peakInfo.transitRetro}
+        />
+        <span className={styles.tooltipAspectGlyph}>
+          {peakInfo.aspectSymbol}
+        </span>
+        <Body
+          glyph={peakInfo.targetSymbol}
+          position={peakInfo.targetPosition}
+          retrograde={peakInfo.targetRetro}
+          prefix={peakInfo.isNatal ? 'natal' : null}
+        />
+      </div>
+      {showNoteUi && (
+        <div className={styles.tooltipNote}>
+          {editing ? (
+            <>
+              <textarea
+                className={styles.tooltipNoteInput}
+                value={editBody}
+                onChange={e => setEditBody(e.target.value)}
+                placeholder="Note for this transit…"
+                autoFocus
+                onClick={e => e.stopPropagation()}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              <div className={styles.tooltipNoteActions}>
+                <button
+                  className={`${styles.tooltipNoteBtn} ${styles.tooltipNoteBtnPrimary}`}
+                  onClick={e => { e.stopPropagation(); commitNote(); }}
+                >Save</button>
+                <button
+                  className={styles.tooltipNoteBtn}
+                  onClick={e => { e.stopPropagation(); setEditing(false); setEditBody(''); }}
+                >Cancel</button>
+              </div>
+            </>
+          ) : existingNote ? (
+            <>
+              <div className={styles.tooltipNoteBody}>{existingNote.body || <em>(empty note)</em>}</div>
+              <div className={styles.tooltipNoteActions}>
+                <button
+                  className={styles.tooltipNoteBtn}
+                  onClick={e => { e.stopPropagation(); startEdit(); }}
+                >Edit</button>
+                <button
+                  className={styles.tooltipNoteBtn}
+                  onClick={e => { e.stopPropagation(); onDeleteNote && onDeleteNote(existingNote.id); }}
+                >Delete</button>
+              </div>
+            </>
+          ) : (
+            <button
+              className={`${styles.tooltipNoteBtn} ${styles.tooltipNoteBtnPrimary}`}
+              onClick={e => { e.stopPropagation(); startEdit(); }}
+            >+ Note</button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
