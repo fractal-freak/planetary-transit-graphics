@@ -4,7 +4,6 @@ import DateRangePicker from './DateRangePicker';
 import TransitJobList from './TransitJobList';
 import ChartSection from './ChartSection';
 import NatalJobList from './NatalJobList';
-import NotesSection from './NotesSection';
 import ChartStackPanel from './ChartStackPanel';
 import OrbSettings from './OrbSettings';
 import ColorSettings from './ColorSettings';
@@ -189,6 +188,11 @@ export default function Controls({
                 onTimelordStartSignChange={onTimelordStartSignChange}
                 currentTimelordSegments={currentTimelordSegments}
                 onSelectChartWithNote={onSelectChartWithNote}
+                chartNotes={chartNotes}
+                onSaveNote={onSaveNote}
+                onDeleteNote={onDeleteNote}
+                onAddNoteTransit={onAddNoteTransit}
+                onLoadNoteTransit={onLoadNoteTransit}
               />
             </CollapsibleSection>
           )}
@@ -293,16 +297,6 @@ export default function Controls({
                 )}
               </CollapsibleSection>
 
-              <CollapsibleSection id="natalNotes" title="Notes" icon={<IconStar />}>
-                <NotesSection
-                  notes={chartNotes}
-                  hasChart={!!natalChart}
-                  onSaveNote={onSaveNote}
-                  onDeleteNote={onDeleteNote}
-                  onAddTransit={onAddNoteTransit}
-                  onLoadTransit={onLoadNoteTransit}
-                />
-              </CollapsibleSection>
             </>
           )}
 

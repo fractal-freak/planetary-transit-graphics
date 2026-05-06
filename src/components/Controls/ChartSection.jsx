@@ -12,6 +12,7 @@ import { ZODIAC_SIGNS } from '../../data/zodiac';
 import { PLANET_MAP } from '../../data/planets';
 import NatalDataInput from './NatalDataInput';
 import ChartPickerModal from './ChartPickerModal';
+import NotesSection from './NotesSection';
 import styles from './Controls.module.css';
 
 /**
@@ -35,6 +36,11 @@ export default function ChartSection({
   onTimelordStartSignChange,
   currentTimelordSegments,
   onSelectChartWithNote,
+  chartNotes,
+  onSaveNote,
+  onDeleteNote,
+  onAddNoteTransit,
+  onLoadNoteTransit,
 }) {
   const { user, savedCharts, setSavedCharts, defaultChartId, setDefaultChartId: setDefId } = useAuth();
 
@@ -318,6 +324,11 @@ export default function ChartSection({
         savedChart={currentSavedChart}
         defaultChartId={defaultChartId}
         onClear={handleClearChart}
+        chartNotes={chartNotes}
+        onSaveNote={onSaveNote}
+        onDeleteNote={onDeleteNote}
+        onAddNoteTransit={onAddNoteTransit}
+        onLoadNoteTransit={onLoadNoteTransit}
       />
 
       {/* Action bar */}
@@ -388,7 +399,10 @@ function formatBirthTime(t) {
   return `${h}:${m[2]} ${am ? 'AM' : 'PM'}`;
 }
 
-function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
+function ChartSummary({
+  natalChart, savedChart, defaultChartId, onClear,
+  chartNotes, onSaveNote, onDeleteNote, onAddNoteTransit, onLoadNoteTransit,
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const displayName = natalChart.name
@@ -436,10 +450,12 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
         )}
       </div>
 
-      {/* Expandable detail */}
+      {/* Expandable detail \u2014 notes for this chart. The full placements grid
+          lives in the Chart Picker's Data tab; the disclosure here is
+          chart-scoped notes since those are what the user actually edits
+          inline. */}
       <div className={`${styles.summaryBody} ${expanded ? styles.summaryBodyOpen : ''}`}>
         <div className={styles.summaryBodyInner}>
-          {/* Birth data \u2014 one piece per line, plenty of breathing room */}
           <div className={styles.natalBirthData}>
             <div className={styles.natalBirthLine}>{formatBirthDate(natalChart.birthDate)}</div>
             {natalChart.birthTime && (
@@ -449,57 +465,15 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
               <div className={styles.natalBirthLineMuted}>{natalChart.locationName}</div>
             )}
           </div>
-
-          {/* Placements \u2014 single column, one row per body */}
-          <div className={styles.natalPlacements}>
-            {PLANETS.map(p => {
-              const lon = natalChart.positions[p.id];
-              if (lon == null) return null;
-              const pos = formatNatalPosition(lon);
-              const speed = natalChart.speeds?.[p.id];
-              // Sun and Moon never go retrograde; the True Node moves
-              // backward most of the time but it's conventional to flag
-              // R only when it's actually moving retrograde at this
-              // moment, which the speed handles correctly.
-              const isRetrograde = speed != null && speed < 0 && p.id !== 'Sun' && p.id !== 'Moon';
-              return (
-                <div key={p.id} className={styles.natalPlacementRow}>
-                  <span className={styles.natalPlacementGlyph}>{p.symbol}</span>
-                  <span className={styles.natalPlacementName}>{p.name}</span>
-                  <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
-                  <span className={styles.natalPlacementDeg}>
-                    {pos.deg}{'\u00B0'}<span className={styles.natalPlacementMin}>{pos.min}'</span>
-                  </span>
-                  <span className={styles.natalPlacementR}>
-                    {isRetrograde ? 'R' : ''}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {natalChart.angles && (
-            <div className={`${styles.natalPlacements} ${styles.natalAngles}`}>
-              {NATAL_ANGLES.map(a => {
-                const lon = natalChart.angles[a.id];
-                if (lon == null) return null;
-                const pos = formatNatalPosition(lon);
-                return (
-                  <div key={a.id} className={styles.natalPlacementRow}>
-                    <span className={`${styles.natalPlacementGlyph} ${styles.natalPlacementGlyphAngle}`}>
-                      {a.symbol}
-                    </span>
-                    <span className={styles.natalPlacementName}>{a.name}</span>
-                    <span className={styles.natalPlacementSign}>{pos.signSymbol}</span>
-                    <span className={styles.natalPlacementDeg}>
-                      {pos.deg}{'\u00B0'}<span className={styles.natalPlacementMin}>{pos.min}'</span>
-                    </span>
-                    <span className={styles.natalPlacementR}></span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <div className={styles.summaryNotesLabel}>Notes</div>
+          <NotesSection
+            notes={chartNotes || []}
+            hasChart={!!natalChart}
+            onSaveNote={onSaveNote}
+            onDeleteNote={onDeleteNote}
+            onAddTransit={onAddNoteTransit}
+            onLoadTransit={onLoadNoteTransit}
+          />
         </div>
       </div>
     </div>

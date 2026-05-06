@@ -1749,6 +1749,16 @@
   color: var(--fg);
 }
 
+/* Label inside the Chart summary disclosure that introduces the Notes list. */
+.summaryNotesLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin: 4px 0 4px;
+}
+
 /* ── Notes section ── */
 
 .notesEmpty {
