@@ -97,6 +97,8 @@ export async function saveChart(uid, chartData, chartId) {
     houseCusps: chartData.houseCusps || null,
     houseSystem: chartData.houseSystem || null,
     eventDescription: chartData.eventDescription || null,
+    astroGoldKey: chartData.astroGoldKey || null,
+    astroGoldPath: chartData.astroGoldPath || null,
     createdAt: chartData.createdAt || serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

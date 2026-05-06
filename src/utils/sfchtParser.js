@@ -51,7 +51,7 @@ export function parseSFchtFile(buffer) {
   }
 
   const chartCount = view.getUint32(FILE_HEADER_SIZE, true);
-  if (chartCount === 0 || chartCount > 500) {
+  if (chartCount === 0 || chartCount > 100000) {
     throw new Error(`Unexpected chart count: ${chartCount}`);
   }
 
@@ -215,4 +215,20 @@ function guessChartType(name) {
  */
 export function isSFchtFile(filename) {
   return /\.sfcht$/i.test(filename);
+}
+
+/**
+ * Stable identity for an SFcht-parsed chart, used to dedupe across re-imports.
+ * Coordinates are rounded to ~11m to absorb float noise from Astro Gold's
+ * roundtrip; UTC is truncated to whole seconds.
+ */
+export function astroGoldKey(record) {
+  if (!record) return null;
+  const name = (record.name || '').trim().toLowerCase();
+  const utcSec = record.utcDate instanceof Date && !isNaN(record.utcDate.getTime())
+    ? Math.floor(record.utcDate.getTime() / 1000)
+    : '';
+  const lat = isFinite(record.lat) ? record.lat.toFixed(4) : '';
+  const lng = isFinite(record.lng) ? record.lng.toFixed(4) : '';
+  return `${name}|${utcSec}|${lat}|${lng}`;
 }
