@@ -1563,7 +1563,7 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
         lunation, eclipse: eclipseHit,
         natalProximity: peak.natalProximity || null,
         peakInfo,
-        isTimeLordTarget: !!curve.isTimeLordTarget,
+        isTimeLordTarget: !!peak.isTimeLord,
       });
     });
   }

@@ -530,7 +530,7 @@ function TimelordControls({ enabled, onEnabledChange, startSign, onStartSignChan
           </span>
           <span className={styles.timelordCurrentSep}>·</span>
           <span className={styles.timelordCurrentSign}>
-            {ZODIAC_SIGNS[currentTimelord.profectedSign].name} (H{currentTimelord.profectedHouse})
+            {ZODIAC_SIGNS[currentTimelord.profectedSign].name} ({currentTimelord.profectedHouse}H)
           </span>
         </div>
       )}

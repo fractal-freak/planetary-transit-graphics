@@ -405,19 +405,32 @@ export default function App() {
     return getTimeLord(natalChart.birthDate, timelordStartSignResolved);
   }, [timelordEnabled, natalChart, timelordStartSignResolved]);
 
-  // Tag any natal curve that should render with the time-lord highlight:
-  //   • the dynamic-target sub-curves (target = TimeLord, expanded inside the
-  //     hook) — always, when the toggle is on
-  //   • regular jobs whose fixed target happens to be the active lord — only
-  //     during the year that lord is active
+  // Tag *individual peaks* whose date falls within a profection year where
+  // the curve's target equals that year's lord. Per-peak (rather than
+  // per-curve) so a multi-year timeframe lights up different transit pairs
+  // as the lord-of-year hands off each birthday. Dynamic-target sub-curves
+  // (isTimeLord) are pre-tagged for the whole segment; regular jobs check
+  // peak by peak.
   const natalCurves = useMemo(() => {
-    if (!timelordEnabled) return natalCurvesRaw;
+    if (
+      !timelordEnabled ||
+      !natalChart?.birthDate ||
+      timelordStartSignResolved == null
+    ) {
+      return natalCurvesRaw;
+    }
     return natalCurvesRaw.map(c => {
-      const lordPlanet = currentTimelord?.planetId;
-      const matches = c.isTimeLord || (lordPlanet != null && c.target === lordPlanet);
-      return matches ? { ...c, isTimeLordTarget: true } : c;
+      if (c.isTimeLord) {
+        const peaks = c.peaks.map(p => ({ ...p, isTimeLord: true }));
+        return { ...c, peaks };
+      }
+      const peaks = c.peaks.map(p => {
+        const tl = getTimeLord(natalChart.birthDate, timelordStartSignResolved, p.date);
+        return tl && c.target === tl.planetId ? { ...p, isTimeLord: true } : p;
+      });
+      return { ...c, peaks };
     });
-  }, [natalCurvesRaw, currentTimelord, timelordEnabled]);
+  }, [natalCurvesRaw, natalChart, timelordStartSignResolved, timelordEnabled]);
   const { curves: mundaneCurves, signChanges: mundaneSignChanges, loading: mundaneLoading } = useMundaneTransits(
     mundaneJobs, stackCharts, startDate, endDate, orbSettings
   );
