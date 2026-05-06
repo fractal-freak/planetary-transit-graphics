@@ -2575,6 +2575,22 @@
   border-color: var(--border);
 }
 
+.presetFavBtnActive,
+.presetFavBtnActive:hover {
+  background: var(--bg-elevated);
+  border-color: var(--fg-faint);
+  color: var(--fg-strong);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.presetFavBtnDimmed {
+  opacity: 0.55;
+}
+
+.presetFavBtnDimmed:hover {
+  opacity: 1;
+}
+
 .presetFavStar {
   font-size: 9px;
   color: rgba(180, 150, 50, 0.6);

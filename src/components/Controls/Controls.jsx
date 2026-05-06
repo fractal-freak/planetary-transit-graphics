@@ -92,6 +92,12 @@ export default function Controls({
 }) {
   const { user, savedPresets } = useAuth();
   const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [activePresetId, setActivePresetId] = useState(null);
+
+  const handleLoadPreset = (preset) => {
+    setActivePresetId(preset?.id ?? null);
+    if (onLoadPreset) onLoadPreset(preset);
+  };
 
   const currentJobs = mode === 'world' ? transitJobs : mode === 'natal' ? natalJobs : mundaneJobs;
   const hasJobs = currentJobs.length > 0;
@@ -237,8 +243,9 @@ export default function Controls({
                 {favorites.length > 0 && (
                   <PresetFavoritesList
                     favorites={favorites}
-                    onLoadPreset={onLoadPreset}
+                    onLoadPreset={handleLoadPreset}
                     onReorderPresets={onReorderPresets}
+                    activePresetId={activePresetId}
                   />
                 )}
                 <button
@@ -377,7 +384,7 @@ export default function Controls({
       <PresetPickerModal
         open={presetModalOpen}
         onClose={() => setPresetModalOpen(false)}
-        onLoadPreset={onLoadPreset}
+        onLoadPreset={handleLoadPreset}
         currentMode={mode}
         currentJobs={currentJobs}
         hasJobs={hasJobs}
@@ -420,7 +427,7 @@ function mergeStackAngles(charts) {
 // Each row is HTML5-draggable. Drop a row onto another row and the
 // reorder fires via onReorderPresets(orderedIds). Top row is the default
 // preset (auto-loads on a fresh session) and shows the "default" badge.
-function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets }) {
+function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets, activePresetId }) {
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
 
@@ -468,15 +475,23 @@ function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets }) {
     setDragOverId(null);
   }
 
+  const hasActive = activePresetId != null && favorites.some(p => p.id === activePresetId);
+
   return (
     <div className={styles.presetFavorites}>
       {favorites.map((preset, idx) => {
         const isDragging = draggedId === preset.id;
         const isDragOver = dragOverId === preset.id;
+        const isActive = preset.id === activePresetId;
         const cls = [
           styles.presetFavRow,
           isDragging ? styles.presetFavRowDragging : '',
           isDragOver ? styles.presetFavRowDragOver : '',
+        ].filter(Boolean).join(' ');
+        const btnCls = [
+          styles.presetFavBtn,
+          hasActive && isActive ? styles.presetFavBtnActive : '',
+          hasActive && !isActive ? styles.presetFavBtnDimmed : '',
         ].filter(Boolean).join(' ');
         return (
           <div
@@ -490,7 +505,7 @@ function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets }) {
             onDragEnd={handleDragEnd}
           >
             <button
-              className={styles.presetFavBtn}
+              className={btnCls}
               onClick={() => onLoadPreset(preset)}
               title={`Load "${preset.name}" (${preset.mode}) — drag to reorder`}
             >
