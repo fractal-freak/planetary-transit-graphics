@@ -643,26 +643,22 @@ export default function App() {
       setChartNotes([]);
       return;
     }
-    if (activeChartIsSaved) {
-      loadChartNotes(user.uid, activeChartId).then(notes => {
-        if (!cancelled) setChartNotes(notes);
-      });
-    } else {
-      setChartNotes(loadAnonNotes(activeChartId));
-    }
+    mergedNotesForChart(user, activeChartId).then(notes => {
+      if (!cancelled) setChartNotes(notes);
+    });
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChartId, activeChartIsSaved, user]);
 
   async function handleSaveNote(noteData, noteId) {
     if (!activeChartId) return;
     if (activeChartIsSaved) {
       await saveChartNote(user.uid, activeChartId, noteData, noteId);
-      const fresh = await loadChartNotes(user.uid, activeChartId);
-      setChartNotes(fresh);
     } else {
       saveAnonNote(activeChartId, noteData, noteId);
-      setChartNotes(loadAnonNotes(activeChartId));
     }
+    const fresh = await mergedNotesForChart(user, activeChartId);
+    setChartNotes(fresh);
   }
 
   // Build a (transit, target, aspect) triple from a peakInfo that may be
@@ -725,12 +721,11 @@ export default function App() {
     if (!activeChartId) return;
     if (activeChartIsSaved) {
       await deleteChartNote(user.uid, activeChartId, noteId);
-      const fresh = await loadChartNotes(user.uid, activeChartId);
-      setChartNotes(fresh);
     } else {
       deleteAnonNote(activeChartId, noteId);
-      setChartNotes(loadAnonNotes(activeChartId));
     }
+    const fresh = await mergedNotesForChart(user, activeChartId);
+    setChartNotes(fresh);
   }
 
   // Default visible window when loading a transit from a note: how many
@@ -832,6 +827,11 @@ export default function App() {
   // creation; any notes the user attached against that local id need to
   // come along and live in the new Firestore subcollection so the picker
   // and the sidebar both find them under the new id.
+  //
+  // We deliberately do NOT delete the localStorage copy after migration —
+  // if Firestore reports success but the writes silently fail to persist,
+  // we'd be wiping the only copy of the user's notes. The note loaders
+  // merge both stores, so the local copy just acts as a free backup.
   async function handleChartSaved(oldId, newId, updatedChart) {
     setNatalChart(refreshAngles(updatedChart));
     if (!user || !oldId || !newId || oldId === newId) return;
@@ -848,13 +848,37 @@ export default function App() {
           createdAt: note.createdAt,
         });
       }
-      clearAnonNotes(oldId);
       // Re-fetch under the new id so the sidebar list updates immediately.
-      const fresh = await loadChartNotes(user.uid, newId);
+      const fresh = await mergedNotesForChart(user, newId);
       setChartNotes(fresh);
     } catch (err) {
       console.error('Note migration failed:', err);
     }
+  }
+
+  // Load notes for a chart from every place we might have stashed them and
+  // merge by (transitPlanet, target, aspect, peakDate). Firestore takes
+  // precedence when keys collide, but anything that's *only* in localStorage
+  // still surfaces — so a botched migration can't make data disappear.
+  async function mergedNotesForChart(currentUser, chartId) {
+    if (!chartId) return [];
+    const local = loadAnonNotes(chartId) || [];
+    let remote = [];
+    if (currentUser && !chartId.startsWith('local-') && !chartId.startsWith('anon-')) {
+      try { remote = await loadChartNotes(currentUser.uid, chartId); } catch {}
+    }
+    const seen = new Map();
+    const keyOf = n => `${n.transitPlanet}|${n.target}|${n.aspect}|${(n.peakDate || '').slice(0, 10)}`;
+    for (const n of remote) seen.set(keyOf(n), n);
+    for (const n of local) {
+      const k = keyOf(n);
+      if (!seen.has(k)) seen.set(k, n);
+    }
+    return Array.from(seen.values()).sort((a, b) => {
+      const aT = new Date(a.createdAt || 0).getTime();
+      const bT = new Date(b.createdAt || 0).getTime();
+      return bT - aT;
+    });
   }
 
   // ── Mundane job handlers ──

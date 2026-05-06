@@ -682,6 +682,11 @@ function PreviewNotesList({ chart, user, onAdd, onLoad }) {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
 
+  // Load notes from BOTH Firestore (signed in + non-local id) and
+  // localStorage (any chart id), then merge by transit + target + aspect +
+  // peak day. Firestore takes precedence on collisions; entries that exist
+  // only in localStorage still surface so old data isn't hidden behind a
+  // mismatched chart id.
   useEffect(() => {
     let cancelled = false;
     if (!chart?.id) {
@@ -690,15 +695,27 @@ function PreviewNotesList({ chart, user, onAdd, onLoad }) {
     }
     setLoading(true);
     setSearch('');
-    const isFirestoreChart = !!user && !chart.id.startsWith('local-') && !chart.id.startsWith('anon-');
-    const promise = isFirestoreChart
-      ? loadChartNotes(user.uid, chart.id)
-      : Promise.resolve(loadAnonNotes(chart.id));
-    promise.then(result => {
-      if (!cancelled) {
-        setNotes(result || []);
-        setLoading(false);
+    const useFirestore = !!user && !chart.id.startsWith('local-') && !chart.id.startsWith('anon-');
+    const localNotes = loadAnonNotes(chart.id) || [];
+    const remotePromise = useFirestore
+      ? loadChartNotes(user.uid, chart.id).catch(() => [])
+      : Promise.resolve([]);
+    remotePromise.then(remote => {
+      if (cancelled) return;
+      const seen = new Map();
+      const keyOf = n => `${n.transitPlanet}|${n.target}|${n.aspect}|${(n.peakDate || '').slice(0, 10)}`;
+      for (const n of (remote || [])) seen.set(keyOf(n), n);
+      for (const n of localNotes) {
+        const k = keyOf(n);
+        if (!seen.has(k)) seen.set(k, n);
       }
+      const merged = Array.from(seen.values()).sort((a, b) => {
+        const aT = new Date(a.createdAt || 0).getTime();
+        const bT = new Date(b.createdAt || 0).getTime();
+        return bT - aT;
+      });
+      setNotes(merged);
+      setLoading(false);
     });
     return () => { cancelled = true; };
   }, [chart, user]);
