@@ -1759,6 +1759,45 @@
   margin: 4px 0 4px;
 }
 
+/* Nested Notes dropdown inside the Chart summary card. */
+.summaryNotesBox {
+  margin-top: 8px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.summaryNotesHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 8px 2px 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+}
+
+.summaryNotesHeader:hover {
+  color: var(--fg-strong);
+}
+
+.summaryNotesChevron {
+  color: var(--fg-subtle);
+  transition: transform 0.15s;
+}
+
+.summaryNotesChevronOpen {
+  transform: rotate(180deg);
+}
+
+.summaryNotesBody {
+  padding-top: 4px;
+}
+
 /* ── Notes section ── */
 
 .notesEmpty {
@@ -2023,8 +2062,9 @@
   border: none;
   color: var(--fg-subtle);
   cursor: pointer;
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
   border-radius: 4px;
   font-family: inherit;
   transition: color 0.15s;

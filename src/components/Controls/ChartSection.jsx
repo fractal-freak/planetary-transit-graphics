@@ -325,6 +325,11 @@ export default function ChartSection({
         defaultChartId={defaultChartId}
         onClear={handleClearChart}
         onOpenPicker={() => setPickerOpen(true)}
+        chartNotes={chartNotes}
+        onSaveNote={onSaveNote}
+        onDeleteNote={onDeleteNote}
+        onAddNoteTransit={onAddNoteTransit}
+        onLoadNoteTransit={onLoadNoteTransit}
       />
 
       {/* Action bar */}
@@ -395,11 +400,16 @@ function formatBirthTime(t) {
   return `${h}:${m[2]} ${am ? 'AM' : 'PM'}`;
 }
 
-function ChartSummary({ natalChart, savedChart, defaultChartId, onClear, onOpenPicker }) {
+function ChartSummary({
+  natalChart, savedChart, defaultChartId, onClear, onOpenPicker,
+  chartNotes, onSaveNote, onDeleteNote, onAddNoteTransit, onLoadNoteTransit,
+}) {
+  const [notesOpen, setNotesOpen] = useState(false);
   const displayName = natalChart.name
     || savedChart?.name
     || 'Untitled chart';
   const chartType = natalChart.chartType || savedChart?.chartType || 'natal';
+  const noteCount = chartNotes?.length || 0;
 
   return (
     <div className={styles.natalSummary}>
@@ -425,6 +435,43 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear, onOpenP
           </button>
         )}
       </div>
+
+      {/* Notes dropdown \u2014 collapsed by default so a chart with many notes
+          doesn't push the rest of the sidebar off-screen. Header shows the
+          count and a chevron; expanding reveals search + the scrollable
+          list. The full reading view still lives in the picker's Notes tab. */}
+      {onSaveNote && (
+        <div className={styles.summaryNotesBox}>
+          <button
+            className={styles.summaryNotesHeader}
+            onClick={() => setNotesOpen(v => !v)}
+            aria-expanded={notesOpen}
+          >
+            <span>Notes{noteCount > 0 ? ` (${noteCount})` : ''}</span>
+            <svg
+              className={`${styles.summaryNotesChevron} ${notesOpen ? styles.summaryNotesChevronOpen : ''}`}
+              width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {notesOpen && (
+            <div className={styles.summaryNotesBody}>
+              <NotesSection
+                notes={chartNotes || []}
+                hasChart={!!natalChart}
+                onSaveNote={onSaveNote}
+                onDeleteNote={onDeleteNote}
+                onAddTransit={onAddNoteTransit}
+                onLoadTransit={onLoadNoteTransit}
+                searchable
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
