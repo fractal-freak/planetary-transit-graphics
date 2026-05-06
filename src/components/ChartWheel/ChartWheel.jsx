@@ -45,25 +45,25 @@ function drawWheel(ctx, chart, size) {
 
   const cx = size / 2;
   const cy = size / 2;
-  // Bands: zodiac → planet → houses → aspects
+  // Bands: zodiac → planet → houses(thin) → aspects
   const rOuter = size * 0.48;
   const rZodiacInner = size * 0.41;
   const rGlyph = size * 0.355;
   const rDegree = size * 0.305;
   const rMinute = size * 0.265;
-  const rHouseOuter = size * 0.225;
-  const rHouseNumber = size * 0.193;
-  const rHouseInner = size * 0.16;
+  const rHouseOuter = size * 0.215;
+  const rHouseNumber = size * 0.195;
+  const rHouseInner = size * 0.175;
 
   const ascLng = chart.angles?.Asc ?? 0;
   const angleFor = (L) => Math.PI - ((L - ascLng) * Math.PI / 180);
 
-  // ── Boundary rings ──
-  ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+  // ── Boundary rings (solid dark gray rather than alpha-on-cream) ──
+  ctx.strokeStyle = '#222';
   ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.arc(cx, cy, rOuter, 0, Math.PI * 2); ctx.stroke();
   ctx.beginPath(); ctx.arc(cx, cy, rZodiacInner, 0, Math.PI * 2); ctx.stroke();
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.strokeStyle = '#444';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(cx, cy, rHouseOuter, 0, Math.PI * 2); ctx.stroke();
   ctx.beginPath(); ctx.arc(cx, cy, rHouseInner, 0, Math.PI * 2); ctx.stroke();
@@ -74,7 +74,7 @@ function drawWheel(ctx, chart, size) {
     const startLng = i * 30;
     const phiStart = angleFor(startLng);
 
-    ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+    ctx.strokeStyle = '#555';
     ctx.lineWidth = 0.9;
     ctx.beginPath();
     ctx.moveTo(cx + rZodiacInner * Math.cos(phiStart), cy + rZodiacInner * Math.sin(phiStart));
@@ -90,8 +90,8 @@ function drawWheel(ctx, chart, size) {
     ctx.fillText(ZODIAC_SIGNS[i].symbol, cx + rGlyphSign * Math.cos(phiMid), cy + rGlyphSign * Math.sin(phiMid));
   }
 
-  // ── Degree ticks every 5°/10°/30° ──
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  // ── Degree ticks every 5°/10°/30° on the inside of the zodiac ring ──
+  ctx.strokeStyle = '#555';
   ctx.lineWidth = 0.7;
   for (let d = 0; d < 360; d += 5) {
     const phi = angleFor(d);
@@ -102,7 +102,9 @@ function drawWheel(ctx, chart, size) {
     ctx.stroke();
   }
 
-  // ── Whole-sign house cusps (only across the houses ring) ──
+  // ── Whole-sign house cusps: extend through the planet area to the zodiac ring ──
+  // so it's clear which house each planet sits in (the houses ring still holds
+  // the numbers; the line just runs across both bands as one continuous cusp).
   const ascSignStart = Math.floor(ascLng / 30) * 30;
   const houseCusps = [];
   for (let i = 0; i < 12; i++) {
@@ -111,21 +113,21 @@ function drawWheel(ctx, chart, size) {
   for (let i = 0; i < 12; i++) {
     const phi = angleFor(houseCusps[i]);
     if (i === 0 || i === 9) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 1.3;
     } else {
-      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-      ctx.lineWidth = 0.7;
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 0.8;
     }
     ctx.beginPath();
     ctx.moveTo(cx + rHouseInner * Math.cos(phi), cy + rHouseInner * Math.sin(phi));
-    ctx.lineTo(cx + rHouseOuter * Math.cos(phi), cy + rHouseOuter * Math.sin(phi));
+    ctx.lineTo(cx + rZodiacInner * Math.cos(phi), cy + rZodiacInner * Math.sin(phi));
     ctx.stroke();
   }
 
-  // ── House numbers in the houses ring (their own band) ──
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.font = `${Math.round(size * 0.025)}px sans-serif`;
+  // ── House numbers in the (now thinner) houses ring ──
+  ctx.fillStyle = '#222';
+  ctx.font = `bold ${Math.round(size * 0.024)}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (let i = 0; i < 12; i++) {
@@ -209,7 +211,7 @@ function drawWheel(ctx, chart, size) {
     ctx.fillText(`${deg}°`, cx + rDegree * Math.cos(phi), cy + rDegree * Math.sin(phi));
 
     // Minute' further inward
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillStyle = '#333';
     ctx.font = `${Math.round(size * 0.021)}px sans-serif`;
     ctx.fillText(`${String(min).padStart(2, '0')}'`, cx + rMinute * Math.cos(phi), cy + rMinute * Math.sin(phi));
   };
