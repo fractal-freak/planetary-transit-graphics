@@ -733,12 +733,49 @@ export default function App() {
     }
   }
 
+  // Default visible window when loading a transit from a note: how many
+  // days of context to show on each side of the peak. Slow planets need
+  // a wider window because their aspects perfect over many months and
+  // multiple stations; fast planets perfect quickly so a tight window
+  // keeps the curve readable.
+  function noteBufferDays(transitPlanet) {
+    switch (transitPlanet) {
+      case 'Moon': return 4;
+      case 'Sun':
+      case 'Mercury':
+      case 'Venus': return 21;
+      case 'Mars': return 60;
+      case 'Jupiter': return 120;
+      case 'Saturn': return 240;
+      case 'Uranus':
+      case 'Neptune':
+      case 'Pluto': return 540;
+      case 'TrueNode': return 120;
+      default: return 60;
+    }
+  }
+  function dateRangeFromNote(note) {
+    if (!note?.peakDate) return null;
+    const peak = new Date(note.peakDate);
+    if (isNaN(peak.getTime())) return null;
+    const buf = noteBufferDays(note.transitPlanet) * 86400000;
+    return { start: new Date(peak.getTime() - buf), end: new Date(peak.getTime() + buf) };
+  }
+
   // Add the transit a note describes onto the existing natal jobs without
   // replacing what's already on the timeline. No-op if a job for the exact
   // (transit, target, aspect) trio already exists, so the timeline doesn't
-  // accumulate duplicates.
+  // accumulate duplicates. Expands the date window to include the note's
+  // peak if it falls outside, so the new transit is actually visible.
   function handleAddNoteTransit(note) {
     setMode('natal');
+    if (!dateRangeLocked) {
+      const range = dateRangeFromNote(note);
+      if (range) {
+        setStartDate(prev => (!prev || range.start < prev) ? range.start : prev);
+        setEndDate(prev => (!prev || range.end > prev) ? range.end : prev);
+      }
+    }
     setNatalJobs(prev => {
       const existing = prev.find(j =>
         j.transitPlanet === note.transitPlanet &&
@@ -761,9 +798,17 @@ export default function App() {
   }
 
   // Replace the whole natal-job list with just the one transit the note
-  // describes — the user wants to focus on that single moment.
+  // describes. Center the date range on the peak with a buffer sized to
+  // the transiting planet, so the curve fits comfortably in view.
   function handleLoadNoteTransit(note) {
     setMode('natal');
+    if (!dateRangeLocked) {
+      const range = dateRangeFromNote(note);
+      if (range) {
+        setStartDate(range.start);
+        setEndDate(range.end);
+      }
+    }
     setNatalJobs([{
       id: `natal-job-${Date.now()}`,
       transitPlanet: note.transitPlanet,

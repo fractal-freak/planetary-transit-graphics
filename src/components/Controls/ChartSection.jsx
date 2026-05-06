@@ -77,14 +77,20 @@ export default function ChartSection({
 
   const hasSavedCharts = user && savedCharts.length > 0;
 
-  // Check if current chart matches a saved one
+  // Check if current chart matches a saved one. Prefer the loaded chart's
+  // own id when it's already in savedCharts (covers loading a chart by id
+  // and avoids the wrong-duplicate bug where two saved charts share birth
+  // data and the birth-match finder picks B even though A is active).
+  // Falls back to the birth-data match for charts created locally (the
+  // user calculated a chart that happens to match a saved one).
   const currentMatchId = natalChart
-    ? savedCharts.find(c =>
-        c.birthDate === natalChart.birthDate &&
-        c.birthTime === natalChart.birthTime &&
-        c.lat === natalChart.lat &&
-        c.lng === natalChart.lng
-      )?.id
+    ? (savedCharts.find(c => c.id === natalChart.id)?.id
+       || savedCharts.find(c =>
+            c.birthDate === natalChart.birthDate &&
+            c.birthTime === natalChart.birthTime &&
+            c.lat === natalChart.lat &&
+            c.lng === natalChart.lng
+          )?.id)
     : null;
 
   const currentSavedChart = currentMatchId
