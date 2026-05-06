@@ -1115,7 +1115,11 @@ export default function App() {
                 endDate={endDate}
                 zoom={zoom}
                 onOverlayUpdate={handleOverlayUpdate}
-                natalPositions={mode === 'natal' ? natalChart?.positions : null}
+                natalPositions={
+                  mode === 'natal' && natalChart
+                    ? { ...(natalChart.positions || {}), ...(natalChart.angles || {}) }
+                    : null
+                }
                 notesEnabled={mode === 'natal' && !!activeChartId}
                 findNoteForPeak={findNoteForPeak}
                 onSavePeakNote={handleSavePeakNote}
