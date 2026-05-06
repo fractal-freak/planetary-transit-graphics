@@ -324,11 +324,7 @@ export default function ChartSection({
         savedChart={currentSavedChart}
         defaultChartId={defaultChartId}
         onClear={handleClearChart}
-        chartNotes={chartNotes}
-        onSaveNote={onSaveNote}
-        onDeleteNote={onDeleteNote}
-        onAddNoteTransit={onAddNoteTransit}
-        onLoadNoteTransit={onLoadNoteTransit}
+        onOpenPicker={() => setPickerOpen(true)}
       />
 
       {/* Action bar */}
@@ -399,12 +395,7 @@ function formatBirthTime(t) {
   return `${h}:${m[2]} ${am ? 'AM' : 'PM'}`;
 }
 
-function ChartSummary({
-  natalChart, savedChart, defaultChartId, onClear,
-  chartNotes, onSaveNote, onDeleteNote, onAddNoteTransit, onLoadNoteTransit,
-}) {
-  const [expanded, setExpanded] = useState(false);
-
+function ChartSummary({ natalChart, savedChart, defaultChartId, onClear, onOpenPicker }) {
   const displayName = natalChart.name
     || savedChart?.name
     || 'Untitled chart';
@@ -412,12 +403,11 @@ function ChartSummary({
 
   return (
     <div className={styles.natalSummary}>
-      {/* Collapsed header: always visible */}
       <div className={styles.natalSummaryHeader}>
         <button
           className={styles.summaryToggle}
-          onClick={() => setExpanded(prev => !prev)}
-          aria-expanded={expanded}
+          onClick={() => onOpenPicker && onOpenPicker()}
+          title="Open the Chart Picker"
         >
           <span className={styles.chartNameText}>
             {displayName}
@@ -428,53 +418,12 @@ function ChartSummary({
           {chartType !== 'natal' && (
             <span className={styles.chartTypeBadge}>{chartType}</span>
           )}
-          <svg
-            className={`${styles.summaryChevron} ${expanded ? styles.summaryChevronOpen : ''}`}
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
         </button>
         {onClear && (
           <button className={styles.natalClearBtn} onClick={onClear}>
             &times;
           </button>
         )}
-      </div>
-
-      {/* Expandable detail \u2014 notes for this chart. The full placements grid
-          lives in the Chart Picker's Data tab; the disclosure here is
-          chart-scoped notes since those are what the user actually edits
-          inline. */}
-      <div className={`${styles.summaryBody} ${expanded ? styles.summaryBodyOpen : ''}`}>
-        <div className={styles.summaryBodyInner}>
-          <div className={styles.natalBirthData}>
-            <div className={styles.natalBirthLine}>{formatBirthDate(natalChart.birthDate)}</div>
-            {natalChart.birthTime && (
-              <div className={styles.natalBirthLineMuted}>{formatBirthTime(natalChart.birthTime)}</div>
-            )}
-            {natalChart.locationName && (
-              <div className={styles.natalBirthLineMuted}>{natalChart.locationName}</div>
-            )}
-          </div>
-          <div className={styles.summaryNotesLabel}>Notes</div>
-          <NotesSection
-            notes={chartNotes || []}
-            hasChart={!!natalChart}
-            onSaveNote={onSaveNote}
-            onDeleteNote={onDeleteNote}
-            onAddTransit={onAddNoteTransit}
-            onLoadTransit={onLoadNoteTransit}
-          />
-        </div>
       </div>
     </div>
   );

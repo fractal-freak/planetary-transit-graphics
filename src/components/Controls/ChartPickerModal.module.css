@@ -600,6 +600,30 @@
 .recomputeBtn { display: none; }
 
 /* ── Notes tab in the preview pane ── */
+.notesPickerWrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notesPickerSearch {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-strong);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.notesPickerSearch:focus {
+  border-color: var(--fg-subtle);
+}
+
 .notesPickerEmpty {
   padding: 30px 20px;
   text-align: center;

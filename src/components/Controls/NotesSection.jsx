@@ -1,7 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PLANET_MAP } from '../../data/planets';
 import { ASPECT_MAP } from '../../utils/aspects';
 import styles from './Controls.module.css';
+
+/** Lower-cased haystack of every searchable bit of a note: transit and target
+ *  planet/angle names, aspect name, and the body text. */
+export function noteHaystack(note) {
+  const tName = PLANET_MAP[note.transitPlanet]?.name || note.transitPlanet || '';
+  const targetName = PLANET_MAP[note.target]?.name || note.target || '';
+  const aspectName = ASPECT_MAP[note.aspect]?.name || note.aspect || '';
+  return `${tName} ${targetName} ${aspectName} ${note.body || ''}`.toLowerCase();
+}
 
 /**
  * NotesSection — list + manage transit notes for the active natal chart.
@@ -10,6 +19,9 @@ import styles from './Controls.module.css';
  * first line of the note body. Clicking the row expands it to read the full
  * body. Each row exposes two actions: "Add" (append the transit to current
  * natal jobs) and "Load" (replace all current jobs with just that transit).
+ *
+ * When `searchable` is true, an inline search box filters the list by transit
+ * planet, target, aspect name, or text in the note body.
  */
 export default function NotesSection({
   notes,
@@ -18,11 +30,19 @@ export default function NotesSection({
   onDeleteNote,
   onSaveNote,
   hasChart,
+  searchable = false,
 }) {
   const [expandedId, setExpandedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editBody, setEditBody] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [search, setSearch] = useState('');
+
+  const filteredNotes = useMemo(() => {
+    if (!notes || !searchable || !search.trim()) return notes || [];
+    const q = search.toLowerCase().trim();
+    return notes.filter(n => noteHaystack(n).includes(q));
+  }, [notes, search, searchable]);
 
   if (!hasChart) {
     return (
@@ -63,8 +83,21 @@ export default function NotesSection({
   }
 
   return (
-    <div className={styles.notesList}>
-      {notes.map(note => {
+    <div className={styles.notesContainer}>
+      {searchable && (
+        <input
+          type="text"
+          className={styles.notesSearch}
+          placeholder="Search notes…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      )}
+      {searchable && filteredNotes.length === 0 && (
+        <div className={styles.notesEmpty}>No notes match.</div>
+      )}
+      <div className={styles.notesList}>
+        {filteredNotes.map(note => {
         const tP = PLANET_MAP[note.transitPlanet];
         const targetP = PLANET_MAP[note.target];
         const aspect = ASPECT_MAP[note.aspect];
@@ -163,6 +196,7 @@ export default function NotesSection({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

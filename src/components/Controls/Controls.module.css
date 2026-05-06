@@ -1769,10 +1769,37 @@
   text-align: center;
 }
 
+.notesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notesSearch {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg-strong);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.notesSearch:focus {
+  border-color: var(--fg-subtle);
+}
+
 .notesList {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Cap the list so a chart with many notes doesn't run off the bottom of
+     the sidebar; users scroll inside the section instead. */
+  max-height: 360px;
+  overflow-y: auto;
 }
 
 .notesItem {

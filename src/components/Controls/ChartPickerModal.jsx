@@ -13,6 +13,7 @@ import {
   loadChartNotes,
 } from '../../firebase/firestore';
 import { loadAnonNotes } from '../../utils/anonNotes';
+import { noteHaystack } from './NotesSection';
 import { PLANET_MAP } from '../../data/planets';
 import { ASPECT_MAP } from '../../utils/aspects';
 import ChartWheel from '../ChartWheel/ChartWheel';
@@ -679,6 +680,7 @@ export default function ChartPickerModal({
 function PreviewNotesList({ chart, user, onAdd, onLoad }) {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -687,6 +689,7 @@ function PreviewNotesList({ chart, user, onAdd, onLoad }) {
       return;
     }
     setLoading(true);
+    setSearch('');
     const isFirestoreChart = !!user && !chart.id.startsWith('local-') && !chart.id.startsWith('anon-');
     const promise = isFirestoreChart
       ? loadChartNotes(user.uid, chart.id)
@@ -700,6 +703,10 @@ function PreviewNotesList({ chart, user, onAdd, onLoad }) {
     return () => { cancelled = true; };
   }, [chart, user]);
 
+  const filtered = search.trim()
+    ? notes.filter(n => noteHaystack(n).includes(search.toLowerCase().trim()))
+    : notes;
+
   if (loading) {
     return <div className={styles.notesPickerEmpty}>Loading notes…</div>;
   }
@@ -712,8 +719,19 @@ function PreviewNotesList({ chart, user, onAdd, onLoad }) {
   }
 
   return (
-    <div className={styles.notesPickerList}>
-      {notes.map(note => {
+    <div className={styles.notesPickerWrap}>
+      <input
+        type="text"
+        className={styles.notesPickerSearch}
+        placeholder="Search notes…"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+      />
+      {filtered.length === 0 && (
+        <div className={styles.notesPickerEmpty}>No notes match.</div>
+      )}
+      <div className={styles.notesPickerList}>
+      {filtered.map(note => {
         const tP = PLANET_MAP[note.transitPlanet];
         const targetP = PLANET_MAP[note.target];
         const aspect = ASPECT_MAP[note.aspect];
@@ -747,6 +765,7 @@ function PreviewNotesList({ chart, user, onAdd, onLoad }) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
