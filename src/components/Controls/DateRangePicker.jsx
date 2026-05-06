@@ -57,9 +57,11 @@ export default function DateRangePicker({
   onStartChange,
   onEndChange,
   natalBirthDate,
+  chartKind,
 }) {
   const birth = parseBirthDate(natalBirthDate);
   const showAges = !!birth;
+  const ageLabel = chartKind && chartKind !== 'natal' ? 'years' : 'ages';
 
   const [fromAgeEditing, setFromAgeEditing] = useState(false);
   const [toAgeEditing, setToAgeEditing] = useState(false);
@@ -281,7 +283,7 @@ export default function DateRangePicker({
           <>
             <span className={styles.dateInfoSep}>·</span>
             <span className={styles.dateInfoAges}>
-              ages&nbsp;
+              {ageLabel}&nbsp;
               {renderAgeValue({
                 isFrom: true,
                 age: fromAge,
