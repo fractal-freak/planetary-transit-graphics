@@ -33,6 +33,13 @@
   white-space: nowrap;
 }
 
+.tooltipWhen {
+  font-size: 10px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
 .tooltipNote {
   border-top: 1px solid var(--border-soft);
   padding-top: 6px;

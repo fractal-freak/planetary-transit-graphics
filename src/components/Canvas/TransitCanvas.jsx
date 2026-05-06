@@ -255,8 +255,11 @@ const TransitCanvas = forwardRef(function TransitCanvas(
 // Positioned near the cursor, flipped if it would overflow the wrapper.
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-function formatTooltipDate(d) {
-  return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+function formatTooltipDateTime(d) {
+  if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+  const date = `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return `${time} · ${date}`;
 }
 
 function Body({ glyph, position, retrograde, prefix }) {
@@ -281,6 +284,7 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
   const [editBody, setEditBody] = useState('');
 
   const existingNote = pinned && notesEnabled && findNoteForPeak ? findNoteForPeak(peakInfo) : null;
+  const peakWhen = formatTooltipDateTime(peakInfo.date);
 
   // Reset the editor whenever the user clicks a different peak.
   useEffect(() => {
@@ -342,6 +346,7 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
             <span className={styles.tooltipLunationOrb}>{Math.round(p.distanceDeg * 10) / 10}°</span>
           </div>
         ))}
+        {peakWhen && <div className={styles.tooltipWhen}>{peakWhen}</div>}
         {pinned && notesEnabled && (
           <NoteBlock
             existing={existingNote}
@@ -384,6 +389,7 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
             stations {peakInfo.stationDirection}
           </span>
         </div>
+        {peakWhen && <div className={styles.tooltipWhen}>{peakWhen}</div>}
         {pinned && notesEnabled && (
           <NoteBlock
             existing={existingNote}
@@ -452,6 +458,7 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
           prefix={peakInfo.isNatal ? 'natal' : null}
         />
       </div>
+      {peakWhen && <div className={styles.tooltipWhen}>{peakWhen}</div>}
       {showNoteUi && (
         <NoteBlock
           existing={existingNote}
