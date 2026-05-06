@@ -452,7 +452,10 @@
   align-items: flex-start;
   justify-content: center;
   padding: 12px;
-  min-height: 0;
+  /* Wheel renders at ~380px, so reserve at least that height. Without this
+     the modal collapses when the user switches to Data or Notes (which
+     don't push the body's flex item to fill space). */
+  min-height: 420px;
 }
 
 .previewEmpty {

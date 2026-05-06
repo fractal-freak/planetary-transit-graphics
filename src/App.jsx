@@ -34,14 +34,21 @@ import { loadChartNotes, saveChartNote, deleteChartNote } from './firebase/fires
  * lat/lng, refreshing on load corrects any drift.
  */
 function refreshAngles(chart) {
-  if (!chart || !chart.birthDate) return chart;
-  if (!isSweReady()) return chart; // defer until WASM is loaded
-  const hasLoc = chart.lat != null && chart.lng != null;
-  const dt = combineDateAndTime(chart.birthDate, chart.birthTime, chart.lat, chart.lng);
+  if (!chart) return chart;
+  // Backfill a stable id so legacy charts cached without one (pre-notes
+  // feature) still get an identity to attach notes to. New charts already
+  // come with one — this no-ops when chart.id is set.
+  const ensuredChart = chart.id
+    ? chart
+    : { ...chart, id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 9)}` };
+  if (!ensuredChart.birthDate) return ensuredChart;
+  if (!isSweReady()) return ensuredChart; // defer until WASM is loaded
+  const hasLoc = ensuredChart.lat != null && ensuredChart.lng != null;
+  const dt = combineDateAndTime(ensuredChart.birthDate, ensuredChart.birthTime, ensuredChart.lat, ensuredChart.lng);
   const positions = computeNatalPositions(dt);
   const speeds = computeNatalSpeeds(dt);
-  const angles = hasLoc ? computeNatalAngles(dt, chart.lat, chart.lng) : null;
-  return { ...chart, positions, speeds, angles };
+  const angles = hasLoc ? computeNatalAngles(dt, ensuredChart.lat, ensuredChart.lng) : null;
+  return { ...ensuredChart, positions, speeds, angles };
 }
 
 /**
