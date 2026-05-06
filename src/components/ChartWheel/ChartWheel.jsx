@@ -84,7 +84,7 @@ function drawWheel(ctx, chart, size) {
     const phiMid = angleFor(startLng + 15);
     const rGlyphSign = (rOuter + rZodiacInner) / 2;
     ctx.fillStyle = signColors[i % 4];
-    ctx.font = `bold ${Math.round(size * 0.058)}px ${GLYPH_FONT}`;
+    ctx.font = `bold ${Math.round(size * 0.046)}px ${GLYPH_FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(ZODIAC_SIGNS[i].symbol, cx + rGlyphSign * Math.cos(phiMid), cy + rGlyphSign * Math.sin(phiMid));
