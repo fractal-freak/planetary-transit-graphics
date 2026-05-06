@@ -56,6 +56,11 @@ export default function Controls({
   onToggleDateRangeLocked,
   natalChart,
   onNatalChartChange,
+  timelordEnabled,
+  onTimelordEnabledChange,
+  timelordStartSign,
+  onTimelordStartSignChange,
+  currentTimelord,
   natalJobs,
   natalCurves,
   natalSignChanges,
@@ -169,6 +174,11 @@ export default function Controls({
               <ChartSection
                 natalChart={natalChart}
                 onNatalChartChange={onNatalChartChange}
+                timelordEnabled={timelordEnabled}
+                onTimelordEnabledChange={onTimelordEnabledChange}
+                timelordStartSign={timelordStartSign}
+                onTimelordStartSignChange={onTimelordStartSignChange}
+                currentTimelord={currentTimelord}
               />
             </CollapsibleSection>
           )}

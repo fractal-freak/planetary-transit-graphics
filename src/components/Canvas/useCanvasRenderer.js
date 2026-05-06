@@ -1563,6 +1563,7 @@ function drawAspectCurve(ctx, curve, plotW, rowH, rowTop, startDate, endDate, ro
         lunation, eclipse: eclipseHit,
         natalProximity: peak.natalProximity || null,
         peakInfo,
+        isTimeLordTarget: !!curve.isTimeLordTarget,
       });
     });
   }
@@ -1905,9 +1906,15 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     const labelOpacity = lbl.dimmed ? 0.15 : lbl.highlighted ? 1.4 : 1;
     const dateAlpha = (0.55 * labelOpacity).toFixed(2);
 
+    // Time-lord target labels render in red so transits to the active
+    // lord-of-the-year visually pop against the rest of the row.
+    const tlRGB = lbl.isTimeLordTarget ? '200, 40, 40' : null;
+
     // Date line — top
     ctx.font = DATE_FONT;
-    ctx.fillStyle = `rgba(${T.textRGB}, ${dateAlpha})`;
+    ctx.fillStyle = tlRGB
+      ? `rgba(${tlRGB}, ${dateAlpha})`
+      : `rgba(${T.textRGB}, ${dateAlpha})`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText(lbl.dateLine, finalX, baseY - 15);
@@ -1917,7 +1924,9 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
     for (const seg of segments) {
       ctx.font = seg.font;
       const alpha = (ALPHA_MAP[seg.alphaKey] * labelOpacity).toFixed(2);
-      if (seg.rgb) {
+      if (tlRGB) {
+        ctx.fillStyle = `rgba(${tlRGB}, ${alpha})`;
+      } else if (seg.rgb) {
         const [r, g, b] = seg.rgb;
         ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
       } else {

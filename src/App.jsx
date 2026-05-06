@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { DEFAULT_JOBS, PLANET_MAP } from './data/planets';
 import { getDefaultOrbSettings } from './data/orbDefaults';
 import { useTransits } from './hooks/useTransits';
@@ -22,6 +22,7 @@ import AlignmentCalendar from './components/Calendar/AlignmentCalendar';
 import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 import { resolveRelativeDates, dateRangeToRelativeRange } from './data/defaultPresets';
+import { getTimeLord, resolveStartSign } from './utils/timelord';
 
 /**
  * Recompute positions and angles from birth data on load. This fixes stale
@@ -141,6 +142,18 @@ export default function App() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+  // ── Annual profections / time lord highlight ──
+  const [timelordEnabled, setTimelordEnabled] = useState(() => {
+    try { return localStorage.getItem('ptg_timelordEnabled') === '1'; } catch { return false; }
+  });
+  const [timelordStartSign, setTimelordStartSign] = useState(() => {
+    try {
+      const v = localStorage.getItem('ptg_timelordStartSign');
+      if (v === null || v === 'asc') return 'asc';
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 'asc';
+    } catch { return 'asc'; }
+  });
   // ── Mundane mode state ──
   const [stackCharts, setStackCharts] = useState([]);
   const [mundaneJobs, setMundaneJobs] = useState([]);
@@ -175,6 +188,18 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ptg_natalJobs', JSON.stringify(natalJobs));
   }, [natalJobs]);
+
+  useEffect(() => {
+    try { localStorage.setItem('ptg_timelordEnabled', timelordEnabled ? '1' : '0'); } catch {}
+  }, [timelordEnabled]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'ptg_timelordStartSign',
+        timelordStartSign === 'asc' ? 'asc' : String(timelordStartSign)
+      );
+    } catch {}
+  }, [timelordStartSign]);
 
   // Persist transit/world-mode settings
   useEffect(() => {
@@ -360,9 +385,26 @@ export default function App() {
   }
 
   const { curves, signChanges, loading } = useTransits(transitJobs, startDate, endDate, orbSettings);
-  const { curves: natalCurves, signChanges: natalSignChanges, loading: natalLoading } = useNatalTransits(
+  const { curves: natalCurvesRaw, signChanges: natalSignChanges, loading: natalLoading } = useNatalTransits(
     natalJobs, natalChart, startDate, endDate, orbSettings
   );
+
+  // Active time lord (annual profections). Recomputed when settings change or
+  // when crossing the native's birthday. Used to mark which natal curves
+  // should render with the time-lord highlight color.
+  const currentTimelord = useMemo(() => {
+    if (!timelordEnabled || !natalChart?.birthDate) return null;
+    const startSign = resolveStartSign(natalChart, timelordStartSign);
+    if (startSign == null) return null;
+    return getTimeLord(natalChart.birthDate, startSign);
+  }, [timelordEnabled, natalChart, timelordStartSign]);
+
+  const natalCurves = useMemo(() => {
+    if (!currentTimelord) return natalCurvesRaw;
+    return natalCurvesRaw.map(c =>
+      c.target === currentTimelord.planetId ? { ...c, isTimeLordTarget: true } : c
+    );
+  }, [natalCurvesRaw, currentTimelord]);
   const { curves: mundaneCurves, signChanges: mundaneSignChanges, loading: mundaneLoading } = useMundaneTransits(
     mundaneJobs, stackCharts, startDate, endDate, orbSettings
   );
@@ -749,6 +791,11 @@ export default function App() {
           onToggleDateRangeLocked={() => setDateRangeLocked(l => !l)}
           natalChart={natalChart}
           onNatalChartChange={chart => setNatalChart(refreshAngles(chart))}
+          timelordEnabled={timelordEnabled}
+          onTimelordEnabledChange={setTimelordEnabled}
+          timelordStartSign={timelordStartSign}
+          onTimelordStartSignChange={setTimelordStartSign}
+          currentTimelord={currentTimelord}
           natalJobs={natalJobs}
           natalCurves={natalCurves}
           natalSignChanges={natalSignChanges}

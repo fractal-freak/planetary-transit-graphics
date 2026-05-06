@@ -8,6 +8,8 @@ import {
   loadCharts,
 } from '../../firebase/firestore';
 import { useSFchtImport } from '../../hooks/useSFchtImport';
+import { ZODIAC_SIGNS } from '../../data/zodiac';
+import { PLANET_MAP } from '../../data/planets';
 import NatalDataInput from './NatalDataInput';
 import ChartPickerModal from './ChartPickerModal';
 import styles from './Controls.module.css';
@@ -23,7 +25,15 @@ import styles from './Controls.module.css';
  * The chart picker is now a full-screen modal (ChartPickerModal),
  * triggered by the "Select Chart" button.
  */
-export default function ChartSection({ natalChart, onNatalChartChange }) {
+export default function ChartSection({
+  natalChart,
+  onNatalChartChange,
+  timelordEnabled,
+  onTimelordEnabledChange,
+  timelordStartSign,
+  onTimelordStartSignChange,
+  currentTimelord,
+}) {
   const { user, savedCharts, setSavedCharts, defaultChartId, setDefaultChartId: setDefId } = useAuth();
 
   const [view, setView] = useState('idle');
@@ -315,6 +325,18 @@ export default function ChartSection({ natalChart, onNatalChartChange }) {
         )}
       </div>
 
+      {/* Time lord (annual profections) */}
+      {onTimelordEnabledChange && (
+        <TimelordControls
+          enabled={timelordEnabled}
+          onEnabledChange={onTimelordEnabledChange}
+          startSign={timelordStartSign}
+          onStartSignChange={onTimelordStartSignChange}
+          currentTimelord={currentTimelord}
+          natalChart={natalChart}
+        />
+      )}
+
       <ChartPickerModal
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
@@ -467,6 +489,51 @@ function ChartSummary({ natalChart, savedChart, defaultChartId, onClear }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Tickbox + start-sign dropdown for annual profections / time lord highlight. */
+function TimelordControls({ enabled, onEnabledChange, startSign, onStartSignChange, currentTimelord, natalChart }) {
+  const planet = currentTimelord ? PLANET_MAP[currentTimelord.planetId] : null;
+  return (
+    <div className={styles.timelordBox}>
+      <label className={styles.timelordToggle}>
+        <input
+          type="checkbox"
+          checked={!!enabled}
+          onChange={e => onEnabledChange(e.target.checked)}
+        />
+        <span>Highlight time lord transits</span>
+      </label>
+      {enabled && (
+        <div className={styles.timelordRow}>
+          <span className={styles.timelordLabel}>Profect from</span>
+          <select
+            className={styles.timelordSelect}
+            value={startSign === 'asc' ? 'asc' : String(startSign)}
+            onChange={e => onStartSignChange(e.target.value === 'asc' ? 'asc' : Number(e.target.value))}
+          >
+            <option value="asc">Ascendant{natalChart?.angles?.Asc != null ? ' (auto)' : ''}</option>
+            {ZODIAC_SIGNS.map(s => (
+              <option key={s.index} value={String(s.index)}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      {enabled && currentTimelord && planet && (
+        <div className={styles.timelordCurrent}>
+          <span className={styles.timelordCurrentLabel}>Year {currentTimelord.age + 1}</span>
+          <span className={styles.timelordCurrentSep}>·</span>
+          <span className={styles.timelordCurrentLord} style={{ color: planet.color }}>
+            {planet.symbol} {planet.name}
+          </span>
+          <span className={styles.timelordCurrentSep}>·</span>
+          <span className={styles.timelordCurrentSign}>
+            {ZODIAC_SIGNS[currentTimelord.profectedSign].name} (H{currentTimelord.profectedHouse})
+          </span>
+        </div>
+      )}
     </div>
   );
 }

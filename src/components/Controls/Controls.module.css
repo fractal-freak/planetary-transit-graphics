@@ -1663,6 +1663,85 @@
   padding: 10px;
 }
 
+/* ── Time lord (annual profections) controls ── */
+.timelordBox {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timelordToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.timelordToggle input {
+  cursor: pointer;
+}
+
+.timelordRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timelordLabel {
+  font-size: 10px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.timelordSelect {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg);
+  color: var(--fg-strong);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+.timelordCurrent {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--fg-muted);
+  letter-spacing: 0.01em;
+  flex-wrap: wrap;
+}
+
+.timelordCurrentLabel {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.timelordCurrentLord {
+  font-weight: 600;
+}
+
+.timelordCurrentSep {
+  color: var(--fg-subtle);
+}
+
+.timelordCurrentSign {
+  color: var(--fg);
+}
+
 .natalSummaryHeader {
   display: flex;
   align-items: center;
