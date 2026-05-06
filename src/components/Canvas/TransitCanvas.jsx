@@ -349,7 +349,15 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
             editBody={editBody}
             onStartEdit={() => { setEditBody(existingNote?.body || ''); setEditing(true); }}
             onChangeBody={setEditBody}
-            onSave={async () => { await onSavePeakNote(peakInfo, editBody, existingNote?.id); setEditing(false); }}
+            onSave={async () => {
+              try {
+                await onSavePeakNote(peakInfo, editBody, existingNote?.id);
+                setEditing(false);
+              } catch (err) {
+                console.error('Note save failed:', err);
+                alert('Could not save note: ' + (err?.message || err));
+              }
+            }}
             onCancel={() => { setEditing(false); setEditBody(''); }}
             onDelete={() => onDeleteNote && existingNote && onDeleteNote(existingNote.id)}
           />
@@ -383,7 +391,15 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
             editBody={editBody}
             onStartEdit={() => { setEditBody(existingNote?.body || ''); setEditing(true); }}
             onChangeBody={setEditBody}
-            onSave={async () => { await onSavePeakNote(peakInfo, editBody, existingNote?.id); setEditing(false); }}
+            onSave={async () => {
+              try {
+                await onSavePeakNote(peakInfo, editBody, existingNote?.id);
+                setEditing(false);
+              } catch (err) {
+                console.error('Note save failed:', err);
+                alert('Could not save note: ' + (err?.message || err));
+              }
+            }}
             onCancel={() => { setEditing(false); setEditBody(''); }}
             onDelete={() => onDeleteNote && existingNote && onDeleteNote(existingNote.id)}
           />
@@ -403,8 +419,15 @@ function PeakTooltip({ tooltip, wrapperRef, notesEnabled, findNoteForPeak, onSav
   }
 
   async function commitNote() {
-    await onSavePeakNote(peakInfo, editBody, existingNote?.id);
-    setEditing(false);
+    try {
+      await onSavePeakNote(peakInfo, editBody, existingNote?.id);
+      setEditing(false);
+    } catch (err) {
+      // Surface failures instead of silently leaving the user staring at
+      // the editor with no idea what happened.
+      console.error('Note save failed:', err);
+      alert('Could not save note: ' + (err?.message || err));
+    }
   }
 
   return (
