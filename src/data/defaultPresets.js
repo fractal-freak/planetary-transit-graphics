@@ -74,6 +74,25 @@ export const DEFAULT_PRESETS = [
       { transitPlanet: 'Jupiter', targets: ['Saturn', 'Uranus', 'Neptune', 'Pluto'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
     ],
   },
+  {
+    // Natal-mode preset: every transit job targets the time lord, which
+    // resolves to whatever planet rules the profected sign for the user's
+    // current age. The transit list and aspect set are intentionally broad —
+    // the user can trim either through the per-job edit panel without
+    // losing the dynamic-target behavior.
+    name: 'Time Lord Transits',
+    mode: 'natal',
+    isFavorite: true,
+    relativeRange: { value: 12, unit: 'months' },
+    jobs: [
+      { transitPlanet: 'Mars', natalTargets: ['TimeLord'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
+      { transitPlanet: 'Jupiter', natalTargets: ['TimeLord'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
+      { transitPlanet: 'Saturn', natalTargets: ['TimeLord'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
+      { transitPlanet: 'Uranus', natalTargets: ['TimeLord'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
+      { transitPlanet: 'Neptune', natalTargets: ['TimeLord'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
+      { transitPlanet: 'Pluto', natalTargets: ['TimeLord'], aspects: ['Conjunction', 'Opposition', 'Trine', 'Square', 'Sextile'], showRetrogrades: true, showSignChanges: true },
+    ],
+  },
 ];
 
 // Resolve `relativeRange` against `now` into concrete startDate/endDate.

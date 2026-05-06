@@ -514,7 +514,7 @@ function TimelordControls({ enabled, onEnabledChange, startSign, onStartSignChan
             value={startSign === 'asc' ? 'asc' : String(startSign)}
             onChange={e => onStartSignChange(e.target.value === 'asc' ? 'asc' : Number(e.target.value))}
           >
-            <option value="asc">Ascendant{natalChart?.angles?.Asc != null ? ' (auto)' : ''}</option>
+            <option value="asc">Ascendant</option>
             {ZODIAC_SIGNS.map(s => (
               <option key={s.index} value={String(s.index)}>{s.name}</option>
             ))}

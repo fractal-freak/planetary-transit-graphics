@@ -385,26 +385,39 @@ export default function App() {
   }
 
   const { curves, signChanges, loading } = useTransits(transitJobs, startDate, endDate, orbSettings);
+  // Resolve the start sign — Asc by default, or whichever sign the user
+  // has selected. Used both to compute the active lord for highlighting and
+  // to expand TimeLord-target jobs into per-year sub-curves.
+  const timelordStartSignResolved = useMemo(() => {
+    if (!natalChart) return null;
+    return resolveStartSign(natalChart, timelordStartSign);
+  }, [natalChart, timelordStartSign]);
+
   const { curves: natalCurvesRaw, signChanges: natalSignChanges, loading: natalLoading } = useNatalTransits(
-    natalJobs, natalChart, startDate, endDate, orbSettings
+    natalJobs, natalChart, startDate, endDate, orbSettings, timelordStartSignResolved
   );
 
   // Active time lord (annual profections). Recomputed when settings change or
   // when crossing the native's birthday. Used to mark which natal curves
   // should render with the time-lord highlight color.
   const currentTimelord = useMemo(() => {
-    if (!timelordEnabled || !natalChart?.birthDate) return null;
-    const startSign = resolveStartSign(natalChart, timelordStartSign);
-    if (startSign == null) return null;
-    return getTimeLord(natalChart.birthDate, startSign);
-  }, [timelordEnabled, natalChart, timelordStartSign]);
+    if (!timelordEnabled || !natalChart?.birthDate || timelordStartSignResolved == null) return null;
+    return getTimeLord(natalChart.birthDate, timelordStartSignResolved);
+  }, [timelordEnabled, natalChart, timelordStartSignResolved]);
 
+  // Tag any natal curve that should render with the time-lord highlight:
+  //   • the dynamic-target sub-curves (target = TimeLord, expanded inside the
+  //     hook) — always, when the toggle is on
+  //   • regular jobs whose fixed target happens to be the active lord — only
+  //     during the year that lord is active
   const natalCurves = useMemo(() => {
-    if (!currentTimelord) return natalCurvesRaw;
-    return natalCurvesRaw.map(c =>
-      c.target === currentTimelord.planetId ? { ...c, isTimeLordTarget: true } : c
-    );
-  }, [natalCurvesRaw, currentTimelord]);
+    if (!timelordEnabled) return natalCurvesRaw;
+    return natalCurvesRaw.map(c => {
+      const lordPlanet = currentTimelord?.planetId;
+      const matches = c.isTimeLord || (lordPlanet != null && c.target === lordPlanet);
+      return matches ? { ...c, isTimeLordTarget: true } : c;
+    });
+  }, [natalCurvesRaw, currentTimelord, timelordEnabled]);
   const { curves: mundaneCurves, signChanges: mundaneSignChanges, loading: mundaneLoading } = useMundaneTransits(
     mundaneJobs, stackCharts, startDate, endDate, orbSettings
   );

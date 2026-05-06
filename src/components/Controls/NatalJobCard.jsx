@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PLANET_MAP, SPEED_ORDER, NON_RETROGRADE_PLANETS, NATAL_ANGLES, NATAL_ANGLE_IDS } from '../../data/planets';
+import { TIME_LORD_TARGET } from '../../hooks/useNatalTransits';
 import { ASPECTS } from '../../utils/aspects';
 import { formatDegree } from '../../data/natalChart';
 import SolarEclipseGlyph from './SolarEclipseGlyph';
@@ -82,6 +83,16 @@ export default function NatalJobCard({ job, natalChart, hasAspects, hasAnyActivi
               {job.isLunation ? 'Track near natal' : 'Natal Targets'}
             </span>
             <div className={styles.targetList}>
+              <label className={styles.targetItem}>
+                <input
+                  type="checkbox"
+                  checked={job.natalTargets.includes(TIME_LORD_TARGET)}
+                  onChange={() => handleToggleTarget(TIME_LORD_TARGET)}
+                  className={styles.targetCheckbox}
+                />
+                <span className={styles.targetSymbol} style={{ fontSize: '10px', fontWeight: 700 }}>TL</span>
+                <span className={styles.targetName}>Time Lord</span>
+              </label>
               {allOthers.map(id => {
                 const p = PLANET_MAP[id];
                 const lon = positions[id];

@@ -7,6 +7,12 @@ import { detectStations, getRetrogradeCycleIngresses } from '../data/retrograde'
 import { computeEclipses } from '../api/eclipses';
 import { isSweReady } from '../api/swisseph';
 import { LUNATION_ORB_KEY, LUNATION_ORB_DEFAULT } from '../data/orbDefaults';
+import { getTimeLordSegments } from '../utils/timelord';
+
+// Special natal-target value: resolves to whichever planet is the active
+// time lord (annual profections) on each day in the visible window. The
+// hook expands this into one sub-curve per lord segment.
+export const TIME_LORD_TARGET = 'TimeLord';
 
 // Module-level cache for computed longitudes (shared with useTransits)
 const longitudeCache = new Map();
@@ -42,7 +48,7 @@ const ASPECT_MAP = Object.fromEntries(ASPECTS.map(a => [a.name, a]));
  * @param {Date} endDate
  * @param {Object} orbSettings
  */
-export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbSettings) {
+export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbSettings, timelordStartSign) {
   const [curves, setCurves] = useState([]);
   const [signChanges, setSignChanges] = useState({ changes: [], initialSigns: {}, eclipses: [], stations: [], retrogradePeriods: [] });
   const [loading, setLoading] = useState(false);
@@ -57,8 +63,9 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
     const orbStr = orbSettings ? JSON.stringify(orbSettings) : '';
     const chartStr = JSON.stringify(natalChart.positions);
     const anglesStr = natalChart.angles ? JSON.stringify(natalChart.angles) : '';
-    return `natal_${jobStr}_${dateStr}_${orbStr}_${chartStr}_${anglesStr}`;
-  }, [natalJobs, natalChart, startDate, endDate, orbSettings]);
+    const tlStr = `${natalChart.birthDate || ''}|${timelordStartSign ?? ''}`;
+    return `natal_${jobStr}_${dateStr}_${orbStr}_${chartStr}_${anglesStr}_${tlStr}`;
+  }, [natalJobs, natalChart, startDate, endDate, orbSettings, timelordStartSign]);
 
   useEffect(() => {
     if (!startDate || !endDate || natalJobs.length === 0 || !natalChart?.positions) {
@@ -103,6 +110,14 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
 
       if (cancelledRef.current) return;
 
+      // Pre-compute the time-lord segments once for the visible window.
+      // Used when a job has 'TimeLord' as a natal target to expand the curve
+      // into one sub-curve per lord segment (each year's lord-of-the-year).
+      const timeLordSegments =
+        timelordStartSign != null && natalChart.birthDate
+          ? getTimeLordSegments(natalChart.birthDate, timelordStartSign, startDate, endDate)
+          : [];
+
       // Compute aspect curves: for each job → each natal target → each aspect
       const result = [];
       for (const job of natalJobs) {
@@ -117,15 +132,46 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
           .map(name => ASPECT_MAP[name])
           .filter(Boolean);
 
+        // Expand TimeLord into one sub-target per profection segment so each
+        // year of life gets its own concrete-target sub-curve (the actual
+        // lord planet for that year). Other targets pass through unchanged.
+        const expandedTargets = [];
         for (const natalTargetId of (job.natalTargets || [])) {
+          if (natalTargetId === TIME_LORD_TARGET) {
+            for (const seg of timeLordSegments) {
+              expandedTargets.push({ id: seg.planetId, segment: seg, isTimeLord: true });
+            }
+          } else {
+            expandedTargets.push({ id: natalTargetId, segment: null, isTimeLord: false });
+          }
+        }
+
+        for (const targetSpec of expandedTargets) {
+          const natalTargetId = targetSpec.id;
+          const segment = targetSpec.segment;
           const natalLon = positions[natalTargetId];
           if (natalLon == null) continue;
 
           const natalP = PLANET_MAP[natalTargetId];
           if (!natalP) continue;
 
+          // For time-lord segments, restrict the working series to the
+          // segment's date window so each year's lord-of-the-year produces
+          // a self-contained curve.
+          const fullSeries = longitudes[job.transitPlanet];
+          const segMs = segment
+            ? { from: segment.from.getTime(), to: segment.to.getTime() }
+            : null;
+          const transitSeries = segMs
+            ? fullSeries.filter(pt => {
+                const t = pt.date.getTime();
+                return t >= segMs.from && t < segMs.to;
+              })
+            : fullSeries;
+          if (transitSeries.length === 0) continue;
+
           // Create fixed longitude series for the natal position
-          const fixedSeries = longitudes[job.transitPlanet].map(pt => ({
+          const fixedSeries = transitSeries.map(pt => ({
             date: pt.date,
             longitude: natalLon,
           }));
@@ -144,7 +190,7 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
             const orb = orbSettings?.[job.transitPlanet] || 8;
 
             let points = computeAspectCurve(
-              longitudes[job.transitPlanet],
+              transitSeries,
               fixedSeries,
               aspect.angle,
               orb,
@@ -275,12 +321,19 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
             const rowKey = `planet-${job.transitPlanet}`;
             const rowPlanet = job.transitPlanet;
 
+            const segSuffix = segment ? `-tl${segment.age}` : '';
             result.push({
-              id: `${job.id}-natal-${natalTargetId}-${aspect.name}`,
+              id: `${job.id}-natal-${natalTargetId}-${aspect.name}${segSuffix}`,
               jobId: job.id,
               transitPlanet: job.transitPlanet,
               target: natalTargetId,
               isNatal: true,
+              isTimeLord: !!segment,
+              profectedSign: segment?.profectedSign,
+              profectedHouse: segment?.profectedHouse,
+              age: segment?.age,
+              yearStart: segment?.from,
+              yearEnd: segment?.to,
               rowKey,
               rowPlanet,
               rowTargetPlanet: null,
@@ -419,12 +472,15 @@ export function useNatalTransits(natalJobs, natalChart, startDate, endDate, orbS
         }
       }
 
-      // Deduplicate
+      // Deduplicate (time-lord segments stay distinct via the age suffix —
+      // years 1 and 13 may both have e.g. Venus as lord but live on the wheel
+      // as two separate sub-curves).
       const seenCurves = new Set();
       const deduped = [];
       for (const c of result) {
         const lunMark = c.isLunation ? '-lun' : '';
-        const curveKey = `${c.transitPlanet}-natal-${c.target}-${c.aspect.name}${lunMark}`;
+        const tlMark = c.isTimeLord ? `-tl${c.age}` : '';
+        const curveKey = `${c.transitPlanet}-natal-${c.target}-${c.aspect.name}${lunMark}${tlMark}`;
         if (seenCurves.has(curveKey)) continue;
         seenCurves.add(curveKey);
         deduped.push(c);
