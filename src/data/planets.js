@@ -11,8 +11,8 @@ export const PLANETS = [
     id: 'Moon',
     name: 'Moon',
     symbol: '☽',
-    color: '#C8C8D0',
-    glowColor: 'rgba(200, 200, 208, 0.4)',
+    color: '#AA5500',
+    glowColor: 'rgba(170, 85, 0, 0.4)',
     defaultEnabled: false,
   },
   {
