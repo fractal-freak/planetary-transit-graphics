@@ -9,6 +9,7 @@ import {
 } from '../../firebase/firestore';
 import { useSFchtImport } from '../../hooks/useSFchtImport';
 import { useAstroGoldFolderImport } from '../../hooks/useAstroGoldFolderImport';
+import { formatTimeAgo } from '../../utils/timeAgo';
 import { ZODIAC_SIGNS } from '../../data/zodiac';
 import { PLANET_MAP } from '../../data/planets';
 import NatalDataInput from './NatalDataInput';
@@ -74,10 +75,13 @@ export default function ChartSection({
 
   const {
     connect: connectChartLibrary,
+    syncNow: syncChartLibraryNow,
     status: agStatus,
     busy: agBusy,
     summary: agSummary,
     supported: agSupported,
+    connected: agConnected,
+    lastSyncedAt: agLastSyncedAt,
   } = useAstroGoldFolderImport();
 
   // Save flow
@@ -314,17 +318,25 @@ export default function ChartSection({
         {agSupported && (
           <button
             className={styles.wizardBtn}
-            onClick={connectChartLibrary}
+            onClick={agConnected ? syncChartLibraryNow : connectChartLibrary}
             disabled={agBusy}
             style={{ width: '100%', marginTop: '4px' }}
             title={
-              user
-                ? 'Pick a folder of .SFcht chart files (e.g. your Astro Gold iCloud folder) to bulk-import them.'
-                : 'Sign in first to sync charts to your library.'
+              !user
+                ? 'Sign in first to sync charts to your library.'
+                : agConnected
+                  ? 'Re-scan the connected folder for new or modified charts.'
+                  : 'Pick a folder of .SFcht chart files (e.g. your Astro Gold iCloud folder) to bulk-import them. The app will auto-sync on focus afterwards.'
             }
           >
-            {agBusy ? 'Syncing…' : 'Connect chart library'}
+            {agBusy ? 'Syncing…' : agConnected ? 'Sync now' : 'Connect chart library'}
           </button>
+        )}
+
+        {agSupported && agConnected && agLastSyncedAt && !agBusy && (
+          <div style={{ marginTop: '4px', fontSize: '10px', color: 'var(--fg-muted)', textAlign: 'center' }}>
+            Synced {formatTimeAgo(agLastSyncedAt)}
+          </div>
         )}
 
         {(agStatus || agSummary) && (
@@ -341,7 +353,9 @@ export default function ChartSection({
               <span>
                 Imported {agSummary.added} new, updated {agSummary.updated}
                 {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
-                {' '}from {agSummary.files} file{agSummary.files === 1 ? '' : 's'}.
+                {agSummary.filesSkipped > 0 && `, ${agSummary.filesSkipped} unchanged`}
+                {agSummary.files > 0 && ` from ${agSummary.files} file${agSummary.files === 1 ? '' : 's'}`}
+                .
               </span>
             )}
           </div>

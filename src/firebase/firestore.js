@@ -189,6 +189,21 @@ export async function setDefaultChartId(uid, chartId) {
   await setDoc(userRef(uid), { defaultChartId: chartId }, { merge: true });
 }
 
+// ── Astro Gold sync metadata ──
+
+/** Read the user's last successful chart-library sync time (ms epoch), or null. */
+export async function getAstroGoldLastSyncedAt(uid) {
+  const snap = await getDoc(userRef(uid));
+  if (!snap.exists()) return null;
+  const v = snap.data().astroGoldLastSyncedAt;
+  return typeof v === 'number' ? v : null;
+}
+
+/** Persist the timestamp (ms epoch) of the most recent successful sync. */
+export async function setAstroGoldLastSyncedAt(uid, msEpoch) {
+  await setDoc(userRef(uid), { astroGoldLastSyncedAt: msEpoch }, { merge: true });
+}
+
 // ── Folders ──
 
 function foldersCol(uid) {

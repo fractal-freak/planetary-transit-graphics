@@ -1,96 +1,112 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { parseSFchtFile, isSFchtFile, astroGoldKey } from '../utils/sfchtParser';
 import { castEventChart } from '../api/mundaneEvents';
-import { saveChart as firestoreSaveChart, createFolder, loadFolders } from '../firebase/firestore';
+import {
+  saveChart as firestoreSaveChart,
+  createFolder,
+  loadFolders,
+  getAstroGoldLastSyncedAt,
+  setAstroGoldLastSyncedAt,
+} from '../firebase/firestore';
+import {
+  saveDirectoryHandle,
+  loadDirectoryHandle,
+  clearDirectoryHandle,
+} from '../utils/handleStorage';
 
 /**
- * One-shot recursive import from a user-picked Astro Gold iCloud folder.
+ * Connect a folder of `.SFcht` chart files (e.g. an Astro Gold iCloud folder)
+ * and keep the user's Firestore library in sync with it.
  *
- * Uses the File System Access API (`showDirectoryPicker`) — Chrome/Edge desktop
- * only. Walks the picked directory, parses every `.SFcht` library it finds,
- * dedupes charts against existing Firestore records by stable identity, and
- * mirrors the on-disk hierarchy as flat folder names like "Countries / Brazil".
+ * Phase 2 behavior:
+ *   - First connect picks the folder and persists the handle in IndexedDB.
+ *   - On app mount and on tab focus the hook silently re-scans (only files
+ *     with mtime > lastSyncedAt get re-parsed) so the library stays current
+ *     without the user having to click anything.
+ *   - "Sync now" forces a re-scan; will re-prompt for permission if Chrome
+ *     dropped it between sessions.
+ *   - "Disconnect" forgets the handle; next sync requires picking the folder
+ *     again.
  *
- * Existing charts that match by `astroGoldKey` are overwritten in place;
- * everything else is inserted. The picked handle is **not** persisted yet —
- * each session re-prompts. Persistent re-sync is a future phase.
+ * Constraints (inherent to web file access):
+ *   - Chrome/Edge desktop only — Safari/iOS unsupported.
+ *   - The browser must be open in a tab for any sync to run; truly
+ *     background sync would need a native helper app.
  */
+const FOCUS_DEBOUNCE_MS = 30 * 1000;
+
 export function useAstroGoldFolderImport({ onChartsImported } = {}) {
   const { user, savedCharts, setSavedCharts, setSavedFolders } = useAuth();
-  const [status, setStatus] = useState(null);   // human-readable progress text
+  const [status, setStatus] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [summary, setSummary] = useState(null); // { added, updated, skipped, errors }
+  const [summary, setSummary] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
 
   const supported = typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
 
-  const connect = useCallback(async () => {
-    if (!supported) {
-      setStatus('Your browser doesn’t support folder access. Use Chrome or Edge on desktop.');
-      return;
-    }
-    if (!user) {
-      setStatus('Sign in to sync charts to your library.');
-      return;
-    }
+  // Refs let event handlers read latest state without forcing re-binds on
+  // every render (especially important since auto-sync is wired to focus).
+  const busyRef = useRef(false);
+  const lastSyncedAtRef = useRef(null);
+  const lastAutoSyncRef = useRef(0);
+  const savedChartsRef = useRef(savedCharts);
+  busyRef.current = busy;
+  lastSyncedAtRef.current = lastSyncedAt;
+  savedChartsRef.current = savedCharts;
 
-    let rootHandle;
-    try {
-      rootHandle = await window.showDirectoryPicker({ mode: 'read' });
-    } catch (err) {
-      // User cancelled — silent
-      if (err?.name === 'AbortError') return;
-      console.error('Directory picker failed:', err);
-      setStatus('Could not open folder: ' + (err?.message || err));
-      return;
-    }
-
+  // ── Core import: walk the handle, parse changed files, upsert charts ──
+  const importFromHandle = useCallback(async (rootHandle, since) => {
+    if (!user) return null;
     setBusy(true);
     setSummary(null);
     setStatus('Scanning folder…');
 
     try {
-      // Step 1: walk the tree, collect (file, relativePathParts) pairs.
       const files = [];
       await walkDir(rootHandle, [], files);
       const sfchtFiles = files.filter(f => isSFchtFile(f.file.name));
 
       if (sfchtFiles.length === 0) {
         setStatus('No .SFcht files found in that folder.');
-        setBusy(false);
-        return;
+        return null;
       }
 
-      // Step 2: build a fast lookup of existing charts by astroGoldKey.
+      // mtime diff: re-parse only files modified since the last successful sync.
+      const sinceMs = typeof since === 'number' ? since : 0;
+      const filesToParse = sfchtFiles.filter(f => f.file.lastModified > sinceMs);
+      const filesSkipped = sfchtFiles.length - filesToParse.length;
+
+      if (filesToParse.length === 0) {
+        const now = Date.now();
+        await setAstroGoldLastSyncedAt(user.uid, now);
+        setLastSyncedAt(now);
+        setSummary({ added: 0, updated: 0, skipped: 0, errors: 0, files: 0, filesSkipped });
+        setStatus(null);
+        return { added: 0, updated: 0 };
+      }
+
+      // Dedupe lookup uses latest savedCharts (via ref in case state lags).
       const existingByKey = new Map();
-      for (const c of savedCharts) {
+      for (const c of savedChartsRef.current) {
         if (c.astroGoldKey) existingByKey.set(c.astroGoldKey, c);
       }
 
-      // Step 3: cache folder name → id so we don't recreate the same folder.
       const allFolders = await loadFolders(user.uid);
       const folderIdByName = new Map(allFolders.map(f => [f.name, f.id]));
 
-      let added = 0;
-      let updated = 0;
-      let skipped = 0;
-      let errors = 0;
+      let added = 0, updated = 0, skipped = 0, errors = 0;
       const importedCharts = [];
-      // Stage state changes locally; commit once at the end so we don't
-      // re-render the chart list thousands of times during a big import.
       const newCharts = [];
       const updatedById = new Map();
 
-      // Step 4: for each .SFcht library, parse and upsert each chart.
-      for (let i = 0; i < sfchtFiles.length; i++) {
-        const { file, pathParts } = sfchtFiles[i];
-        setStatus(`Parsing ${file.name} (${i + 1}/${sfchtFiles.length})…`);
+      for (let i = 0; i < filesToParse.length; i++) {
+        const { file, pathParts } = filesToParse[i];
+        setStatus(`Parsing ${file.name} (${i + 1}/${filesToParse.length})…`);
 
-        // Folder name = on-disk path (parents + filename without extension),
-        // joined with " / " — the schema is flat so we encode hierarchy as text.
         const baseName = file.name.replace(/\.sfcht$/i, '');
         const folderName = [...pathParts, baseName].join(' / ');
-
         let folderId = folderIdByName.get(folderName);
         if (!folderId) {
           folderId = await createFolder(user.uid, folderName);
@@ -110,11 +126,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
         for (const record of parsed) {
           try {
             const key = astroGoldKey(record);
-            if (!key) {
-              skipped += 1;
-              continue;
-            }
-
+            if (!key) { skipped += 1; continue; }
             const existing = existingByKey.get(key);
 
             const chart = castEventChart({
@@ -133,7 +145,6 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
 
             const chartId = await firestoreSaveChart(user.uid, chart, existing?.id);
             const savedChart = { id: chartId, ...chart };
-
             if (existing) {
               updated += 1;
               updatedById.set(chartId, savedChart);
@@ -150,7 +161,6 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
         }
       }
 
-      // Single state commit at the end: prepend new charts, swap updated ones.
       if (newCharts.length || updatedById.size) {
         setSavedCharts(prev => {
           const updatedList = updatedById.size
@@ -160,39 +170,185 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
         });
       }
 
-      // Refresh folders list once at the end (we may have created several).
       const refreshed = await loadFolders(user.uid);
       setSavedFolders(refreshed);
 
-      setSummary({ added, updated, skipped, errors, files: sfchtFiles.length });
+      const now = Date.now();
+      await setAstroGoldLastSyncedAt(user.uid, now);
+      setLastSyncedAt(now);
+      setSummary({ added, updated, skipped, errors, files: filesToParse.length, filesSkipped });
       setStatus(null);
+
       if (onChartsImported && importedCharts.length > 0) {
         onChartsImported(importedCharts);
       }
+      return { added, updated };
     } catch (err) {
-      console.error('Astro Gold import failed:', err);
-      setStatus('Import failed: ' + (err?.message || err));
+      console.error('Sync failed:', err);
+      setStatus('Sync failed: ' + (err?.message || err));
+      return null;
     } finally {
       setBusy(false);
     }
-  }, [supported, user, savedCharts, setSavedCharts, setSavedFolders, onChartsImported]);
+  }, [user, setSavedCharts, setSavedFolders, onChartsImported]);
 
-  return { connect, status, busy, summary, supported };
+  // ── On mount (per user): load persisted state, auto-sync if permission stuck ──
+  useEffect(() => {
+    if (!user) {
+      setConnected(false);
+      setLastSyncedAt(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const [handle, ts] = await Promise.all([
+          loadDirectoryHandle(),
+          getAstroGoldLastSyncedAt(user.uid),
+        ]);
+        if (cancelled) return;
+        setConnected(!!handle);
+        setLastSyncedAt(ts);
+        if (handle && supported) {
+          // queryPermission is gesture-free; requestPermission isn't, so we
+          // only auto-sync if Chrome already remembers the grant.
+          const perm = await handle.queryPermission?.({ mode: 'read' });
+          if (perm === 'granted' && !busyRef.current) {
+            lastAutoSyncRef.current = Date.now();
+            await importFromHandle(handle, ts ?? 0);
+          }
+        }
+      } catch (err) {
+        console.warn('Auto-sync init failed:', err?.message || err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, supported, importFromHandle]);
+
+  // ── Auto-sync on tab focus / visibility-change (debounced) ──
+  useEffect(() => {
+    if (!user || !supported) return;
+    const trigger = async () => {
+      if (busyRef.current) return;
+      if (Date.now() - lastAutoSyncRef.current < FOCUS_DEBOUNCE_MS) return;
+      try {
+        const handle = await loadDirectoryHandle();
+        if (!handle) return;
+        const perm = await handle.queryPermission?.({ mode: 'read' });
+        if (perm !== 'granted') return;
+        lastAutoSyncRef.current = Date.now();
+        await importFromHandle(handle, lastSyncedAtRef.current ?? 0);
+      } catch (err) {
+        console.warn('Auto-sync on focus failed:', err?.message || err);
+      }
+    };
+    const onVis = () => { if (!document.hidden) trigger(); };
+    window.addEventListener('focus', trigger);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('focus', trigger);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [user, supported, importFromHandle]);
+
+  // ── Public actions ──
+
+  const connect = useCallback(async () => {
+    if (!supported) {
+      setStatus('Your browser doesn’t support folder access. Use Chrome or Edge on desktop.');
+      return;
+    }
+    if (!user) {
+      setStatus('Sign in to sync charts to your library.');
+      return;
+    }
+    let rootHandle;
+    try {
+      rootHandle = await window.showDirectoryPicker({ mode: 'read' });
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      console.error('Directory picker failed:', err);
+      setStatus('Could not open folder: ' + (err?.message || err));
+      return;
+    }
+    try {
+      await saveDirectoryHandle(rootHandle);
+    } catch (err) {
+      console.warn('Could not persist directory handle:', err?.message || err);
+      // Non-fatal — sync still works for this session.
+    }
+    setConnected(true);
+    // First connect imports everything (no mtime filter).
+    await importFromHandle(rootHandle, 0);
+  }, [supported, user, importFromHandle]);
+
+  const syncNow = useCallback(async () => {
+    if (!supported) {
+      setStatus('Your browser doesn’t support folder access. Use Chrome or Edge on desktop.');
+      return;
+    }
+    if (!user) {
+      setStatus('Sign in to sync charts to your library.');
+      return;
+    }
+    const handle = await loadDirectoryHandle();
+    if (!handle) {
+      await connect();
+      return;
+    }
+    let perm = await handle.queryPermission?.({ mode: 'read' });
+    if (perm !== 'granted') {
+      try {
+        perm = await handle.requestPermission({ mode: 'read' });
+      } catch (err) {
+        setStatus('Permission request failed: ' + (err?.message || err));
+        return;
+      }
+    }
+    if (perm !== 'granted') {
+      setStatus('Permission denied — pick the folder again to reconnect.');
+      return;
+    }
+    await importFromHandle(handle, lastSyncedAtRef.current ?? 0);
+  }, [supported, user, connect, importFromHandle]);
+
+  const disconnect = useCallback(async () => {
+    try {
+      await clearDirectoryHandle();
+    } catch {
+      // Best-effort
+    }
+    setConnected(false);
+    setStatus(null);
+    setSummary(null);
+  }, []);
+
+  return {
+    connect,
+    syncNow,
+    disconnect,
+    status,
+    busy,
+    summary,
+    supported,
+    connected,
+    lastSyncedAt,
+  };
 }
 
 /**
- * Recursively walk a FileSystemDirectoryHandle and collect every file along
- * with its directory path (parts of relative path *not* including the file).
+ * Recursively walk a FileSystemDirectoryHandle and collect every file with
+ * the directory path that led to it.
  */
 async function walkDir(dirHandle, pathParts, out) {
   for await (const [name, handle] of dirHandle.entries()) {
-    if (name.startsWith('.')) continue; // skip .DS_Store etc
+    if (name.startsWith('.')) continue;
     if (handle.kind === 'file') {
       try {
         const file = await handle.getFile();
         out.push({ file, pathParts: [...pathParts] });
       } catch (err) {
-        console.warn(`Could not read ${name}:`, err.message);
+        console.warn(`Could not read ${name}:`, err?.message || err);
       }
     } else if (handle.kind === 'directory') {
       await walkDir(handle, [...pathParts, name], out);

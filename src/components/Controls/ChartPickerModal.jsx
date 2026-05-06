@@ -14,6 +14,7 @@ import {
 } from '../../firebase/firestore';
 import { loadAnonNotes } from '../../utils/anonNotes';
 import { useAstroGoldFolderImport } from '../../hooks/useAstroGoldFolderImport';
+import { formatTimeAgo } from '../../utils/timeAgo';
 import { noteHaystack } from './NotesSection';
 import { PLANET_MAP } from '../../data/planets';
 import { ASPECT_MAP } from '../../utils/aspects';
@@ -43,10 +44,14 @@ export default function ChartPickerModal({
 
   const {
     connect: connectAstroGold,
+    syncNow: syncAstroGoldNow,
+    disconnect: disconnectAstroGold,
     status: agStatus,
     busy: agBusy,
     summary: agSummary,
     supported: agSupported,
+    connected: agConnected,
+    lastSyncedAt: agLastSyncedAt,
   } = useAstroGoldFolderImport();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -340,19 +345,46 @@ export default function ChartPickerModal({
         <div className={styles.header}>
           <span className={styles.title}>Saved Charts</span>
           {agSupported && (
-            <button
-              className={styles.inlineBtn}
-              onClick={connectAstroGold}
-              disabled={agBusy}
-              style={{ marginLeft: 'auto', marginRight: '8px' }}
-              title={
-                user
-                  ? 'Pick a folder of .SFcht chart files (e.g. your Astro Gold iCloud folder) to bulk-import them.'
-                  : 'Sign in first to sync charts to your library.'
-              }
-            >
-              {agBusy ? 'Syncing…' : 'Connect chart library'}
-            </button>
+            <div style={{ marginLeft: 'auto', marginRight: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {agConnected && agLastSyncedAt && !agBusy && (
+                <span style={{ fontSize: '11px', color: 'var(--fg-muted)' }}>
+                  Synced {formatTimeAgo(agLastSyncedAt)}
+                </span>
+              )}
+              {agConnected ? (
+                <>
+                  <button
+                    className={styles.inlineBtn}
+                    onClick={syncAstroGoldNow}
+                    disabled={agBusy}
+                    title="Re-scan the connected folder for new or modified charts."
+                  >
+                    {agBusy ? 'Syncing…' : 'Sync now'}
+                  </button>
+                  <button
+                    className={styles.inlineBtn}
+                    onClick={disconnectAstroGold}
+                    disabled={agBusy}
+                    title="Forget the connected folder. Reconnect to sync again."
+                  >
+                    Disconnect
+                  </button>
+                </>
+              ) : (
+                <button
+                  className={styles.inlineBtn}
+                  onClick={connectAstroGold}
+                  disabled={agBusy}
+                  title={
+                    user
+                      ? 'Pick a folder of .SFcht chart files (e.g. your Astro Gold iCloud folder) to bulk-import them. The app will auto-sync on focus afterwards.'
+                      : 'Sign in first to sync charts to your library.'
+                  }
+                >
+                  {agBusy ? 'Syncing…' : 'Connect chart library'}
+                </button>
+              )}
+            </div>
           )}
           <button className={styles.closeBtn} onClick={onClose}>&times;</button>
         </div>
@@ -372,7 +404,9 @@ export default function ChartPickerModal({
               <span>
                 Imported {agSummary.added} new, updated {agSummary.updated}
                 {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
-                {' '}from {agSummary.files} file{agSummary.files === 1 ? '' : 's'}.
+                {agSummary.filesSkipped > 0 && `, ${agSummary.filesSkipped} unchanged`}
+                {agSummary.files > 0 && ` from ${agSummary.files} file${agSummary.files === 1 ? '' : 's'}`}
+                .
               </span>
             )}
           </div>
