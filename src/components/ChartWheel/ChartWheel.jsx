@@ -90,18 +90,6 @@ function drawWheel(ctx, chart, size) {
     ctx.fillText(ZODIAC_SIGNS[i].symbol, cx + rGlyphSign * Math.cos(phiMid), cy + rGlyphSign * Math.sin(phiMid));
   }
 
-  // ── Degree ticks every 5°/10°/30° on the inside of the zodiac ring ──
-  ctx.strokeStyle = '#555';
-  ctx.lineWidth = 0.7;
-  for (let d = 0; d < 360; d += 5) {
-    const phi = angleFor(d);
-    const len = d % 30 === 0 ? 6 : (d % 10 === 0 ? 4 : 2);
-    ctx.beginPath();
-    ctx.moveTo(cx + rZodiacInner * Math.cos(phi), cy + rZodiacInner * Math.sin(phi));
-    ctx.lineTo(cx + (rZodiacInner - len) * Math.cos(phi), cy + (rZodiacInner - len) * Math.sin(phi));
-    ctx.stroke();
-  }
-
   // ── Whole-sign house cusps: extend through the planet area to the zodiac ring ──
   // so it's clear which house each planet sits in (the houses ring still holds
   // the numbers; the line just runs across both bands as one continuous cusp).
@@ -186,7 +174,7 @@ function drawWheel(ctx, chart, size) {
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(cx + rZodiacInner * Math.cos(phiOrig), cy + rZodiacInner * Math.sin(phiOrig));
-    ctx.lineTo(cx + (rZodiacInner - 7) * Math.cos(phiOrig), cy + (rZodiacInner - 7) * Math.sin(phiOrig));
+    ctx.lineTo(cx + (rZodiacInner - 4) * Math.cos(phiOrig), cy + (rZodiacInner - 4) * Math.sin(phiOrig));
     ctx.stroke();
     // Connector for collision-displaced glyphs
     if (Math.abs((lng - (chart.positions?.[glyph] ?? lng))) > 0.5 && !isAngle) {
@@ -216,31 +204,61 @@ function drawWheel(ctx, chart, size) {
     ctx.fillText(`${String(min).padStart(2, '0')}'`, cx + rMinute * Math.cos(phi), cy + rMinute * Math.sin(phi));
   };
 
-  // ── ASC / MC: draw before planets (so planet glyphs can overlay if needed). ──
+  // ── All four angles: AC / DC / MC / IC (DC and IC fall back to Asc+180 / MC+180). ──
   if (chart.angles) {
-    if (chart.angles.Asc != null) {
-      const phi = angleFor(chart.angles.Asc);
-      drawBody({ phiOrig: phi, phi, glyph: 'AC', color: '#000', lng: chart.angles.Asc, isAngle: true });
-    }
-    if (chart.angles.MC != null) {
-      const phi = angleFor(chart.angles.MC);
-      drawBody({ phiOrig: phi, phi, glyph: 'MC', color: '#000', lng: chart.angles.MC, isAngle: true });
-    }
+    const ascLngA = chart.angles.Asc;
+    const mcLngA = chart.angles.MC;
+    const dscLngA = chart.angles.Dsc ?? (ascLngA != null ? (ascLngA + 180) % 360 : null);
+    const icLngA = chart.angles.IC ?? (mcLngA != null ? (mcLngA + 180) % 360 : null);
+
+    const drawAngle = (lng, label) => {
+      if (lng == null) return;
+      const phi = angleFor(lng);
+      drawBody({ phiOrig: phi, phi, glyph: label, color: '#000', lng, isAngle: true });
+    };
+    drawAngle(ascLngA, 'AC');
+    drawAngle(dscLngA, 'DC');
+    drawAngle(mcLngA, 'MC');
+    drawAngle(icLngA, 'IC');
   }
 
-  // ── Planet glyphs (with collision-spread on the angular axis) ──
-  placements.sort((a, b) => a.lng - b.lng);
+  // ── Planet glyphs: collision-spread, but constrained per-sign so glyphs ──
+  // never sit on a sign/house cusp line.
+  const margin = 1.5; // degrees of buffer from each cusp
   const minSep = 8;
-  for (let pass = 0; pass < 4; pass++) {
-    for (let i = 0; i < placements.length; i++) {
-      const cur = placements[i];
-      const next = placements[(i + 1) % placements.length];
-      let gap = next.lng - cur.lng;
-      if (i === placements.length - 1) gap += 360;
-      if (gap < minSep) {
-        const push = (minSep - gap) / 2;
-        cur.lng -= push;
-        next.lng += push;
+
+  // Group by sign (= house in whole-sign), spread inside each sign only.
+  const groups = new Map();
+  for (const p of placements) {
+    const sign = Math.floor(((p.originalLng % 360) + 360) % 360 / 30);
+    if (!groups.has(sign)) groups.set(sign, []);
+    groups.get(sign).push(p);
+  }
+  for (const [sign, group] of groups) {
+    const signStart = sign * 30 + margin;
+    const signEnd = sign * 30 + 30 - margin;
+    group.sort((a, b) => a.originalLng - b.originalLng);
+    // Scale separation down if the sign can't fit minSep × n.
+    const sep = Math.min(minSep, (signEnd - signStart) / Math.max(group.length, 1));
+    for (let pass = 0; pass < 5; pass++) {
+      for (let i = 0; i < group.length - 1; i++) {
+        const cur = group[i];
+        const next = group[i + 1];
+        const gap = next.lng - cur.lng;
+        if (gap < sep) {
+          const push = (sep - gap) / 2;
+          cur.lng -= push;
+          next.lng += push;
+        }
+      }
+      // Clamp into the sign's safe range, working from edges inward.
+      for (let i = 0; i < group.length; i++) {
+        const minAllowed = signStart + i * sep;
+        if (group[i].lng < minAllowed) group[i].lng = minAllowed;
+      }
+      for (let i = group.length - 1; i >= 0; i--) {
+        const maxAllowed = signEnd - (group.length - 1 - i) * sep;
+        if (group[i].lng > maxAllowed) group[i].lng = maxAllowed;
       }
     }
   }
@@ -254,7 +272,7 @@ function drawWheel(ctx, chart, size) {
       ctx.strokeStyle = 'rgba(0,0,0,0.25)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
-      ctx.moveTo(cx + (rZodiacInner - 7) * Math.cos(phiOrig), cy + (rZodiacInner - 7) * Math.sin(phiOrig));
+      ctx.moveTo(cx + (rZodiacInner - 4) * Math.cos(phiOrig), cy + (rZodiacInner - 4) * Math.sin(phiOrig));
       ctx.lineTo(cx + rGlyph * Math.cos(phi), cy + rGlyph * Math.sin(phi));
       ctx.stroke();
     }
