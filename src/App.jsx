@@ -23,6 +23,8 @@ import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
 import { resolveRelativeDates, dateRangeToRelativeRange } from './data/defaultPresets';
 import { getTimeLord, resolveStartSign, getTimeLordSegments } from './utils/timelord';
+import { loadAnonNotes, saveAnonNote, deleteAnonNote } from './utils/anonNotes';
+import { loadChartNotes, saveChartNote, deleteChartNote } from './firebase/firestore';
 
 /**
  * Recompute positions and angles from birth data on load. This fixes stale
@@ -620,6 +622,95 @@ export default function App() {
     setNatalJobs([]);
   }
 
+  // ── Transit notes for the active natal chart ──
+  // Notes attach to a chart and a specific transit (transitPlanet, target,
+  // aspect, peakDate). For Firestore-saved charts we persist under the
+  // chart's subcollection; otherwise we mirror to localStorage.
+  const [chartNotes, setChartNotes] = useState([]);
+  const activeChartId = natalChart?.id || null;
+  const activeChartIsSaved = !!(user && activeChartId && savedCharts?.find(c => c.id === activeChartId));
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeChartId) {
+      setChartNotes([]);
+      return;
+    }
+    if (activeChartIsSaved) {
+      loadChartNotes(user.uid, activeChartId).then(notes => {
+        if (!cancelled) setChartNotes(notes);
+      });
+    } else {
+      setChartNotes(loadAnonNotes(activeChartId));
+    }
+    return () => { cancelled = true; };
+  }, [activeChartId, activeChartIsSaved, user]);
+
+  async function handleSaveNote(noteData, noteId) {
+    if (!activeChartId) return;
+    if (activeChartIsSaved) {
+      await saveChartNote(user.uid, activeChartId, noteData, noteId);
+      const fresh = await loadChartNotes(user.uid, activeChartId);
+      setChartNotes(fresh);
+    } else {
+      saveAnonNote(activeChartId, noteData, noteId);
+      setChartNotes(loadAnonNotes(activeChartId));
+    }
+  }
+
+  async function handleDeleteNote(noteId) {
+    if (!activeChartId) return;
+    if (activeChartIsSaved) {
+      await deleteChartNote(user.uid, activeChartId, noteId);
+      const fresh = await loadChartNotes(user.uid, activeChartId);
+      setChartNotes(fresh);
+    } else {
+      deleteAnonNote(activeChartId, noteId);
+      setChartNotes(loadAnonNotes(activeChartId));
+    }
+  }
+
+  // Add the transit a note describes onto the existing natal jobs without
+  // replacing what's already on the timeline. No-op if a job for the exact
+  // (transit, target, aspect) trio already exists, so the timeline doesn't
+  // accumulate duplicates.
+  function handleAddNoteTransit(note) {
+    setMode('natal');
+    setNatalJobs(prev => {
+      const existing = prev.find(j =>
+        j.transitPlanet === note.transitPlanet &&
+        (j.natalTargets || []).includes(note.target) &&
+        (j.aspects || []).includes(note.aspect)
+      );
+      if (existing) return prev;
+      return [
+        ...prev,
+        {
+          id: `natal-job-${Date.now()}`,
+          transitPlanet: note.transitPlanet,
+          natalTargets: [note.target],
+          aspects: [note.aspect],
+          showSignChanges: false,
+          showRetrogrades: true,
+        },
+      ];
+    });
+  }
+
+  // Replace the whole natal-job list with just the one transit the note
+  // describes — the user wants to focus on that single moment.
+  function handleLoadNoteTransit(note) {
+    setMode('natal');
+    setNatalJobs([{
+      id: `natal-job-${Date.now()}`,
+      transitPlanet: note.transitPlanet,
+      natalTargets: [note.target],
+      aspects: [note.aspect],
+      showSignChanges: false,
+      showRetrogrades: true,
+    }]);
+  }
+
   // ── Mundane job handlers ──
   function handleAddMundaneJob(job) {
     setMundaneJobs(prev => [...prev, job]);
@@ -833,6 +924,11 @@ export default function App() {
           natalCurves={natalCurves}
           natalSignChanges={natalSignChanges}
           natalLoading={natalLoading}
+          chartNotes={chartNotes}
+          onSaveNote={handleSaveNote}
+          onDeleteNote={handleDeleteNote}
+          onAddNoteTransit={handleAddNoteTransit}
+          onLoadNoteTransit={handleLoadNoteTransit}
           onAddNatalJob={handleAddNatalJob}
           onRemoveNatalJob={handleRemoveNatalJob}
           onUpdateNatalJob={handleUpdateNatalJob}

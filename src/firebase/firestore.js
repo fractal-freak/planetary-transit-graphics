@@ -120,6 +120,53 @@ export async function renameChart(uid, chartId, newName) {
   });
 }
 
+// ── Transit notes (subcollection on a chart) ──
+//
+// Each note documents a specific transit a user wants to remember about a
+// chart: { transitPlanet, target, aspect, peakDate, body }. They live as
+// a subcollection at users/{uid}/charts/{chartId}/notes/{noteId} so they
+// auto-cascade-delete with the chart and stay scoped per-user.
+
+function notesCol(uid, chartId) {
+  return collection(db, 'users', uid, 'charts', chartId, 'notes');
+}
+
+function noteRef(uid, chartId, noteId) {
+  return doc(db, 'users', uid, 'charts', chartId, 'notes', noteId);
+}
+
+/** Load all notes for a chart, newest first. */
+export async function loadChartNotes(uid, chartId) {
+  if (!uid || !chartId) return [];
+  try {
+    const q = query(notesCol(uid, chartId), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('Failed to load chart notes:', err);
+    return [];
+  }
+}
+
+/** Create or update a note. Returns the note id. */
+export async function saveChartNote(uid, chartId, noteData, noteId) {
+  const ref = noteId ? noteRef(uid, chartId, noteId) : doc(notesCol(uid, chartId));
+  await setDoc(ref, {
+    transitPlanet: noteData.transitPlanet,
+    target: noteData.target,
+    aspect: noteData.aspect,
+    peakDate: noteData.peakDate || null,
+    body: noteData.body || '',
+    createdAt: noteData.createdAt || serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function deleteChartNote(uid, chartId, noteId) {
+  await deleteDoc(noteRef(uid, chartId, noteId));
+}
+
 /** Update just a chart's angles + house cusps (e.g. after recomputing). */
 export async function updateChartAngles(uid, chartId, { angles, houseCusps, houseSystem }) {
   const patch = { updatedAt: serverTimestamp() };

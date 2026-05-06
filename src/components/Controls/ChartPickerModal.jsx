@@ -142,6 +142,7 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
 
   function handleSelectChart(chart) {
     onSelectChart({
+      id: chart.id,
       name: chart.name,
       chartType: chart.chartType || 'natal',
       birthDate: chart.birthDate,

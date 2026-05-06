@@ -4,6 +4,7 @@ import DateRangePicker from './DateRangePicker';
 import TransitJobList from './TransitJobList';
 import ChartSection from './ChartSection';
 import NatalJobList from './NatalJobList';
+import NotesSection from './NotesSection';
 import ChartStackPanel from './ChartStackPanel';
 import OrbSettings from './OrbSettings';
 import ColorSettings from './ColorSettings';
@@ -68,6 +69,11 @@ export default function Controls({
   onAddNatalJob,
   onRemoveNatalJob,
   onUpdateNatalJob,
+  chartNotes,
+  onSaveNote,
+  onDeleteNote,
+  onAddNoteTransit,
+  onLoadNoteTransit,
   onLoadPreset,
   onReorderPresets,
   // Mundane mode props
@@ -281,6 +287,17 @@ export default function Controls({
                     onClearAll={onClearAllNatalJobs}
                   />
                 )}
+              </CollapsibleSection>
+
+              <CollapsibleSection id="natalNotes" title="Notes" icon={<IconStar />}>
+                <NotesSection
+                  notes={chartNotes}
+                  hasChart={!!natalChart}
+                  onSaveNote={onSaveNote}
+                  onDeleteNote={onDeleteNote}
+                  onAddTransit={onAddNoteTransit}
+                  onLoadTransit={onLoadNoteTransit}
+                />
               </CollapsibleSection>
             </>
           )}

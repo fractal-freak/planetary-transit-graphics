@@ -48,6 +48,7 @@ export default function ChartSection({
         // Load the first imported chart as the natal chart
         const first = charts[0];
         onNatalChartChange({
+          id: first.id,
           name: first.name,
           chartType: first.chartType || 'natal',
           birthDate: first.birthDate,

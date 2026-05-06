@@ -1749,6 +1749,170 @@
   color: var(--fg);
 }
 
+/* ── Notes section ── */
+
+.notesEmpty {
+  padding: 14px 12px;
+  color: var(--fg-subtle);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notesItem {
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.notesItemOpen {
+  background: var(--bg);
+  border-color: var(--border);
+}
+
+.notesItemHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.notesItemHeader:hover {
+  background: var(--bg-subtle-2);
+}
+
+.notesGlyphs {
+  display: flex;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.notesAspect {
+  color: var(--fg-strong);
+}
+
+.notesDate {
+  font-size: 10px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.notesPreview {
+  font-size: 11px;
+  color: var(--fg);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notesBody {
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notesText {
+  font-size: 12px;
+  color: var(--fg);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.notesEmptyBody {
+  font-size: 11px;
+  color: var(--fg-subtle);
+  font-style: italic;
+}
+
+.notesTextarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--fg-strong);
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+
+.notesTextarea:focus {
+  border-color: var(--fg-subtle);
+}
+
+.notesActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.notesActionSpacer {
+  flex: 1;
+}
+
+.notesBtn {
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
+  color: var(--fg);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.notesBtn:hover {
+  background: var(--border-soft);
+  color: var(--fg-strong);
+}
+
+.notesBtnPrimary {
+  background: rgba(80, 144, 224, 0.85);
+  color: #fff;
+  border-color: rgba(80, 144, 224, 0.85);
+}
+
+.notesBtnPrimary:hover {
+  background: rgba(80, 144, 224, 1);
+  color: #fff;
+}
+
+.notesBtnDanger {
+  background: rgba(200, 60, 60, 0.85);
+  color: #fff;
+  border-color: rgba(200, 60, 60, 0.85);
+}
+
+.notesBtnDanger:hover {
+  background: rgba(200, 60, 60, 1);
+  color: #fff;
+}
+
 .natalSummaryHeader {
   display: flex;
   align-items: center;

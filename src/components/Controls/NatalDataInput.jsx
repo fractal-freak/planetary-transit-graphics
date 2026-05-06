@@ -33,7 +33,11 @@ export default function NatalDataInput({ onNatalChartChange, onCancel }) {
     const angles = (lat != null && lng != null)
       ? computeNatalAngles(dateTime, lat, lng)
       : null;
+    // Stable client-side id so notes (and other per-chart data) can be
+    // attached even before the chart is saved to Firestore.
+    const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     onNatalChartChange({
+      id: localId,
       name: name.trim(),
       chartType,
       birthDate,
