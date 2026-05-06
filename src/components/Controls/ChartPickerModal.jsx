@@ -13,6 +13,7 @@ import {
   loadChartNotes,
 } from '../../firebase/firestore';
 import { loadAnonNotes } from '../../utils/anonNotes';
+import { useAstroGoldFolderImport } from '../../hooks/useAstroGoldFolderImport';
 import { noteHaystack } from './NotesSection';
 import { PLANET_MAP } from '../../data/planets';
 import { ASPECT_MAP } from '../../utils/aspects';
@@ -39,6 +40,14 @@ export default function ChartPickerModal({
     savedFolders, setSavedFolders,
     defaultChartId, setDefaultChartId: setDefId,
   } = useAuth();
+
+  const {
+    connect: connectAstroGold,
+    status: agStatus,
+    busy: agBusy,
+    summary: agSummary,
+    supported: agSupported,
+  } = useAstroGoldFolderImport();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFolder, setActiveFolder] = useState(ALL_FOLDERS);
@@ -330,8 +339,44 @@ export default function ChartPickerModal({
         {/* Header */}
         <div className={styles.header}>
           <span className={styles.title}>Saved Charts</span>
+          {agSupported && (
+            <button
+              className={styles.inlineBtn}
+              onClick={connectAstroGold}
+              disabled={agBusy}
+              style={{ marginLeft: 'auto', marginRight: '8px' }}
+              title={
+                user
+                  ? 'Pick your Astro Gold iCloud folder to bulk-import every .SFcht library it contains.'
+                  : 'Sign in first to sync charts to your library.'
+              }
+            >
+              {agBusy ? 'Syncing…' : 'Connect Astro Gold'}
+            </button>
+          )}
           <button className={styles.closeBtn} onClick={onClose}>&times;</button>
         </div>
+
+        {(agStatus || agSummary) && (
+          <div
+            style={{
+              padding: '4px 16px 8px',
+              fontSize: '11px',
+              color: 'var(--fg-muted)',
+              lineHeight: 1.4,
+              borderBottom: '1px solid var(--border-soft)',
+            }}
+          >
+            {agStatus}
+            {agSummary && (
+              <span>
+                Imported {agSummary.added} new, updated {agSummary.updated}
+                {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
+                {' '}from {agSummary.files} file{agSummary.files === 1 ? '' : 's'}.
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Folder bar (folder dropdown + count + label) */}
         <div className={styles.folderBar}>
