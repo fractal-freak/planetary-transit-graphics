@@ -311,13 +311,17 @@ export default function ChartSection({
           + Import .SFcht
         </button>
 
-        {user && agSupported && (
+        {agSupported && (
           <button
             className={styles.wizardBtn}
             onClick={connectAstroGold}
             disabled={agBusy}
             style={{ width: '100%', marginTop: '4px' }}
-            title="Pick your Astro Gold iCloud folder to bulk-import every .SFcht library it contains. Re-running merges new charts."
+            title={
+              user
+                ? 'Pick your Astro Gold iCloud folder to bulk-import every .SFcht library it contains. Re-running merges new charts.'
+                : 'Sign in first to sync charts to your library.'
+            }
           >
             {agBusy ? 'Syncing…' : 'Connect Astro Gold folder'}
           </button>
@@ -394,7 +398,45 @@ export default function ChartSection({
             <button className={styles.chartActionBtn} onClick={handleStartSave}>Save</button>
           </>
         )}
+        {agSupported && (
+          <>
+            <span className={styles.chartActionDot}>{'\u00B7'}</span>
+            <button
+              className={styles.chartActionBtn}
+              onClick={connectAstroGold}
+              disabled={agBusy}
+              title={
+                user
+                  ? 'Pick your Astro Gold iCloud folder to bulk-import every .SFcht library it contains.'
+                  : 'Sign in first to sync charts to your library.'
+              }
+            >
+              {agBusy ? 'Syncing\u2026' : 'Connect Astro Gold'}
+            </button>
+          </>
+        )}
       </div>
+
+      {(agStatus || agSummary) && (
+        <div
+          style={{
+            marginTop: '6px',
+            fontSize: '11px',
+            color: 'var(--fg-muted)',
+            lineHeight: 1.4,
+            padding: '0 8px',
+          }}
+        >
+          {agStatus}
+          {agSummary && (
+            <span>
+              Imported {agSummary.added} new, updated {agSummary.updated}
+              {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
+              {' '}from {agSummary.files} file{agSummary.files === 1 ? '' : 's'}.
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Time lord (annual profections) */}
       {onTimelordEnabledChange && (
