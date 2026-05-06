@@ -743,6 +743,14 @@ export default function App() {
     }]);
   }
 
+  // Picker → Notes tab: load a chart that isn't currently active and
+  // immediately apply one of its notes ('add' appends, 'load' replaces).
+  function handleSelectChartWithNote(chart, note, mode) {
+    setNatalChart(refreshAngles(chart));
+    if (mode === 'load') handleLoadNoteTransit(note);
+    else handleAddNoteTransit(note);
+  }
+
   // ── Mundane job handlers ──
   function handleAddMundaneJob(job) {
     setMundaneJobs(prev => [...prev, job]);
@@ -961,6 +969,7 @@ export default function App() {
           onDeleteNote={handleDeleteNote}
           onAddNoteTransit={handleAddNoteTransit}
           onLoadNoteTransit={handleLoadNoteTransit}
+          onSelectChartWithNote={handleSelectChartWithNote}
           onAddNatalJob={handleAddNatalJob}
           onRemoveNatalJob={handleRemoveNatalJob}
           onUpdateNatalJob={handleUpdateNatalJob}

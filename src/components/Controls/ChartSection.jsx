@@ -33,6 +33,7 @@ export default function ChartSection({
   timelordStartSign,
   onTimelordStartSignChange,
   currentTimelordSegments,
+  onSelectChartWithNote,
 }) {
   const { user, savedCharts, setSavedCharts, defaultChartId, setDefaultChartId: setDefId } = useAuth();
 
@@ -293,6 +294,7 @@ export default function ChartSection({
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
           onSelectChart={handleSelectFromPicker}
+          onSelectChartWithNote={onSelectChartWithNote}
           currentChartId={currentMatchId}
         />
       </div>
@@ -342,6 +344,7 @@ export default function ChartSection({
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onSelectChart={handleSelectFromPicker}
+        onSelectChartWithNote={onSelectChartWithNote}
         currentChartId={currentMatchId}
       />
     </div>

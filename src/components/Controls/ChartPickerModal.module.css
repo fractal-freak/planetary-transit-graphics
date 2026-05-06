@@ -596,6 +596,65 @@
 /* Recompute button kept for backward CSS compat — unused */
 .recomputeBtn { display: none; }
 
+/* ── Notes tab in the preview pane ── */
+.notesPickerEmpty {
+  padding: 30px 20px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--fg-subtle);
+  letter-spacing: 0.02em;
+}
+
+.notesPickerList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.notesPickerItem {
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.notesPickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.notesPickerGlyphs {
+  display: flex;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notesPickerDate {
+  font-size: 10px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.notesPickerBody {
+  font-size: 11px;
+  color: var(--fg);
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.notesPickerActions {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
 .newFolderRow {
   display: flex;
   gap: 6px;

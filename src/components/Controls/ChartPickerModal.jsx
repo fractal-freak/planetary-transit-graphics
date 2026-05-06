@@ -10,7 +10,11 @@ import {
   renameFolder,
   deleteFolder,
   moveChartToFolder,
+  loadChartNotes,
 } from '../../firebase/firestore';
+import { loadAnonNotes } from '../../utils/anonNotes';
+import { PLANET_MAP } from '../../data/planets';
+import { ASPECT_MAP } from '../../utils/aspects';
 import ChartWheel from '../ChartWheel/ChartWheel';
 import ChartDataView from '../ChartWheel/ChartDataView';
 import styles from './ChartPickerModal.module.css';
@@ -24,7 +28,10 @@ const UNCATEGORIZED = '__uncategorized__';
  * Left pane: folder dropdown + searchable chart table.
  * Right pane: wheel/data preview of the highlighted chart.
  */
-export default function ChartPickerModal({ open, onClose, onSelectChart, currentChartId }) {
+export default function ChartPickerModal({
+  open, onClose, onSelectChart, currentChartId,
+  onSelectChartWithNote,
+}) {
   const {
     user,
     savedCharts, setSavedCharts,
@@ -497,6 +504,10 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
                 className={`${styles.toggleBtn} ${previewMode === 'data' ? styles.toggleBtnActive : ''}`}
                 onClick={() => setPreviewMode('data')}
               >Data</button>
+              <button
+                className={`${styles.toggleBtn} ${previewMode === 'notes' ? styles.toggleBtnActive : ''}`}
+                onClick={() => setPreviewMode('notes')}
+              >Notes</button>
             </div>
 
             {previewChart ? (
@@ -514,10 +525,22 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
                 </div>
 
                 <div className={styles.previewBody}>
-                  {previewMode === 'wheel'
-                    ? <ChartWheel chart={previewChart} size={380} />
-                    : <ChartDataView chart={previewChart} />
-                  }
+                  {previewMode === 'wheel' && <ChartWheel chart={previewChart} size={380} />}
+                  {previewMode === 'data' && <ChartDataView chart={previewChart} />}
+                  {previewMode === 'notes' && (
+                    <PreviewNotesList
+                      chart={previewChart}
+                      user={user}
+                      onAdd={(note) => {
+                        if (onSelectChartWithNote) onSelectChartWithNote(previewChart, note, 'add');
+                        onClose();
+                      }}
+                      onLoad={(note) => {
+                        if (onSelectChartWithNote) onSelectChartWithNote(previewChart, note, 'load');
+                        onClose();
+                      }}
+                    />
+                  )}
                 </div>
               </>
             ) : (
@@ -643,6 +666,87 @@ export default function ChartPickerModal({ open, onClose, onSelectChart, current
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * PreviewNotesList — fetches and displays the notes attached to the
+ * currently-previewed chart in the picker modal. Each row exposes Add /
+ * Load buttons that bubble up via onAdd/onLoad along with the underlying
+ * note; the parent uses those to load the chart and apply the transit.
+ */
+function PreviewNotesList({ chart, user, onAdd, onLoad }) {
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!chart?.id) {
+      setNotes([]);
+      return;
+    }
+    setLoading(true);
+    const isFirestoreChart = !!user && !chart.id.startsWith('local-') && !chart.id.startsWith('anon-');
+    const promise = isFirestoreChart
+      ? loadChartNotes(user.uid, chart.id)
+      : Promise.resolve(loadAnonNotes(chart.id));
+    promise.then(result => {
+      if (!cancelled) {
+        setNotes(result || []);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [chart, user]);
+
+  if (loading) {
+    return <div className={styles.notesPickerEmpty}>Loading notes…</div>;
+  }
+  if (notes.length === 0) {
+    return (
+      <div className={styles.notesPickerEmpty}>
+        No notes for this chart yet. Click a transit on the timeline to add one.
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.notesPickerList}>
+      {notes.map(note => {
+        const tP = PLANET_MAP[note.transitPlanet];
+        const targetP = PLANET_MAP[note.target];
+        const aspect = ASPECT_MAP[note.aspect];
+        const peakDate = note.peakDate ? new Date(note.peakDate) : null;
+        const peakStr = peakDate
+          ? peakDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+          : '';
+        return (
+          <div key={note.id} className={styles.notesPickerItem}>
+            <div className={styles.notesPickerHeader}>
+              <span className={styles.notesPickerGlyphs}>
+                <span style={{ color: tP?.color }}>{tP?.symbol ?? note.transitPlanet}</span>
+                <span>{aspect?.symbol ?? note.aspect}</span>
+                <span style={{ color: targetP?.color }}>{targetP?.symbol ?? note.target}</span>
+              </span>
+              {peakStr && <span className={styles.notesPickerDate}>{peakStr}</span>}
+            </div>
+            {note.body && <div className={styles.notesPickerBody}>{note.body}</div>}
+            <div className={styles.notesPickerActions}>
+              <button
+                className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                onClick={() => onAdd(note)}
+                title="Load this chart and add this transit alongside any current ones"
+              >Add</button>
+              <button
+                className={styles.footerBtn}
+                onClick={() => onLoad(note)}
+                title="Load this chart and replace all current transits with just this one"
+              >Load</button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

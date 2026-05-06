@@ -74,6 +74,7 @@ export default function Controls({
   onDeleteNote,
   onAddNoteTransit,
   onLoadNoteTransit,
+  onSelectChartWithNote,
   onLoadPreset,
   onReorderPresets,
   // Mundane mode props
@@ -185,6 +186,7 @@ export default function Controls({
                 timelordStartSign={timelordStartSign}
                 onTimelordStartSignChange={onTimelordStartSignChange}
                 currentTimelordSegments={currentTimelordSegments}
+                onSelectChartWithNote={onSelectChartWithNote}
               />
             </CollapsibleSection>
           )}
