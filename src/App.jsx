@@ -21,7 +21,7 @@ import ProjectPickerModal from './components/Controls/ProjectPickerModal';
 import AlignmentCalendar from './components/Calendar/AlignmentCalendar';
 import stripStyles from './components/StripView/StripView.module.css';
 import styles from './App.module.css';
-import { resolveRelativeDates } from './data/defaultPresets';
+import { resolveRelativeDates, dateRangeToRelativeRange } from './data/defaultPresets';
 
 /**
  * Recompute positions and angles from birth data on load. This fixes stale
@@ -266,13 +266,14 @@ export default function App() {
 
     autoAppliedPresetRef.current = true;
     if (fav.mode && fav.mode !== mode) setMode(fav.mode);
-    if (fav.relativeRange) {
-      const { startDate: s, endDate: e } = resolveRelativeDates(fav.relativeRange);
+    let relativeRange = fav.relativeRange;
+    if (!relativeRange && fav.startDate && fav.endDate) {
+      relativeRange = dateRangeToRelativeRange(new Date(fav.startDate), new Date(fav.endDate));
+    }
+    if (relativeRange) {
+      const { startDate: s, endDate: e } = resolveRelativeDates(relativeRange);
       setStartDate(new Date(s));
       setEndDate(new Date(e));
-    } else {
-      if (fav.startDate) setStartDate(new Date(fav.startDate));
-      if (fav.endDate) setEndDate(new Date(fav.endDate));
     }
     const prefix = fav.mode === 'natal' ? 'natal-job' : 'job';
     const freshJobs = (fav.jobs || []).map((job, i) => ({
@@ -583,13 +584,16 @@ export default function App() {
     // When the user has pinned the Date Range section, skip date assignment
     // so they can hop between planet configs without losing their window.
     if (!dateRangeLocked) {
-      if (preset.relativeRange) {
-        const { startDate: s, endDate: e } = resolveRelativeDates(preset.relativeRange);
+      // Always anchor to today. Old presets that still have absolute
+      // startDate/endDate get migrated on the fly into a duration.
+      let relativeRange = preset.relativeRange;
+      if (!relativeRange && preset.startDate && preset.endDate) {
+        relativeRange = dateRangeToRelativeRange(new Date(preset.startDate), new Date(preset.endDate));
+      }
+      if (relativeRange) {
+        const { startDate: s, endDate: e } = resolveRelativeDates(relativeRange);
         setStartDate(new Date(s));
         setEndDate(new Date(e));
-      } else {
-        if (preset.startDate) setStartDate(new Date(preset.startDate));
-        if (preset.endDate) setEndDate(new Date(preset.endDate));
       }
     }
     // Re-assign fresh IDs to avoid conflicts

@@ -271,14 +271,6 @@ function drawWheel(ctx, chart, size) {
   const renderBody = (b) => {
     const phiOrig = angleFor(b.originalLng);
     const phi = angleFor(b.lng);
-    if (Math.abs(b.lng - b.originalLng) > 0.5) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(cx + (rZodiacInner - 4) * Math.cos(phiOrig), cy + (rZodiacInner - 4) * Math.sin(phiOrig));
-      ctx.lineTo(cx + rGlyph * Math.cos(phi), cy + rGlyph * Math.sin(phi));
-      ctx.stroke();
-    }
     drawBody({
       phiOrig,
       phi,

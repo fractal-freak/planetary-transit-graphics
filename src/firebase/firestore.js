@@ -239,17 +239,27 @@ export async function loadPresets(uid) {
  */
 export async function savePreset(uid, presetData, presetId) {
   const ref = presetId ? presetRef(uid, presetId) : doc(presetsCol(uid));
+  // Presets persist a *relative* duration, not absolute dates. Any incoming
+  // startDate/endDate gets converted to relativeRange; both fields are then
+  // explicitly set to null so older docs that had them get cleaned up too.
+  let relativeRange = presetData.relativeRange || null;
+  if (!relativeRange && presetData.startDate && presetData.endDate) {
+    const days = Math.max(1, Math.round(
+      (new Date(presetData.endDate).getTime() - new Date(presetData.startDate).getTime()) / 86400000
+    ));
+    relativeRange = { value: days, unit: 'days' };
+  }
   const payload = {
     name: presetData.name || 'Untitled Preset',
     mode: presetData.mode || 'world',
     jobs: presetData.jobs || [],
-    startDate: presetData.startDate || null,
-    endDate: presetData.endDate || null,
+    relativeRange,
+    startDate: null,
+    endDate: null,
     isFavorite: presetData.isFavorite || false,
     createdAt: presetData.createdAt || serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
-  if (presetData.relativeRange) payload.relativeRange = presetData.relativeRange;
   await setDoc(ref, payload);
   return ref.id;
 }
