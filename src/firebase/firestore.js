@@ -257,7 +257,7 @@ export async function cleanupChartLibraryDuplicates(uid, onProgress) {
     if (onProgress) onProgress({ deleted, total: toDelete.length });
   }
 
-  return { kept: byKey.size, deleted, groupsExamined: byKey.size };
+  return { kept: bySig.size, deleted, groupsExamined: bySig.size };
 }
 
 // ── Folders ──
