@@ -402,10 +402,10 @@ export default function ChartPickerModal({
             {agStatus}
             {agSummary && (
               <span>
-                Imported {agSummary.added} new, updated {agSummary.updated}
+                {agSummary.added} new, {agSummary.updated} updated, {agSummary.unchanged ?? 0} unchanged
                 {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
-                {agSummary.filesSkipped > 0 && `, ${agSummary.filesSkipped} unchanged`}
-                {agSummary.files > 0 && ` from ${agSummary.files} file${agSummary.files === 1 ? '' : 's'}`}
+                {agSummary.filesSkipped > 0 && ` (${agSummary.filesSkipped} files unchanged)`}
+                {agSummary.files > 0 && ` across ${agSummary.files} file${agSummary.files === 1 ? '' : 's'}`}
                 .
               </span>
             )}

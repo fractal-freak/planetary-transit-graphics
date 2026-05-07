@@ -82,7 +82,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
         const now = Date.now();
         await setAstroGoldLastSyncedAt(user.uid, now);
         setLastSyncedAt(now);
-        setSummary({ added: 0, updated: 0, skipped: 0, errors: 0, files: 0, filesSkipped });
+        setSummary({ added: 0, updated: 0, unchanged: 0, skipped: 0, errors: 0, files: 0, filesSkipped });
         setStatus(null);
         return { added: 0, updated: 0 };
       }
@@ -96,7 +96,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       const allFolders = await loadFolders(user.uid);
       const folderIdByName = new Map(allFolders.map(f => [f.name, f.id]));
 
-      let added = 0, updated = 0, skipped = 0, errors = 0;
+      let added = 0, updated = 0, unchanged = 0, skipped = 0, errors = 0;
       const importedCharts = [];
       const newCharts = [];
       const updatedById = new Map();
@@ -129,6 +129,10 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
             if (!key) { skipped += 1; continue; }
             const existing = existingByKey.get(key);
 
+            // Build the chart we'd write. Compare against the existing record
+            // (if any) and skip the Firestore write entirely when nothing the
+            // user can see has changed — that's the common case during
+            // re-syncs of files Astro Gold rewrote whole-cloth.
             const chart = castEventChart({
               eventDate: record.utcDate,
               lat: record.lat,
@@ -142,6 +146,11 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
             chart.folderId = folderId;
             chart.astroGoldKey = key;
             chart.astroGoldPath = [...pathParts, file.name].join('/');
+
+            if (existing && chartsEqual(existing, chart)) {
+              unchanged += 1;
+              continue;
+            }
 
             const chartId = await firestoreSaveChart(user.uid, chart, existing?.id);
             const savedChart = { id: chartId, ...chart };
@@ -176,7 +185,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       const now = Date.now();
       await setAstroGoldLastSyncedAt(user.uid, now);
       setLastSyncedAt(now);
-      setSummary({ added, updated, skipped, errors, files: filesToParse.length, filesSkipped });
+      setSummary({ added, updated, unchanged, skipped, errors, files: filesToParse.length, filesSkipped });
       setStatus(null);
 
       if (onChartsImported && importedCharts.length > 0) {
@@ -334,6 +343,27 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
     connected,
     lastSyncedAt,
   };
+}
+
+/**
+ * True when re-importing this chart record would just overwrite the existing
+ * Firestore doc with byte-identical inputs. We compare the human-meaningful
+ * fields only (positions/angles are derived from these and computed
+ * deterministically by castEventChart, so they'll match too).
+ */
+function chartsEqual(a, b) {
+  if (!a || !b) return false;
+  return (
+    a.name === b.name &&
+    a.birthDate === b.birthDate &&
+    a.birthTime === b.birthTime &&
+    a.lat === b.lat &&
+    a.lng === b.lng &&
+    a.locationName === b.locationName &&
+    (a.chartType || 'natal') === (b.chartType || 'natal') &&
+    (a.folderId || null) === (b.folderId || null) &&
+    (a.astroGoldPath || null) === (b.astroGoldPath || null)
+  );
 }
 
 /**
