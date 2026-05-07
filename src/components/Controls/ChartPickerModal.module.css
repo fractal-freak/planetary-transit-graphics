@@ -217,6 +217,32 @@
   flex-shrink: 0;
 }
 
+.sortBtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-align: left;
+}
+
+.sortBtn:hover {
+  color: var(--fg-strong);
+}
+
+.sortBtnActive {
+  color: var(--fg-strong);
+}
+
+.sortArrow {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
 .tableBody {
   flex: 1;
   overflow-y: auto;

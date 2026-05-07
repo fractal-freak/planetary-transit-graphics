@@ -66,6 +66,13 @@ export default function ChartPickerModal({
   const [activeFolder, setActiveFolder] = useState(ALL_FOLDERS);
   const [previewId, setPreviewId] = useState(null);
   const [previewMode, setPreviewMode] = useState('wheel');
+  // Sort: clicking a column header toggles asc → desc → asc.
+  const [sortBy, setSortBy] = useState({ field: 'name', dir: 'asc' });
+  const toggleSort = (field) => setSortBy(s =>
+    s.field === field
+      ? { field, dir: s.dir === 'asc' ? 'desc' : 'asc' }
+      : { field, dir: 'asc' }
+  );
 
   const [editingChartId, setEditingChartId] = useState(null);
   const [editChartName, setEditChartName] = useState('');
@@ -132,13 +139,27 @@ export default function ChartPickerModal({
       );
     }
 
+    const dirMul = sortBy.dir === 'asc' ? 1 : -1;
     list.sort((a, b) => {
+      // Default chart always pins to the top regardless of sort.
       if (a.id === defaultChartId) return -1;
       if (b.id === defaultChartId) return 1;
-      return (a.name || '').localeCompare(b.name || '');
+      let cmp;
+      if (sortBy.field === 'date') {
+        cmp = (a.birthDate || '').localeCompare(b.birthDate || '');
+      } else if (sortBy.field === 'type') {
+        cmp = (a.chartType || 'natal').localeCompare(b.chartType || 'natal');
+      } else {
+        cmp = (a.name || '').localeCompare(b.name || '');
+      }
+      // Stable secondary sort by name so equal-key rows have a deterministic order.
+      if (cmp === 0 && sortBy.field !== 'name') {
+        cmp = (a.name || '').localeCompare(b.name || '');
+      }
+      return cmp * dirMul;
     });
     return list;
-  }, [savedCharts, query, activeFolder, defaultChartId]);
+  }, [savedCharts, query, activeFolder, defaultChartId, sortBy]);
 
   // Detect likely duplicates across the whole library (name + birthDate + birthTime + lat + lng).
   const duplicateIds = useMemo(() => {
@@ -515,9 +536,45 @@ export default function ChartPickerModal({
                   onChange={toggleSelectAll}
                   title="Select all"
                 />
-                <span className={styles.colName}>Name</span>
-                <span className={styles.colDate}>Date</span>
-                <span className={styles.colType}>Type</span>
+                <span className={styles.colName}>
+                  <button
+                    type="button"
+                    className={`${styles.sortBtn} ${sortBy.field === 'name' ? styles.sortBtnActive : ''}`}
+                    onClick={() => toggleSort('name')}
+                    title="Sort by name"
+                  >
+                    Name
+                    {sortBy.field === 'name' && (
+                      <span className={styles.sortArrow}>{sortBy.dir === 'asc' ? '▲' : '▼'}</span>
+                    )}
+                  </button>
+                </span>
+                <span className={styles.colDate}>
+                  <button
+                    type="button"
+                    className={`${styles.sortBtn} ${sortBy.field === 'date' ? styles.sortBtnActive : ''}`}
+                    onClick={() => toggleSort('date')}
+                    title="Sort by date"
+                  >
+                    Date
+                    {sortBy.field === 'date' && (
+                      <span className={styles.sortArrow}>{sortBy.dir === 'asc' ? '▲' : '▼'}</span>
+                    )}
+                  </button>
+                </span>
+                <span className={styles.colType}>
+                  <button
+                    type="button"
+                    className={`${styles.sortBtn} ${sortBy.field === 'type' ? styles.sortBtnActive : ''}`}
+                    onClick={() => toggleSort('type')}
+                    title="Sort by type"
+                  >
+                    Type
+                    {sortBy.field === 'type' && (
+                      <span className={styles.sortArrow}>{sortBy.dir === 'asc' ? '▲' : '▼'}</span>
+                    )}
+                  </button>
+                </span>
               </div>
               <div className={styles.tableBody}>
                 {visibleCharts.length === 0 ? (

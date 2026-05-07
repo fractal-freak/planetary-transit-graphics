@@ -206,30 +206,42 @@ export async function setAstroGoldLastSyncedAt(uid, msEpoch) {
 }
 
 /**
- * Delete duplicate charts created by past sync races. Groups all charts by
- * astroGoldKey, keeps the oldest of each group, deletes the rest. Returns
- * { kept, deleted, groupsExamined }.
+ * Delete duplicate charts created by past sync races. Groups by an identity
+ * signature (name + birthDate + birthTime + lat + lng), keeps the oldest of
+ * each group, deletes the rest. Returns { kept, deleted, groupsExamined }.
  *
- * Charts without an astroGoldKey (e.g. manual entries) are never touched.
+ * The signature matches the DUP-badge heuristic in the chart picker —
+ * collapsing same-named, same-data records regardless of astroGoldKey state
+ * (since some legacy imports have null keys). Variants with deliberately
+ * different names like "Foo [C]" stay separate.
+ *
+ * A chart missing all of (birthDate, birthTime, lat, lng) is never touched
+ * — those rows can't be safely identified as duplicates of anything.
  */
 export async function cleanupChartLibraryDuplicates(uid, onProgress) {
   const charts = await loadCharts(uid);
-  const byKey = new Map();
+  const bySig = new Map();
   for (const c of charts) {
-    if (!c.astroGoldKey) continue;
-    if (!byKey.has(c.astroGoldKey)) byKey.set(c.astroGoldKey, []);
-    byKey.get(c.astroGoldKey).push(c);
+    const hasIdentity = c.name && (c.birthDate || c.birthTime || c.lat != null || c.lng != null);
+    if (!hasIdentity) continue;
+    const sig = `${c.name}|${c.birthDate || ''}|${c.birthTime || ''}|${c.lat ?? ''}|${c.lng ?? ''}`;
+    if (!bySig.has(sig)) bySig.set(sig, []);
+    bySig.get(sig).push(c);
   }
 
   const toDelete = [];
-  for (const group of byKey.values()) {
+  for (const group of bySig.values()) {
     if (group.length <= 1) continue;
     group.sort((a, b) => {
+      // Prefer keeping the entry that has an astroGoldKey set (it's wired
+      // into ongoing sync); otherwise keep the oldest.
+      const aHasKey = !!a.astroGoldKey;
+      const bHasKey = !!b.astroGoldKey;
+      if (aHasKey !== bHasKey) return aHasKey ? -1 : 1;
       const aT = a.createdAt?.seconds ?? a.createdAt ?? 0;
       const bT = b.createdAt?.seconds ?? b.createdAt ?? 0;
       return aT - bT;
     });
-    // Keep group[0] (oldest), delete the rest
     for (let i = 1; i < group.length; i++) toDelete.push(group[i]);
   }
 
