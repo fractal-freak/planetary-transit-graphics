@@ -6,8 +6,10 @@ import {
   saveChart as firestoreSaveChart,
   createFolder,
   loadFolders,
+  loadCharts,
   getAstroGoldLastSyncedAt,
   setAstroGoldLastSyncedAt,
+  cleanupChartLibraryDuplicates,
 } from '../firebase/firestore';
 import {
   saveDirectoryHandle,
@@ -37,7 +39,7 @@ import {
 const FOCUS_DEBOUNCE_MS = 30 * 1000;
 
 export function useAstroGoldFolderImport({ onChartsImported } = {}) {
-  const { user, savedCharts, setSavedCharts, setSavedFolders } = useAuth();
+  const { user, setSavedCharts, setSavedFolders } = useAuth();
   const [status, setStatus] = useState(null);
   const [busy, setBusy] = useState(false);
   const [summary, setSummary] = useState(null);
@@ -46,19 +48,20 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
 
   const supported = typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
 
-  // Refs let event handlers read latest state without forcing re-binds on
-  // every render (especially important since auto-sync is wired to focus).
-  const busyRef = useRef(false);
+  // lockRef is a synchronous re-entrancy guard — flipping it BEFORE awaiting
+  // anything prevents two overlapping imports from racing. setBusy is for the
+  // UI, but state batching means it can lag, so we don't rely on it for
+  // mutual exclusion.
+  const lockRef = useRef(false);
   const lastSyncedAtRef = useRef(null);
   const lastAutoSyncRef = useRef(0);
-  const savedChartsRef = useRef(savedCharts);
-  busyRef.current = busy;
   lastSyncedAtRef.current = lastSyncedAt;
-  savedChartsRef.current = savedCharts;
 
   // ── Core import: walk the handle, parse changed files, upsert charts ──
   const importFromHandle = useCallback(async (rootHandle, since) => {
     if (!user) return null;
+    if (lockRef.current) return null; // already running — silent no-op
+    lockRef.current = true;
     setBusy(true);
     setSummary(null);
     setStatus('Scanning folder…');
@@ -87,9 +90,14 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
         return { added: 0, updated: 0 };
       }
 
-      // Dedupe lookup uses latest savedCharts (via ref in case state lags).
+      // Dedupe lookup uses authoritative Firestore data, NOT React state.
+      // The auth context loads charts asynchronously, so on a fresh page load
+      // savedCharts can be empty when auto-sync fires — building dedupe from
+      // that produces mass duplicates. Always fetch fresh.
+      setStatus('Loading existing charts…');
+      const existingCharts = await loadCharts(user.uid);
       const existingByKey = new Map();
-      for (const c of savedChartsRef.current) {
+      for (const c of existingCharts) {
         if (c.astroGoldKey) existingByKey.set(c.astroGoldKey, c);
       }
 
@@ -197,6 +205,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       setStatus('Sync failed: ' + (err?.message || err));
       return null;
     } finally {
+      lockRef.current = false;
       setBusy(false);
     }
   }, [user, setSavedCharts, setSavedFolders, onChartsImported]);
@@ -222,7 +231,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
           // queryPermission is gesture-free; requestPermission isn't, so we
           // only auto-sync if Chrome already remembers the grant.
           const perm = await handle.queryPermission?.({ mode: 'read' });
-          if (perm === 'granted' && !busyRef.current) {
+          if (perm === 'granted' && !lockRef.current) {
             lastAutoSyncRef.current = Date.now();
             await importFromHandle(handle, ts ?? 0);
           }
@@ -238,7 +247,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
   useEffect(() => {
     if (!user || !supported) return;
     const trigger = async () => {
-      if (busyRef.current) return;
+      if (lockRef.current) return;
       if (Date.now() - lastAutoSyncRef.current < FOCUS_DEBOUNCE_MS) return;
       try {
         const handle = await loadDirectoryHandle();
@@ -332,10 +341,45 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
     setSummary(null);
   }, []);
 
+  const cleanupDuplicates = useCallback(async () => {
+    if (!user) {
+      setStatus('Sign in first.');
+      return null;
+    }
+    if (lockRef.current) return null;
+    lockRef.current = true;
+    setBusy(true);
+    setSummary(null);
+    setStatus('Scanning for duplicate charts…');
+    try {
+      const result = await cleanupChartLibraryDuplicates(user.uid, ({ deleted, total }) => {
+        setStatus(`Removing duplicates… ${deleted}/${total}`);
+      });
+      // Refresh the in-memory chart list so the UI reflects the cleanup.
+      const refreshed = await loadCharts(user.uid);
+      setSavedCharts(refreshed);
+      setStatus(null);
+      setSummary({
+        added: 0, updated: 0, unchanged: 0, skipped: 0, errors: 0,
+        files: 0, filesSkipped: 0,
+        deletedDuplicates: result.deleted,
+      });
+      return result;
+    } catch (err) {
+      console.error('Cleanup failed:', err);
+      setStatus('Cleanup failed: ' + (err?.message || err));
+      return null;
+    } finally {
+      lockRef.current = false;
+      setBusy(false);
+    }
+  }, [user, setSavedCharts]);
+
   return {
     connect,
     syncNow,
     disconnect,
+    cleanupDuplicates,
     status,
     busy,
     summary,

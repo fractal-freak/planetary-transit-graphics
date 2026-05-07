@@ -10,6 +10,7 @@ import {
   query,
   orderBy,
   deleteField,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from './config';
 import { DEFAULT_PRESETS } from '../data/defaultPresets';
@@ -202,6 +203,49 @@ export async function getAstroGoldLastSyncedAt(uid) {
 /** Persist the timestamp (ms epoch) of the most recent successful sync. */
 export async function setAstroGoldLastSyncedAt(uid, msEpoch) {
   await setDoc(userRef(uid), { astroGoldLastSyncedAt: msEpoch }, { merge: true });
+}
+
+/**
+ * Delete duplicate charts created by past sync races. Groups all charts by
+ * astroGoldKey, keeps the oldest of each group, deletes the rest. Returns
+ * { kept, deleted, groupsExamined }.
+ *
+ * Charts without an astroGoldKey (e.g. manual entries) are never touched.
+ */
+export async function cleanupChartLibraryDuplicates(uid, onProgress) {
+  const charts = await loadCharts(uid);
+  const byKey = new Map();
+  for (const c of charts) {
+    if (!c.astroGoldKey) continue;
+    if (!byKey.has(c.astroGoldKey)) byKey.set(c.astroGoldKey, []);
+    byKey.get(c.astroGoldKey).push(c);
+  }
+
+  const toDelete = [];
+  for (const group of byKey.values()) {
+    if (group.length <= 1) continue;
+    group.sort((a, b) => {
+      const aT = a.createdAt?.seconds ?? a.createdAt ?? 0;
+      const bT = b.createdAt?.seconds ?? b.createdAt ?? 0;
+      return aT - bT;
+    });
+    // Keep group[0] (oldest), delete the rest
+    for (let i = 1; i < group.length; i++) toDelete.push(group[i]);
+  }
+
+  // Batch deletes — Firestore caps writeBatch at 500 ops.
+  const BATCH_SIZE = 400;
+  let deleted = 0;
+  for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+    const slice = toDelete.slice(i, i + BATCH_SIZE);
+    const batch = writeBatch(db);
+    for (const c of slice) batch.delete(chartRef(uid, c.id));
+    await batch.commit();
+    deleted += slice.length;
+    if (onProgress) onProgress({ deleted, total: toDelete.length });
+  }
+
+  return { kept: byKey.size, deleted, groupsExamined: byKey.size };
 }
 
 // ── Folders ──

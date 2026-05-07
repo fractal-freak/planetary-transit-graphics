@@ -46,6 +46,7 @@ export default function ChartPickerModal({
     connect: connectAstroGold,
     syncNow: syncAstroGoldNow,
     disconnect: disconnectAstroGold,
+    cleanupDuplicates: cleanupAstroGoldDuplicates,
     status: agStatus,
     busy: agBusy,
     summary: agSummary,
@@ -53,6 +54,13 @@ export default function ChartPickerModal({
     connected: agConnected,
     lastSyncedAt: agLastSyncedAt,
   } = useAstroGoldFolderImport();
+
+  const handleCleanupDuplicates = async () => {
+    if (!window.confirm('Scan for and delete duplicate charts? Only charts that share an exact synced identity (same name, time, and location) are touched. The oldest copy of each is kept.')) {
+      return;
+    }
+    await cleanupAstroGoldDuplicates();
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFolder, setActiveFolder] = useState(ALL_FOLDERS);
@@ -363,6 +371,14 @@ export default function ChartPickerModal({
                   </button>
                   <button
                     className={styles.inlineBtn}
+                    onClick={handleCleanupDuplicates}
+                    disabled={agBusy}
+                    title="Find and delete charts duplicated by past sync races, keeping the oldest copy of each."
+                  >
+                    Clean up duplicates
+                  </button>
+                  <button
+                    className={styles.inlineBtn}
                     onClick={disconnectAstroGold}
                     disabled={agBusy}
                     title="Forget the connected folder. Reconnect to sync again."
@@ -401,13 +417,17 @@ export default function ChartPickerModal({
           >
             {agStatus}
             {agSummary && (
-              <span>
-                {agSummary.added} new, {agSummary.updated} updated, {agSummary.unchanged ?? 0} unchanged
-                {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
-                {agSummary.filesSkipped > 0 && ` (${agSummary.filesSkipped} files unchanged)`}
-                {agSummary.files > 0 && ` across ${agSummary.files} file${agSummary.files === 1 ? '' : 's'}`}
-                .
-              </span>
+              agSummary.deletedDuplicates !== undefined ? (
+                <span>Removed {agSummary.deletedDuplicates} duplicate chart{agSummary.deletedDuplicates === 1 ? '' : 's'}.</span>
+              ) : (
+                <span>
+                  {agSummary.added} new, {agSummary.updated} updated, {agSummary.unchanged ?? 0} unchanged
+                  {agSummary.errors > 0 && `, ${agSummary.errors} errors`}
+                  {agSummary.filesSkipped > 0 && ` (${agSummary.filesSkipped} files unchanged)`}
+                  {agSummary.files > 0 && ` across ${agSummary.files} file${agSummary.files === 1 ? '' : 's'}`}
+                  .
+                </span>
+              )
             )}
           </div>
         )}
