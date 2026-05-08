@@ -41,12 +41,7 @@ export default function TransitJobCard({ job, hasAspects, hasAnyActivity, onRemo
         onClick={() => setExpanded(e => !e)}
       >
         <span className={styles.jobPlanet}>
-          {job.isLunation ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, lineHeight: 1 }}>
-              <SolarEclipseGlyph size={12} />
-              <span style={{ fontSize: '11px' }}>Lunations</span>
-            </span>
-          ) : transitP.symbol}
+          {job.isLunation ? <SolarEclipseGlyph size={14} /> : transitP.symbol}
         </span>
         <button
           className={styles.jobRemove}
