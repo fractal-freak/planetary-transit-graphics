@@ -92,7 +92,13 @@ export default function Controls({
 }) {
   const { user, savedPresets } = useAuth();
   const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [presetModalInSaveMode, setPresetModalInSaveMode] = useState(false);
   const [activePresetId, setActivePresetId] = useState(null);
+
+  const handleOpenSaveAsPreset = () => {
+    setPresetModalInSaveMode(true);
+    setPresetModalOpen(true);
+  };
 
   const handleLoadPreset = (preset) => {
     setActivePresetId(preset?.id ?? null);
@@ -105,6 +111,13 @@ export default function Controls({
   // Favorites: up to 5 starred presets for quick access, filtered to current mode
   const modePresets = savedPresets.filter(p => (p.mode || 'world') === mode);
   const favorites = modePresets.filter(p => p.isFavorite);
+
+  // True iff the current job setup matches at least one saved preset for this
+  // mode. Comparison strips per-instance ids and uses canonical JSON; both
+  // sides go through the same load/save code path so key order is stable.
+  const currentSetupIsSaved = hasJobs && modePresets.some(p =>
+    Array.isArray(p.jobs) && jobsStructurallyEqual(p.jobs, currentJobs)
+  );
 
   return (
     <>
@@ -273,6 +286,9 @@ export default function Controls({
                 onUpdateJob={onUpdateJob}
                 onClearAll={onClearAllJobs}
               />
+              {hasJobs && !currentSetupIsSaved && (
+                <SaveAsPresetButton onClick={handleOpenSaveAsPreset} />
+              )}
             </CollapsibleSection>
           )}
 
@@ -291,17 +307,22 @@ export default function Controls({
                     Add birth data first
                   </div>
                 ) : (
-                  <NatalJobList
-                    natalChart={natalChart}
-                    natalJobs={natalJobs}
-                    natalCurves={natalCurves}
-                    natalSignChanges={natalSignChanges}
-                    natalLoading={natalLoading}
-                    onAddJob={onAddNatalJob}
-                    onRemoveJob={onRemoveNatalJob}
-                    onUpdateJob={onUpdateNatalJob}
-                    onClearAll={onClearAllNatalJobs}
-                  />
+                  <>
+                    <NatalJobList
+                      natalChart={natalChart}
+                      natalJobs={natalJobs}
+                      natalCurves={natalCurves}
+                      natalSignChanges={natalSignChanges}
+                      natalLoading={natalLoading}
+                      onAddJob={onAddNatalJob}
+                      onRemoveJob={onRemoveNatalJob}
+                      onUpdateJob={onUpdateNatalJob}
+                      onClearAll={onClearAllNatalJobs}
+                    />
+                    {hasJobs && !currentSetupIsSaved && (
+                      <SaveAsPresetButton onClick={handleOpenSaveAsPreset} />
+                    )}
+                  </>
                 )}
               </CollapsibleSection>
 
@@ -383,13 +404,14 @@ export default function Controls({
 
       <PresetPickerModal
         open={presetModalOpen}
-        onClose={() => setPresetModalOpen(false)}
+        onClose={() => { setPresetModalOpen(false); setPresetModalInSaveMode(false); }}
         onLoadPreset={handleLoadPreset}
         currentMode={mode}
         currentJobs={currentJobs}
         hasJobs={hasJobs}
         startDate={startDate}
         endDate={endDate}
+        initialSaveMode={presetModalInSaveMode}
       />
     </>
   );
@@ -520,4 +542,36 @@ function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets, active
       })}
     </div>
   );
+}
+
+/**
+ * Compact "Save as preset" CTA shown beneath the active job list when the
+ * current setup doesn't match any saved preset for this mode.
+ */
+function SaveAsPresetButton({ onClick }) {
+  return (
+    <button
+      type="button"
+      className={styles.saveAsPresetBtn}
+      onClick={onClick}
+      title="Save this setup as a new preset"
+    >
+      ★ Save as preset
+    </button>
+  );
+}
+
+/**
+ * Stable deep-equality check for two job arrays, ignoring per-instance ids.
+ * Both sides are produced by the same load/save flow so key insertion order
+ * is consistent — JSON.stringify is enough.
+ */
+function jobsStructurallyEqual(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  if (a.length !== b.length) return false;
+  const strip = (j) => {
+    const { id, ...rest } = j;
+    return rest;
+  };
+  return JSON.stringify(a.map(strip)) === JSON.stringify(b.map(strip));
 }

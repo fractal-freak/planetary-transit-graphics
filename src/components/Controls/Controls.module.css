@@ -1140,6 +1140,29 @@
   cursor: not-allowed;
 }
 
+.saveAsPresetBtn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.15s;
+}
+
+.saveAsPresetBtn:hover {
+  border-color: var(--fg-faint);
+  border-style: solid;
+  background: var(--bg-subtle);
+  color: var(--fg-strong);
+}
+
 .wizardBtnPrimary {
   background: var(--fg-strong);
   color: #f5f3ef;

@@ -44,6 +44,7 @@ export default function PresetPickerModal({
   hasJobs,
   startDate,
   endDate,
+  initialSaveMode,
 }) {
   const { user, savedPresets, setSavedPresets } = useAuth();
 
@@ -63,18 +64,28 @@ export default function PresetPickerModal({
   const overlayRef = useRef(null);
   const searchRef = useRef(null);
 
-  // Reset state when modal opens
+  // Reset state when modal opens. When the caller asked us to open straight
+  // into save mode (the sidebar's "Save as preset" shortcut), seed the state
+  // accordingly instead of forcing the user through an extra click.
   useEffect(() => {
     if (open) {
       setSearchQuery('');
-      setIsSaving(false);
+      setIsSaving(!!initialSaveMode);
       setSaveName('');
       setEditingId(null);
       setConfirmDeleteId(null);
       setConfirmOverwriteId(null);
-      setTimeout(() => searchRef.current?.focus(), 100);
+      // If we opened into save mode, focus the name input the modal renders;
+      // otherwise focus the search field so typing works immediately.
+      setTimeout(() => {
+        if (initialSaveMode) {
+          document.querySelector('[data-preset-save-name]')?.focus();
+        } else {
+          searchRef.current?.focus();
+        }
+      }, 100);
     }
-  }, [open]);
+  }, [open, initialSaveMode]);
 
   if (!open) return null;
 
@@ -374,6 +385,7 @@ export default function PresetPickerModal({
           {isSaving ? (
             <div className={styles.saveRow}>
               <input
+                data-preset-save-name
                 className={styles.inlineInput}
                 style={{ flex: 1 }}
                 value={saveName}
