@@ -30,30 +30,35 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
     }
   }
 
+  function renderJobCard(job) {
+    const hasAspects = curves && curves.some(c => c.jobId === job.id);
+    const planet = job.transitPlanet;
+    const hasSignChange = signChanges?.changes?.some(c => c.planet === planet);
+    const hasStation = signChanges?.stations?.some(s => s.planet === planet);
+    const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
+    const wantsEclipses = planet === 'TrueNode' && (job.showEclipses ?? true);
+    const hasEclipse = wantsEclipses && (signChanges?.eclipses?.length ?? 0) > 0;
+    // Lunations always have something to show when active (the Moon-Sun curve
+    // itself), so don't display the "no transits" empty state for them.
+    const hasAnyActivity = loading
+      ? null
+      : (job.isLunation || hasAspects || hasSignChange || hasStation || hasRetroPeriod || hasEclipse);
+    return (
+      <TransitJobCard
+        key={job.id}
+        job={job}
+        hasAspects={hasAspects}
+        hasAnyActivity={hasAnyActivity}
+        onRemove={() => onRemoveJob(job.id)}
+        onUpdate={updates => onUpdateJob(job.id, updates)}
+      />
+    );
+  }
+
   return (
     <div className={styles.jobList}>
-      {sorted.map(job => {
-        const hasAspects = curves && curves.some(c => c.jobId === job.id);
-        const planet = job.transitPlanet;
-        const hasSignChange = signChanges?.changes?.some(c => c.planet === planet);
-        const hasStation = signChanges?.stations?.some(s => s.planet === planet);
-        const hasRetroPeriod = signChanges?.retrogradePeriods?.some(p => p.planet === planet);
-        const wantsEclipses = planet === 'TrueNode' && (job.showEclipses ?? true);
-        const hasEclipse = wantsEclipses && (signChanges?.eclipses?.length ?? 0) > 0;
-        const hasAnyActivity = loading
-          ? null
-          : (hasAspects || hasSignChange || hasStation || hasRetroPeriod || hasEclipse);
-        return (
-          <TransitJobCard
-            key={job.id}
-            job={job}
-            hasAspects={hasAspects}
-            hasAnyActivity={hasAnyActivity}
-            onRemove={() => onRemoveJob(job.id)}
-            onUpdate={updates => onUpdateJob(job.id, updates)}
-          />
-        );
-      })}
+      {sorted.map(renderJobCard)}
+      {lunationJob && renderJobCard(lunationJob)}
       <TransitJobWizard
         onAddJob={onAddJob}
         existingJobs={transitJobs}
