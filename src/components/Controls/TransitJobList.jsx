@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SPEED_ORDER } from '../../data/planets';
 import TransitJobCard from './TransitJobCard';
 import TransitJobWizard from './TransitJobWizard';
+import SaveAsPresetButton from './SaveAsPresetButton';
 import styles from './Controls.module.css';
 
 const LUNATION_JOB_DEFAULTS = {
@@ -13,7 +14,7 @@ const LUNATION_JOB_DEFAULTS = {
   showRetrogrades: false,
 };
 
-export default function TransitJobList({ transitJobs, curves, signChanges, loading, onAddJob, onRemoveJob, onUpdateJob, onClearAll }) {
+export default function TransitJobList({ transitJobs, curves, signChanges, loading, onAddJob, onRemoveJob, onUpdateJob, onClearAll, onSaveAsPreset }) {
   const lunationJob = transitJobs.find(j => j.isLunation);
   const nonLunationJobs = transitJobs.filter(j => !j.isLunation);
 
@@ -65,6 +66,9 @@ export default function TransitJobList({ transitJobs, curves, signChanges, loadi
         lunationsActive={!!lunationJob}
         onToggleLunations={handleToggleLunations}
       />
+      {transitJobs.length > 0 && onSaveAsPreset && (
+        <SaveAsPresetButton onClick={onSaveAsPreset} />
+      )}
       {transitJobs.length >= 2 && onClearAll && (
         <ClearAllButton onClearAll={onClearAll} />
       )}

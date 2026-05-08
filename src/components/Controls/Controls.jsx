@@ -285,10 +285,8 @@ export default function Controls({
                 onRemoveJob={onRemoveJob}
                 onUpdateJob={onUpdateJob}
                 onClearAll={onClearAllJobs}
+                onSaveAsPreset={!currentSetupIsSaved ? handleOpenSaveAsPreset : null}
               />
-              {hasJobs && !currentSetupIsSaved && (
-                <SaveAsPresetButton onClick={handleOpenSaveAsPreset} />
-              )}
             </CollapsibleSection>
           )}
 
@@ -307,22 +305,18 @@ export default function Controls({
                     Add birth data first
                   </div>
                 ) : (
-                  <>
-                    <NatalJobList
-                      natalChart={natalChart}
-                      natalJobs={natalJobs}
-                      natalCurves={natalCurves}
-                      natalSignChanges={natalSignChanges}
-                      natalLoading={natalLoading}
-                      onAddJob={onAddNatalJob}
-                      onRemoveJob={onRemoveNatalJob}
-                      onUpdateJob={onUpdateNatalJob}
-                      onClearAll={onClearAllNatalJobs}
-                    />
-                    {hasJobs && !currentSetupIsSaved && (
-                      <SaveAsPresetButton onClick={handleOpenSaveAsPreset} />
-                    )}
-                  </>
+                  <NatalJobList
+                    natalChart={natalChart}
+                    natalJobs={natalJobs}
+                    natalCurves={natalCurves}
+                    natalSignChanges={natalSignChanges}
+                    natalLoading={natalLoading}
+                    onAddJob={onAddNatalJob}
+                    onRemoveJob={onRemoveNatalJob}
+                    onUpdateJob={onUpdateNatalJob}
+                    onClearAll={onClearAllNatalJobs}
+                    onSaveAsPreset={!currentSetupIsSaved ? handleOpenSaveAsPreset : null}
+                  />
                 )}
               </CollapsibleSection>
 
@@ -544,22 +538,6 @@ function PresetFavoritesList({ favorites, onLoadPreset, onReorderPresets, active
   );
 }
 
-/**
- * Compact "Save as preset" CTA shown beneath the active job list when the
- * current setup doesn't match any saved preset for this mode.
- */
-function SaveAsPresetButton({ onClick }) {
-  return (
-    <button
-      type="button"
-      className={styles.saveAsPresetBtn}
-      onClick={onClick}
-      title="Save this setup as a new preset"
-    >
-      ★ Save as preset
-    </button>
-  );
-}
 
 /**
  * Stable deep-equality check for two job arrays, ignoring per-instance ids.

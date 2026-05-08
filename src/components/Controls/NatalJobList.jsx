@@ -2,6 +2,7 @@ import { SPEED_ORDER, NATAL_ANGLE_IDS } from '../../data/planets';
 import NatalJobCard from './NatalJobCard';
 import NatalJobWizard from './NatalJobWizard';
 import { ClearAllButton } from './TransitJobList';
+import SaveAsPresetButton from './SaveAsPresetButton';
 import styles from './Controls.module.css';
 
 function buildLunationDefaults(natalChart) {
@@ -16,7 +17,7 @@ function buildLunationDefaults(natalChart) {
   };
 }
 
-export default function NatalJobList({ natalChart, natalJobs, natalCurves, natalSignChanges, natalLoading, onAddJob, onRemoveJob, onUpdateJob, onClearAll }) {
+export default function NatalJobList({ natalChart, natalJobs, natalCurves, natalSignChanges, natalLoading, onAddJob, onRemoveJob, onUpdateJob, onClearAll, onSaveAsPreset }) {
   const lunationJob = natalJobs.find(j => j.isLunation);
   const nonLunationJobs = natalJobs.filter(j => !j.isLunation);
 
@@ -68,6 +69,9 @@ export default function NatalJobList({ natalChart, natalJobs, natalCurves, natal
         lunationsActive={!!lunationJob}
         onToggleLunations={handleToggleLunations}
       />
+      {natalJobs.length > 0 && onSaveAsPreset && (
+        <SaveAsPresetButton onClick={onSaveAsPreset} />
+      )}
       {natalJobs.length >= 2 && onClearAll && (
         <ClearAllButton onClearAll={onClearAll} />
       )}
