@@ -38,6 +38,13 @@ import {
  */
 const FOCUS_DEBOUNCE_MS = 30 * 1000;
 
+// Module-level lock shared across every instance of this hook. The hook is
+// instantiated independently in both ChartSection and ChartPickerModal — a
+// per-instance ref let both fire mount-time auto-syncs in parallel, and
+// neither saw the other's Firestore writes, so a single Astro Gold chart
+// got written twice. One global flag fixes that.
+let globalImportLock = false;
+
 export function useAstroGoldFolderImport({ onChartsImported } = {}) {
   const { user, setSavedCharts, setSavedFolders } = useAuth();
   const [status, setStatus] = useState(null);
@@ -48,11 +55,10 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
 
   const supported = typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
 
-  // lockRef is a synchronous re-entrancy guard — flipping it BEFORE awaiting
-  // anything prevents two overlapping imports from racing. setBusy is for the
-  // UI, but state batching means it can lag, so we don't rely on it for
-  // mutual exclusion.
-  const lockRef = useRef(false);
+  // The synchronous re-entrancy guard lives at module scope (globalImportLock,
+  // declared at the top of this file) so it's shared across every hook
+  // instance. setBusy is for the UI, but state batching means it can lag, so
+  // we don't rely on it for mutual exclusion.
   const lastSyncedAtRef = useRef(null);
   const lastAutoSyncRef = useRef(0);
   lastSyncedAtRef.current = lastSyncedAt;
@@ -60,8 +66,8 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
   // ── Core import: walk the handle, parse changed files, upsert charts ──
   const importFromHandle = useCallback(async (rootHandle, since) => {
     if (!user) return null;
-    if (lockRef.current) return null; // already running — silent no-op
-    lockRef.current = true;
+    if (globalImportLock) return null; // another instance is already running
+    globalImportLock = true;
     setBusy(true);
     setSummary(null);
     setStatus('Scanning folder…');
@@ -222,7 +228,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       setStatus('Sync failed: ' + (err?.message || err));
       return null;
     } finally {
-      lockRef.current = false;
+      globalImportLock = false;
       setBusy(false);
     }
   }, [user, setSavedCharts, setSavedFolders, onChartsImported]);
@@ -248,7 +254,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
           // queryPermission is gesture-free; requestPermission isn't, so we
           // only auto-sync if Chrome already remembers the grant.
           const perm = await handle.queryPermission?.({ mode: 'read' });
-          if (perm === 'granted' && !lockRef.current) {
+          if (perm === 'granted' && !globalImportLock) {
             lastAutoSyncRef.current = Date.now();
             await importFromHandle(handle, ts ?? 0);
           }
@@ -264,7 +270,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
   useEffect(() => {
     if (!user || !supported) return;
     const trigger = async () => {
-      if (lockRef.current) return;
+      if (globalImportLock) return;
       if (Date.now() - lastAutoSyncRef.current < FOCUS_DEBOUNCE_MS) return;
       try {
         const handle = await loadDirectoryHandle();
@@ -363,8 +369,8 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       setStatus('Sign in first.');
       return null;
     }
-    if (lockRef.current) return null;
-    lockRef.current = true;
+    if (globalImportLock) return null;
+    globalImportLock = true;
     setBusy(true);
     setSummary(null);
     setStatus('Scanning for duplicate charts…');
@@ -387,7 +393,7 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       setStatus('Cleanup failed: ' + (err?.message || err));
       return null;
     } finally {
-      lockRef.current = false;
+      globalImportLock = false;
       setBusy(false);
     }
   }, [user, setSavedCharts]);
