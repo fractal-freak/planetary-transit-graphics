@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PLANET_MAP, getOtherPlanets, getSlowerPlanets, isFasterThan, NON_RETROGRADE_PLANETS } from '../../data/planets';
 import { ASPECTS } from '../../utils/aspects';
+import SolarEclipseGlyph from './SolarEclipseGlyph';
 import styles from './Controls.module.css';
 
 export default function TransitJobCard({ job, hasAspects, hasAnyActivity, onRemove, onUpdate }) {
@@ -40,7 +41,12 @@ export default function TransitJobCard({ job, hasAspects, hasAnyActivity, onRemo
         onClick={() => setExpanded(e => !e)}
       >
         <span className={styles.jobPlanet}>
-          {job.isLunation ? <>🌑 Lunations 🌕</> : transitP.symbol}
+          {job.isLunation ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, lineHeight: 1 }}>
+              <SolarEclipseGlyph size={12} />
+              <span style={{ fontSize: '11px' }}>Lunations</span>
+            </span>
+          ) : transitP.symbol}
         </span>
         <button
           className={styles.jobRemove}
