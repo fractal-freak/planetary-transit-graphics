@@ -96,9 +96,17 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
       // that produces mass duplicates. Always fetch fresh.
       setStatus('Loading existing charts…');
       const existingCharts = await loadCharts(user.uid);
+      // Two lookups: primary by astroGoldKey, fallback by birth-data signature.
+      // The fallback catches charts created before astroGoldKey existed —
+      // legacy drag-and-drop imports, or anything synced from a sibling
+      // .SFcht file under a different name. Without it, those records are
+      // invisible to dedupe and the next sync silently duplicates them.
       const existingByKey = new Map();
+      const existingBySig = new Map();
       for (const c of existingCharts) {
         if (c.astroGoldKey) existingByKey.set(c.astroGoldKey, c);
+        const sig = identitySig(c);
+        if (sig && !existingBySig.has(sig)) existingBySig.set(sig, c);
       }
 
       const allFolders = await loadFolders(user.uid);
@@ -135,7 +143,6 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
           try {
             const key = astroGoldKey(record);
             if (!key) { skipped += 1; continue; }
-            const existing = existingByKey.get(key);
 
             // Build the chart we'd write. Compare against the existing record
             // (if any) and skip the Firestore write entirely when nothing the
@@ -155,6 +162,12 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
             chart.astroGoldKey = key;
             chart.astroGoldPath = [...pathParts, file.name].join('/');
 
+            // Match against existing by astroGoldKey first; fall back to
+            // birth-data signature so legacy null-key records get linked
+            // instead of duplicated.
+            const sig = identitySig(chart);
+            const existing = existingByKey.get(key) || (sig && existingBySig.get(sig));
+
             if (existing && chartsEqual(existing, chart)) {
               unchanged += 1;
               continue;
@@ -167,9 +180,13 @@ export function useAstroGoldFolderImport({ onChartsImported } = {}) {
               updatedById.set(chartId, savedChart);
             } else {
               added += 1;
-              existingByKey.set(key, savedChart);
               newCharts.push(savedChart);
             }
+            // Always update both lookups so a later occurrence in the same
+            // sync (same chart in two .SFcht libraries) dedupes against the
+            // one we just wrote.
+            existingByKey.set(key, savedChart);
+            if (sig) existingBySig.set(sig, savedChart);
             importedCharts.push(savedChart);
           } catch (err) {
             console.warn('Skipping chart record:', err.message);
@@ -405,9 +422,21 @@ function chartsEqual(a, b) {
     a.lng === b.lng &&
     a.locationName === b.locationName &&
     (a.chartType || 'natal') === (b.chartType || 'natal') &&
-    (a.folderId || null) === (b.folderId || null) &&
-    (a.astroGoldPath || null) === (b.astroGoldPath || null)
+    (a.folderId || null) === (b.folderId || null)
+    // astroGoldPath intentionally omitted: the same chart can exist in
+    // multiple .SFcht libraries, and we don't want a path mismatch to
+    // trigger spurious writes when nothing user-facing changed.
   );
+}
+
+/**
+ * Birth-data identity signature, mirroring the DUP-badge heuristic in
+ * ChartPickerModal. Used as the fallback dedupe key when astroGoldKey isn't
+ * set on the existing chart.
+ */
+function identitySig(c) {
+  if (!c?.name) return null;
+  return `${c.name}|${c.birthDate || ''}|${c.birthTime || ''}|${c.lat ?? ''}|${c.lng ?? ''}`;
 }
 
 /**
