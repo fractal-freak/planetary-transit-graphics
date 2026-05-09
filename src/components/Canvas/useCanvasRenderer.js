@@ -2037,7 +2037,17 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
         }
       }
 
-      if (fits) renderLabel(lbl, finalX, baseY, needsLeader);
+      if (fits) {
+        renderLabel(lbl, finalX, baseY, needsLeader);
+      } else {
+        // Last-resort fallback: every vertical bump and horizontal offset
+        // slot was occupied (typical when a peak lands near a station marker
+        // or a dense row of natal aspects). Render at the original peak
+        // position anyway — a slightly overlapping label is far better than
+        // a silently-missing one. The label still goes through renderLabel,
+        // which records the hit area for the hover tooltip.
+        renderLabel(lbl, lbl.x, lbl.y - 8, false);
+      }
 
     } else {
       // ── Cluster column layout ──
