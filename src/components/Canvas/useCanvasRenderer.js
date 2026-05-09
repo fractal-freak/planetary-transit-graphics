@@ -2085,14 +2085,19 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
       let columnBottom = highestPeakY - 10;
       let columnTop = columnBottom - columnH;
 
-      // Clamp to row bounds
-      if (columnTop < rowTop + 4) {
-        columnTop = rowTop + 4;
-        columnBottom = columnTop + columnH;
-      }
+      // Bottom must stay inside this row (clusters belong above their peaks).
       if (columnBottom > rowTop + rowH) {
         columnBottom = rowTop + rowH;
         columnTop = columnBottom - columnH;
+      }
+      // Top can extend above the row when the space above is empty — the
+      // collision check at the centroid will reject overlap with any actual
+      // labels up there. Only clamp to a small canvas-top margin so we
+      // never escape the chart entirely.
+      const CANVAS_TOP_MARGIN = 4;
+      if (columnTop < CANVAS_TOP_MARGIN) {
+        columnTop = CANVAS_TOP_MARGIN;
+        columnBottom = columnTop + columnH;
       }
 
       // Try centroid, then shift if collisions
@@ -2119,8 +2124,10 @@ function drawPeakLabels(ctx, labels, plotW, rowTop, rowH, reservedRects, T = { t
           finalCX = rightCX;
           needsLeader = true;
         } else {
-          // Still doesn't fit — skip entire cluster
-          continue;
+          // No clean horizontal slot found. Render at the centroid anyway —
+          // a slightly overlapping cluster is preferable to silently dropping
+          // every label in a crowded row.
+          needsLeader = true;
         }
       }
 
