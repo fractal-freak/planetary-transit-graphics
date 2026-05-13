@@ -26,7 +26,10 @@ function parseInput(str) {
   const d = parseInt(parts[1], 10);
   const y = parseInt(parts[2], 10);
   if (isNaN(m) || isNaN(d) || isNaN(y)) return null;
-  if (m < 1 || m > 12 || d < 1 || d > 31 || y < 1900 || y > 2200) return null;
+  // No year bounds. The visible range is already capped by MAX_RANGE_DAYS in
+  // DateRangePicker, and the drag-to-scrub year segment lets the user pick
+  // any year — so the typed-input parser should match.
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
   const date = new Date(y, m - 1, d);
   // Verify the date components match (catches invalid days like Feb 30)
   if (date.getMonth() !== m - 1 || date.getDate() !== d) return null;
