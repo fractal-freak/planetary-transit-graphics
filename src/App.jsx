@@ -15,6 +15,7 @@ import StripView from './components/StripView/StripView';
 import MatrixView from './components/MatrixView/MatrixView';
 import WheelView from './components/WheelView/WheelView';
 import ExportButton from './components/ExportButton/ExportButton';
+import SaveListButton from './components/SaveListButton/SaveListButton';
 import UserMenu from './components/Auth/UserMenu';
 import AuthModal from './components/Auth/AuthModal';
 import ProjectPickerModal from './components/Controls/ProjectPickerModal';
@@ -1038,6 +1039,12 @@ export default function App() {
                 Projects
               </button>
               <ExportButton canvasRef={canvasRef} />
+              <SaveListButton
+                curves={activeCurves}
+                signChanges={activeSignChanges}
+                startDate={startDate}
+                endDate={endDate}
+              />
             </>
           )}
           <UserMenu onSignInClick={() => setShowAuthModal(true)} />

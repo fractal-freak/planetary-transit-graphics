@@ -1,0 +1,31 @@
+.saveListBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--fg);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.2s ease;
+}
+
+.saveListBtn:hover {
+  border-color: var(--fg-subtle);
+  color: var(--fg-strong);
+  background: var(--border-soft);
+}
+
+.saveListBtn:active {
+  transform: scale(0.97);
+}
+
+.icon {
+  font-size: 14px;
+  font-weight: bold;
+}
